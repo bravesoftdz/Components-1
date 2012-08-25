@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.146,=Jcl.dcp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.140,=vcl.dcp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.589,D:\Bonecode\Components\Eyedat.dproj=C:\Users\Bonecode\Documents\RAD Studio\Projects\Package1.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.862,=D:\Bonecode\Components\ETDFileInput\Scanf.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.794,=D:\Bonecode\Components\ETDFileInput\ETDFileInput.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.090,=rtl.dcp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.883,=D:\Bonecode\Components\ETDFileInput\Scanf_c.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.178,=D:\Bonecode\Components\EyedatContainer\EyedatContainer.pas</Transaction>
+  </Transactions>
+</BorlandProject>

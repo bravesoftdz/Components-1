@@ -1,0 +1,72 @@
+package Standard;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS OFF}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE RELEASE}
+{$ENDIF IMPLICITBUILDING}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl,
+  vclx,
+  JvCore,
+  vclimg,
+  dbrtl,
+  JclVcl,
+  Jcl,
+  JvStdCtrls,
+  JvSystem,
+  VirtualTreesR,
+  vcldb,
+  vclactnband,
+  NxCommonRun_xe2,
+  NxGridRun_xe2,
+  NxDBGridRun_xe2,
+  EhLib160;
+
+contains
+  BCFileControl in 'Controls\BCFileControl.pas',
+  BCPageControl in 'Controls\BCPageControl.pas',
+  BCPopupMenu in 'Controls\BCPopupMenu.pas',
+  BCStringGrid in 'Controls\BCStringGrid.pas',
+  BCDBEdit in 'Controls\BCDBEdit.pas',
+  BCDBComboBox in 'Controls\BCDBComboBox.pas',
+  BCEdit in 'Controls\BCEdit.pas',
+  BCComboBox in 'Controls\BCComboBox.pas',
+  BCSpinEdit in 'Controls\BCSpinEdit.pas',
+  BCImageList in 'Controls\BCImageList.pas',
+  BCToolBar in 'Controls\BCToolBar.pas',
+  BCButtonedEdit in 'Controls\BCButtonedEdit.pas',
+  HelpSystem in 'HelpSystem\HelpSystem.pas',
+  hh in 'HelpSystem\hh.pas',
+  hh_funcs in 'HelpSystem\hh_funcs.pas',
+  ThdTimer in 'ThdTimer\ThdTimer.pas',
+  TimeRuler in 'TimeRuler\TimeRuler.pas',
+  BCDBGrid in 'Controls\BCDBGrid.pas',
+  BCCheckBox in 'Controls\BCCheckBox.pas',
+  BCProgressPanel in 'Controls\BCProgressPanel.pas';
+
+end.
+

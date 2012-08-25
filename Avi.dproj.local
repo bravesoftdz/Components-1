@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.894,=D:\Bonecode\Components\VideoForWindows\VideoForWindows.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.740,=rtl.dcp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.880,=D:\Bonecode\Components\AviWriter\AviWriter.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.341,=D:\Bonecode\Components\AviWriter\AviWriter.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.640,=D:\Bonecode\Components\AviReader\AviReader.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.001,C:\Users\Bonecode\Documents\RAD Studio\Projects\Package1.dproj=D:\Bonecode\Components\AviWriter\Avi.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.088,=vcl.dcp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.492,=D:\Bonecode\Components\AviReader\AviReader.pas</Transaction>
+  </Transactions>
+</BorlandProject>

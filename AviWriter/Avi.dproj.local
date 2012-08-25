@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <Transactions>
+    <Transaction>2012.06.25 22:00:42.740,=rtl.dcp</Transaction>
+    <Transaction>2012.06.25 22:01:20.640,=D:\Bonecode\Components\AviReader\AviReader.pas</Transaction>
+    <Transaction>2012.06.25 22:01:38.880,=D:\Bonecode\Components\AviWriter\AviWriter.pas</Transaction>
+    <Transaction>2012.06.25 22:01:55.001,D:\Bonecode\Components\AviWriter\Avi.dproj=C:\Users\Bonecode\Documents\RAD Studio\Projects\Package1.dproj</Transaction>
+    <Transaction>2012.06.25 22:02:04.088,=vcl.dcp</Transaction>
+  </Transactions>
+</BorlandProject>

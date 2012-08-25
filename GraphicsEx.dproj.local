@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.769,=D:\Bonecode\Components\GraphicEx\GraphicStringsFR.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.438,D:\Bonecode\Components\GraphicEx\GraphicStringsFR.pas=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.790,=D:\Bonecode\Components\GraphicEx\GraphicStringsRU.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.818,=rtl.dcp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.655,=D:\Bonecode\Components\GraphicEx\GraphicCompression.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.812,=D:\Bonecode\Components\GraphicEx\JPG.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.194,=vcl.dcp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.845,=D:\Bonecode\Components\GraphicEx\MZLib.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.701,=D:\Bonecode\Components\GraphicEx\GraphicStrings.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.591,=D:\Bonecode\Components\GraphicEx\GraphicColor.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.201,=vclimg.dcp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.683,=D:\Bonecode\Components\GraphicEx\GraphicEx.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.769,D:\Bonecode\Components\GraphicsEx.dproj=C:\Users\Bonecode\Documents\RAD Studio\Projects\Package1.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.410,D:\Bonecode\Components\GraphicEx\GraphicStringsRU.pas=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.748,=D:\Bonecode\Components\GraphicEx\GraphicStringsDE.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.110,D:\Bonecode\Components\GraphicEx\GraphicStringsDE.pas=</Transaction>
+  </Transactions>
+</BorlandProject>
