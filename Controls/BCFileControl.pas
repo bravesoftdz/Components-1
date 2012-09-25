@@ -431,7 +431,7 @@ begin
   if UpCase(NewDrive) <> UpCase(Drive) then
   begin
     FDrive := NewDrive;
-    //FRootDirectory := NewDrive;
+    FRootDirectory := NewDrive + ':\';
     if not (csDesigning in ComponentState) then
       BuildTree(FRootDirectory, False);
   end
