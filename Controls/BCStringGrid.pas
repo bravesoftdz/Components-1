@@ -74,7 +74,7 @@ end;
 procedure TBCStringGrid.Click;
 var
   where: TPoint;
-  ACol, ARow: integer;
+  //ACol, ARow: integer;
   Rect, btnRect: TRect;
   s: TSize;
 begin
@@ -83,19 +83,16 @@ begin
   begin
     FInMouseClick := True;
     try
-      if InBooleanCols(ACol) then
+      if InBooleanCols(Col) then
       begin
-        //Get clicked coordinates and cell:
-        where := Mouse.CursorPos;
-        where := ScreenToClient(where);
-        MouseToCell(where.x, where.y, ACol, ARow);
-        if ARow > 0 then
+        {MouseToCell(where.x, where.y, ACol, ARow);   }
+        if Row > 0 then
         begin
           //Get buttonrect for clicked cell:
           //btnRect := GetBtnRect(ACol, ARow, false);
           s.cx := GetSystemMetrics(SM_CXMENUCHECK);
           s.cy := GetSystemMetrics(SM_CYMENUCHECK);
-          Rect := CellRect(ACol, ARow);
+          Rect := CellRect(Col, Row);
           btnRect.Top := Rect.Top + (Rect.Bottom - Rect.Top - s.cy) div 2;
           btnRect.Bottom := btnRect.Top + s.cy;
           btnRect.Left := Rect.Left + CELL_PADDING;
@@ -104,12 +101,15 @@ begin
           InflateRect(btnrect, 2, 2);  //Allow 2px 'error-range'...
 
           //Check if clicked inside buttonrect:
+          //Get clicked coordinates and cell:
+          where := Mouse.CursorPos;
+          where := ScreenToClient(where);
           if PtInRect(btnRect, where) then
           begin
-            if Cells[ACol, ARow] = 'True' then
-              Cells[ACol, ARow] := 'False'
+            if Cells[Col, Row] = 'True' then
+              Cells[Col, Row] := 'False'
             else
-              Cells[ACol, ARow] := 'True'
+              Cells[Col, Row] := 'True'
           end;
         end;
       end

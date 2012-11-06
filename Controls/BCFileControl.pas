@@ -396,10 +396,10 @@ begin
   DragOperations := [];
   Header.Options := [];
   IncrementalSearch := isAll;
-  Indent := 16;
+  Indent := 20; //16;
   EditDelay := 500;
 
-  TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes];
+  TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoChangeScale, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes];
   TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick];
   TreeOptions.PaintOptions := [toShowBackground, toShowButtons, toShowDropmark, toShowRoot, toUseBlendedSelection, {toUseBlendedImages,} toThemeAware {, toUseExplorerTheme}];
 
