@@ -41,9 +41,6 @@ requires
   VirtualTreesR,
   vcldb,
   vclactnband,
-  NxCommonRun_xe2,
-  NxGridRun_xe2,
-  NxDBGridRun_xe2,
   EhLib160;
 
 contains

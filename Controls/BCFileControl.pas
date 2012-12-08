@@ -793,6 +793,8 @@ begin
     if not Assigned(Data) then
       Exit;
 
+    Canvas.Font.Color := clWindowText;
+    Canvas.Font.Style := [];
     if LStyles.Enabled then
       Color := LStyles.GetStyleColor(scEdit);
 
