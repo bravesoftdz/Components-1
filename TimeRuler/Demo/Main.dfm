@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 225
   Top = 460
   Caption = 'TTimeRuler Component Demo'
-  ClientHeight = 485
+  ClientHeight = 467
   ClientWidth = 960
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,14 +15,14 @@ object Form1: TForm1
   OnShow = FormShow
   DesignSize = (
     960
-    485)
+    467)
   PixelsPerInch = 96
   TextHeight = 13
   object TimeRuler1: TTimeRuler
     Left = 0
     Top = 0
     Width = 960
-    Height = 75
+    Height = 61
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
@@ -59,7 +59,7 @@ object Form1: TForm1
     DisabledBackground = clBtnFace
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -13
+    Font.Height = -11
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
@@ -70,7 +70,7 @@ object Form1: TForm1
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 466
+    Top = 448
     Width = 960
     Height = 19
     Margins.Left = 4
@@ -78,12 +78,13 @@ object Form1: TForm1
     Margins.Right = 4
     Margins.Bottom = 4
     Panels = <>
+    ExplicitTop = 466
   end
   object GroupBox1: TGroupBox
     Left = 9
-    Top = 77
+    Top = 65
     Width = 941
-    Height = 381
+    Height = 373
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
@@ -97,9 +98,10 @@ object Form1: TForm1
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 2
+    ExplicitHeight = 380
     DesignSize = (
       941
-      381)
+      373)
     object Label1: TLabel
       Left = 20
       Top = 94
@@ -662,7 +664,7 @@ object Form1: TForm1
     end
     object Button1: TButton
       Left = 847
-      Top = 335
+      Top = 328
       Width = 75
       Height = 30
       Margins.Left = 4

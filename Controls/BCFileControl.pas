@@ -317,7 +317,7 @@ begin
     else
     { change selected item }
     for Item := 0 to Items.Count - 1 do
-      if NewDrive = TDriveComboFile(Items.Objects[Item]).Drive then
+      if UpCase(NewDrive) = TDriveComboFile(Items.Objects[Item]).Drive then
       begin
         ItemIndex := Item;
         break;

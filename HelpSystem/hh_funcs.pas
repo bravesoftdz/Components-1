@@ -714,8 +714,8 @@ begin
          then HelpCallback1(Data)           //Call back
          else Self.HelpContext( Data );     //Call help
      end;
-   HELP_SETPOPUP_POS: //call #1 of F1 Popup (Whats This) help
-     FPopupXY := SmallPointToPoint(TSmallPoint(Data));           //data = x,y pos for popup
+   //HELP_SETPOPUP_POS: //call #1 of F1 Popup (Whats This) help
+   //  FPopupXY := SmallPointToPoint(TSmallPoint(Data));           //data = x,y pos for popup
    Help_ContextPopup: //call #2 of F1 Popup (Whats This) help
      begin
        if Assigned(HelpCallback2)
