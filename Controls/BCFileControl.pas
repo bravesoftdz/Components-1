@@ -188,7 +188,7 @@ procedure Register;
 implementation
 
 uses
-  Vcl.Forms, Winapi.ShellAPI, Winapi.ShlObj, Winapi.ActiveX, Vcl.Dialogs, Vcl.Themes;
+  Vcl.Forms, Winapi.ShellAPI, Winapi.ShlObj, Winapi.ActiveX, Vcl.Dialogs, Vcl.Themes, Language;
 
 const
   FILE_ATTRIBUTES = FILE_ATTRIBUTE_READONLY or FILE_ATTRIBUTE_HIDDEN or FILE_ATTRIBUTE_SYSTEM or FILE_ATTRIBUTE_ARCHIVE or FILE_ATTRIBUTE_NORMAL or FILE_ATTRIBUTE_DIRECTORY;
@@ -1023,7 +1023,7 @@ begin
     begin
       MessageBeep(MB_ICONHAND);
       if Length(S) > 0 then
-        MessageDlg(Format('Error - Invalid Name: %s', [S]), mtError, [mbOK], 0);
+        MessageDlg(Format('%s %s', [LanguageDataModule.ConstantMultiStringHolder.StringsByName['InvalidName'].Text, S]), mtError, [mbOK], 0);
       Exit;
     end;
 
@@ -1031,7 +1031,7 @@ begin
     NewDirName := Data.FullPath + S;
     if OldDirName = NewDirName then
       Exit;
-    if MessageDlg(Format('Do you want to rename %s to %s?', [ExtractFileName(OldDirName),
+    if MessageDlg(Format(LanguageDataModule.ConstantMultiStringHolder.StringsByName['Rename'].Text, [ExtractFileName(OldDirName),
       ExtractFileName(NewDirName)]), mtConfirmation, [mbYes, mbNo], 0) = mrNo then
       Exit;
     FTree.SetFocus;

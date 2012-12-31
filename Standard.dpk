@@ -65,7 +65,10 @@ contains
   BCCheckBox in 'Controls\BCCheckBox.pas',
   BCProgressPanel in 'Controls\BCProgressPanel.pas',
   Border in 'Controls\Border.pas',
-  Cards in 'Controls\Cards.pas';
+  Cards in 'Controls\Cards.pas',
+  Language in '..\..\Common\units\Language.pas' {LanguageDataModule: TDataModule},
+  BigIni in '..\..\Common\units\BigIni.pas';
 
 end.
+
 
