@@ -1023,7 +1023,7 @@ begin
     begin
       MessageBeep(MB_ICONHAND);
       if Length(S) > 0 then
-        MessageDlg(Format('%s %s', [LanguageDataModule.ConstantMultiStringHolder.StringsByName['InvalidName'].Text, S]), mtError, [mbOK], 0);
+        MessageDlg(Format('%s %s', [LanguageDataModule.GetConstant('InvalidName'), S]), mtError, [mbOK], 0);
       Exit;
     end;
 
@@ -1031,7 +1031,7 @@ begin
     NewDirName := Data.FullPath + S;
     if OldDirName = NewDirName then
       Exit;
-    if MessageDlg(Format(LanguageDataModule.ConstantMultiStringHolder.StringsByName['Rename'].Text, [ExtractFileName(OldDirName),
+    if MessageDlg(Format(LanguageDataModule.GetConstant('Rename'), [ExtractFileName(OldDirName),
       ExtractFileName(NewDirName)]), mtConfirmation, [mbYes, mbNo], 0) = mrNo then
       Exit;
     FTree.SetFocus;
