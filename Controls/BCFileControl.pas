@@ -170,7 +170,7 @@ type
     FNode: PVirtualNode;       // The node being edited.
     FColumn: Integer;          // The column of the node being edited.
   protected
-    procedure EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure EditKeyPress(Sender: TObject; var Key: Char);
   public
     destructor Destroy; override;
 
@@ -975,21 +975,20 @@ begin
   inherited;
 end;
 
-procedure TEditLink.EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TEditLink.EditKeyPress(Sender: TObject; var Key: Char);
 begin
   case Key of
-    VK_ESCAPE:
+    #27:
       begin
         FTree.CancelEditNode;
-        Key := 0;
+        Key := #0;
       end;
-    VK_RETURN:
+    #13:
       begin
         FTree.EndEditNode;
-        Key := 0;
+        Key := #0;
       end;
   end;
-  //inherited;
 end;
 
 function TEditLink.BeginEdit: Boolean;
@@ -1076,7 +1075,7 @@ begin
     Parent := Tree;
     Flat := True;
     Text := Data.FileName;
-    OnKeyDown := EditKeyDown;
+    OnKeyPress := EditKeyPress;
   end;
 end;
 
