@@ -575,7 +575,10 @@ begin
     Exit;
 
   Data := GetNodeData(TreeNode);
-  Result := IncludeTrailingBackslash(Data.FullPath) + Data.Filename;
+
+  Result := IncludeTrailingBackslash(Data.FullPath);
+  if System.SysUtils.FileExists(Result + Data.Filename) then
+    Result := Result + Data.Filename;
 end;
 
 procedure TBCFileTreeView.OpenPath(RootDirectory: string; DirectoryPath: string; ExcludeOtherBranches: Boolean);
