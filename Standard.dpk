@@ -41,7 +41,10 @@ requires
   VirtualTreesR,
   vcldb,
   vclactnband,
-  EhLib160;
+  EhLib160,
+  SynEdit_RXE2,
+  SynWeb_DXE2,
+  JvCmp;
 
 contains
   BCFileControl in 'Controls\BCFileControl.pas',
@@ -67,7 +70,9 @@ contains
   Border in 'Controls\Border.pas',
   Cards in 'Controls\Cards.pas',
   Language in '..\..\Common\units\Language.pas' {LanguageDataModule: TDataModule},
-  BigIni in '..\..\Common\units\BigIni.pas';
+  BigIni in '..\..\Common\units\BigIni.pas',
+  BCSynEdit in 'Controls\BCSynEdit.pas',
+  Encoding in '..\..\Common\units\Encoding.pas';
 
 end.
 
