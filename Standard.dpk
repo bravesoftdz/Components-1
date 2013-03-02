@@ -44,7 +44,9 @@ requires
   EhLib160,
   SynEdit_RXE2,
   SynWeb_DXE2,
-  JvCmp;
+  JvCmp,
+  dac160,
+  odac160;
 
 contains
   BCFileControl in 'Controls\BCFileControl.pas',
@@ -72,7 +74,8 @@ contains
   Language in '..\..\Common\units\Language.pas' {LanguageDataModule: TDataModule},
   BigIni in '..\..\Common\units\BigIni.pas',
   BCSynEdit in 'Controls\BCSynEdit.pas',
-  Encoding in '..\..\Common\units\Encoding.pas';
+  Encoding in '..\..\Common\units\Encoding.pas',
+  BCOraSynEdit in 'Controls\BCOraSynEdit.pas';
 
 end.
 

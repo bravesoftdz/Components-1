@@ -261,10 +261,12 @@ end;
 procedure TBCCustomDriveComboBox.GetSystemIcons;
 var
   SHFileInfo: TSHFileInfo;
+  PathInfo: string;
 begin
   FileIconInit(True);
   FSystemIconsImageList := TImageList.Create(Self);
-  FSystemIconsImageList.Handle := SHGetFileInfo('', 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
+  //PathInfo := 'dummy';
+  FSystemIconsImageList.Handle := SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
 end;
 
 procedure TBCCustomDriveComboBox.BuildList;
@@ -286,7 +288,7 @@ begin
     begin
       Drv := chr(ord('A') + lp1) + ':\';
       try
-        SHGetFileInfo(PChar(Drv), 0, SHFileInfo, SizeOf(TSHFileInfo), SHGFI_SYSICONINDEX or SHGFI_DISPLAYNAME or SHGFI_TYPENAME);
+        SHGetFileInfo(PChar(Drv), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_SYSICONINDEX or SHGFI_DISPLAYNAME or SHGFI_TYPENAME);
         DriveComboFile := TDriveComboFile.Create;
         DriveComboFile.Drive := chr(ord('A') + lp1);
         DriveComboFile.IconIndex := SHFileInfo.iIcon;
@@ -407,8 +409,10 @@ begin
   FShowArchive := True;
   FShowSystem := False;
 
+  FileIconInit(True);
   Images := TImageList.Create(Self);
-  SysImageList := SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(TSHFileInfo), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
+ // PathInfo := 'dummy';
+  SysImageList := SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
   if SysImageList <> 0 then
   begin
     Images.Handle := SysImageList;
@@ -456,14 +460,14 @@ begin
     Result := Path;
 end;
 
-function GetIconIndex(Name: string; Flags: Cardinal): Integer;
+function GetIconIndex(Path: string; Flags: Cardinal): Integer;
 var
-  SFI: TSHFileInfo;
+  SHFileInfo: TSHFileInfo;
 begin
-  if SHGetFileInfo(PChar(Name), 0, SFI, SizeOf(TSHFileInfo), Flags) = 0 then
+  if SHGetFileInfo(PChar(Path), 0, SHFileInfo, SizeOf(SHFileInfo), Flags) = 0 then
     Result := -1
   else
-    Result := SFI.iIcon;
+    Result := SHFileInfo.iIcon;
 end;
 
 function TBCFileTreeView.GetCloseIcon(Path: string): integer;
@@ -738,17 +742,16 @@ begin
 end;
 
 function IsDirectoryEmpty(const directory : string) : boolean;
- var
-   searchRec :TSearchRec;
- begin
-   try
-    result := (FindFirst(directory+'\*.*', faAnyFile, searchRec) = 0) AND
-              (FindNext(searchRec) = 0) AND
-              (FindNext(searchRec) <> 0) ;
-   finally
-     System.SysUtils.FindClose(searchRec) ;
-   end;
- end;
+var
+  SearchRec :TSearchRec;
+begin
+  try
+    Result := (FindFirst(directory+'\*.*', faAnyFile, searchRec) = 0) and
+      (FindNext(searchRec) = 0) and (FindNext(searchRec) <> 0);
+  finally
+    System.SysUtils.FindClose(searchRec);
+  end;
+end;
 
 procedure TBCFileTreeView.DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates);
 var

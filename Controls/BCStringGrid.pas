@@ -147,7 +147,9 @@ begin
   if (ARow < FixedRows) then
   begin
     if not LStyles.GetElementColor(LStyles.GetElementDetails(thHeaderItemNormal), ecTextColor, LColor) or (LColor = clNone) then
-      LColor := LStyles.GetSystemColor(clWindowText);
+      LColor := LStyles.GetSystemColor(clWindowText)
+    else
+      LColor := clWindowText;
     header := ARect;
     if Assigned(TStyleManager.ActiveStyle) then
       if TStyleManager.ActiveStyle.Name <> 'Windows' then
@@ -182,15 +184,18 @@ begin
   if (ARow >= FixedRows) and not IsHidden(ACol, ARow) then
   begin
     if not LStyles.GetElementColor(LStyles.GetElementDetails(tgCellNormal), ecTextColor, LColor) or  (LColor = clNone) then
-      LColor := LStyles.GetSystemColor(clWindowText);
+      LColor := LStyles.GetSystemColor(clWindowText)
+    else
+      LColor := clWindowText;
     //get and set the background color
-    Canvas.Brush.Color := LStyles.GetStyleColor(scListView);
+    if LStyles.Enabled then
+      Canvas.Brush.Color := LStyles.GetStyleColor(scListView);
     Canvas.Font.Color := LColor;
 
     if UseThemes and (gdSelected in AState) then
     begin
-       Canvas.Brush.Color := LStyles.GetSystemColor(clHighlight);
-       Canvas.Font.Color := LStyles.GetSystemColor(clHighlightText);
+      Canvas.Brush.Color := LStyles.GetSystemColor(clHighlight);
+      Canvas.Font.Color := LStyles.GetSystemColor(clHighlightText);
     end
     else
     if not UseThemes and (gdSelected in AState) then
@@ -259,7 +264,9 @@ begin
       LDetails := LStyles.GetElementDetails(tgCellNormal);
 
     if not LStyles.GetElementColor(LDetails, ecTextColor, LColor) or (LColor = clNone) then
-      LColor := LStyles.GetSystemColor(clWindowText);
+      LColor := LStyles.GetSystemColor(clWindowText)
+    else
+      LColor := clWindowText;
 
     Canvas.Font.Color := LColor;
 
@@ -282,7 +289,7 @@ begin
 
   if Assigned(OnDrawCell) then
     inherited DrawCell(ACol, ARow, ARect, AState)
-  
+
 end;
 (*
 var
