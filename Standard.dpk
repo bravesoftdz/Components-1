@@ -75,7 +75,8 @@ contains
   BigIni in '..\..\Common\units\BigIni.pas',
   BCSynEdit in 'Controls\BCSynEdit.pas',
   Encoding in '..\..\Common\units\Encoding.pas',
-  BCOraSynEdit in 'Controls\BCOraSynEdit.pas';
+  BCOraSynEdit in 'Controls\BCOraSynEdit.pas',
+  BCUnicodeStringHolder in 'Controls\BCUnicodeStringHolder.pas';
 
 end.
 

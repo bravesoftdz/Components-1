@@ -19,7 +19,7 @@ type
   private
     { Private declarations }
     FDrive: Char;
-    FIconIndex: Byte;
+    FIconIndex: Integer;
     FFileTreeView: TBCFileTreeView;
     FSystemIconsImageList: TImageList;
     procedure SetFileTreeView(Value: TBCFileTreeView);
@@ -42,7 +42,7 @@ type
     property Drive: Char read GetDrive write SetDrive;
     property FileTreeView: TBCFileTreeView read FFileTreeView write SetFileTreeView;
     property SystemIconsImageList: TImageList read FSystemIconsImageList;
-    property IconIndex: Byte read FIconIndex;
+    property IconIndex: Integer read FIconIndex;
   end;
 
   TBCDriveComboBox = class(TBCCustomDriveComboBox)
@@ -100,7 +100,7 @@ type
     FileType: TBCFileType;
     FullPath, Filename: UnicodeString;
     //Attributes: Cardinal;
-    OpenIndex, CloseIndex: Byte;
+    OpenIndex, CloseIndex: Integer;
   end;
 
   { FMargin must be added to get the button click ok: VirtualTrees.pas 19927:   if Offset < Indent + FMargin then }
@@ -188,7 +188,8 @@ procedure Register;
 implementation
 
 uses
-  Vcl.Forms, Winapi.ShellAPI, Winapi.ShlObj, Winapi.ActiveX, Vcl.Dialogs, Vcl.Themes, Language;
+  Vcl.Forms, Winapi.ShellAPI, Winapi.ShlObj, Winapi.ActiveX, Vcl.Dialogs, Vcl.Themes, Language,
+  BCImageList;
 
 const
   FILE_ATTRIBUTES = FILE_ATTRIBUTE_READONLY or FILE_ATTRIBUTE_HIDDEN or FILE_ATTRIBUTE_SYSTEM or FILE_ATTRIBUTE_ARCHIVE or FILE_ATTRIBUTE_NORMAL or FILE_ATTRIBUTE_DIRECTORY;
@@ -410,8 +411,7 @@ begin
   FShowSystem := False;
 
   FileIconInit(True);
-  Images := TImageList.Create(Self);
- // PathInfo := 'dummy';
+  Images := TBCImageList.Create(Self);
   SysImageList := SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
   if SysImageList <> 0 then
   begin
@@ -470,7 +470,7 @@ begin
     Result := SHFileInfo.iIcon;
 end;
 
-function TBCFileTreeView.GetCloseIcon(Path: string): integer;
+function TBCFileTreeView.GetCloseIcon(Path: string): Integer;
 begin
   Result := GetIconIndex(Path, SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
 end;
