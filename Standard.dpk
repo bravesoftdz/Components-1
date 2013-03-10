@@ -50,7 +50,6 @@ requires
 
 contains
   BCFileControl in 'Controls\BCFileControl.pas',
-  BCPageControl in 'Controls\BCPageControl.pas',
   BCPopupMenu in 'Controls\BCPopupMenu.pas',
   BCStringGrid in 'Controls\BCStringGrid.pas',
   BCDBEdit in 'Controls\BCDBEdit.pas',
@@ -76,7 +75,8 @@ contains
   BCSynEdit in 'Controls\BCSynEdit.pas',
   Encoding in '..\..\Common\units\Encoding.pas',
   BCOraSynEdit in 'Controls\BCOraSynEdit.pas',
-  BCUnicodeStringHolder in 'Controls\BCUnicodeStringHolder.pas';
+  BCUnicodeStringHolder in 'Controls\BCUnicodeStringHolder.pas',
+  BCPageControl in 'Controls\BCPageControl.pas';
 
 end.
 

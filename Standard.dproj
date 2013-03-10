@@ -122,7 +122,6 @@
 			<DCCReference Include="dac160.dcp"/>
 			<DCCReference Include="odac160.dcp"/>
 			<DCCReference Include="Controls\BCFileControl.pas"/>
-			<DCCReference Include="Controls\BCPageControl.pas"/>
 			<DCCReference Include="Controls\BCPopupMenu.pas"/>
 			<DCCReference Include="Controls\BCStringGrid.pas"/>
 			<DCCReference Include="Controls\BCDBEdit.pas"/>
@@ -152,6 +151,7 @@
 			<DCCReference Include="..\..\Common\units\Encoding.pas"/>
 			<DCCReference Include="Controls\BCOraSynEdit.pas"/>
 			<DCCReference Include="Controls\BCUnicodeStringHolder.pas"/>
+			<DCCReference Include="Controls\BCPageControl.pas"/>
 			<BuildConfiguration Include="Debug">
 				<Key>Cfg_2</Key>
 				<CfgParent>Base</CfgParent>
