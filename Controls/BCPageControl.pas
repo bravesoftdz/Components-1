@@ -202,7 +202,8 @@ end;
 {$if CompilerVersion >= 23 }
 class constructor TBCPageControl.Create;
 begin
-  //TStyleManager.Engine.RegisterStyleHook(TCustomTabControl, TTabControlStyleHookBtnClose);
+  inherited;
+  TStyleManager.Engine.RegisterStyleHook(TCustomTabControl, TTabControlStyleHookBtnClose);
 end;
 {$ifend}
 
