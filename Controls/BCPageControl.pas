@@ -28,6 +28,7 @@ type
     FTabDragDrop: Boolean;
     FShowCloseButton: Boolean;
     FHoldShiftToDragDrop: Boolean;
+    FOnCloseButtonClick: TNotifyEvent;
     function PageIndexFromTabIndex(TabIndex: Integer): Integer;
     procedure SetShowCloseButton(Value: Boolean);
   protected
@@ -46,6 +47,7 @@ type
     property TabDragDrop: Boolean read FTabDragDrop write FTabDragDrop;
     property HoldShiftToDragDrop: Boolean read FHoldShiftToDragDrop write FHoldShiftToDragDrop;
     property ShowCloseButton: Boolean read FShowCloseButton write SetShowCloseButton;
+    property OnCloseButtonClick: TNotifyEvent read FOnCloseButtonClick write FOnCloseButtonClick;
   end;
 
 procedure Register;
@@ -109,15 +111,13 @@ begin
       Exit;
 
   LPoint := Message.Pos;
-  for LIndex := 0 to TabCount-1 do
+  for LIndex := 0 to TabCount - 1 do
   if PtInRect(GetButtonCloseRect(LIndex), LPoint) then
   begin
-    if Control is TBCPageControl then
-    begin
-      TBCPageControl(Control).Pages[LIndex].Parent := nil;
-      TBCPageControl(Control).Pages[LIndex].Free;
-      TBCPageControl(Control).Repaint;
-    end;
+    if Assigned(TBCPageControl(Control).FOnCloseButtonClick) then
+      TBCPageControl(Control).FOnCloseButtonClick(Self);
+    { stop dragging }
+    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
     Break;
   end;
 end;
