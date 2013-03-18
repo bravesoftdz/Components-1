@@ -59,6 +59,7 @@ uses
 
 const
   SPACE_FOR_TAB_CLOSE_BUTTON = '      ';
+  SPACE_FOR_TAB_CLOSE_BUTTON_CARBON = '         ';
 
 procedure Register;
 begin
@@ -225,7 +226,12 @@ begin
   begin
     Pages[i].Caption := Trim(Pages[i].Caption);
     if ShowCloseButton and (TStyleManager.ActiveStyle.Name <> 'Windows') then
-      Pages[i].Caption := Pages[i].Caption + SPACE_FOR_TAB_CLOSE_BUTTON;
+    begin
+      if TStyleManager.ActiveStyle.Name <> 'Carbon' then
+        Pages[i].Caption := Pages[i].Caption + SPACE_FOR_TAB_CLOSE_BUTTON
+      else
+        Pages[i].Caption := Pages[i].Caption + SPACE_FOR_TAB_CLOSE_BUTTON_CARBON
+    end;
   end;
 end;
 
