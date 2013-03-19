@@ -12,7 +12,7 @@ type
     FHotIndex: Integer;
     FWidthModified: Boolean;
     procedure WMMouseMove(var Message: TMessage); message WM_MOUSEMOVE;
-    procedure WMLButtonUp(var Message: TWMMouse); message WM_LBUTTONUP;
+    procedure WMLButtonDown(var Message: TWMMouse); message WM_LBUTTONDOWN;
     function GetButtonCloseRect(Index: Integer): TRect;
   strict protected
     procedure DrawTab(Canvas: TCanvas; Index: Integer); override;
@@ -102,7 +102,7 @@ begin
     StyleServices.DrawElement(Canvas.Handle, Details, ButtonR);
 end;
 
-procedure TTabControlStyleHookBtnClose.WMLButtonUp(var Message: TWMMouse);
+procedure TTabControlStyleHookBtnClose.WMLButtonDown(var Message: TWMMouse);
 var
   LPoint: TPoint;
   LIndex: Integer;
@@ -110,15 +110,13 @@ begin
   if Control is TBCPageControl then
     if not TBCPageControl(Control).ShowCloseButton then
       Exit;
-
   LPoint := Message.Pos;
   for LIndex := 0 to TabCount - 1 do
   if PtInRect(GetButtonCloseRect(LIndex), LPoint) then
   begin
+    TBCPageControl(Control).ActivePageIndex := LIndex;
     if Assigned(TBCPageControl(Control).FOnCloseButtonClick) then
-      TBCPageControl(Control).FOnCloseButtonClick(Self);
-    { stop dragging }
-   // mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+      TBCPageControl(Control).OnCloseButtonClick(Self);
     Break;
   end;
 end;
