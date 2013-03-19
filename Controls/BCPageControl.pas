@@ -118,7 +118,7 @@ begin
     if Assigned(TBCPageControl(Control).FOnCloseButtonClick) then
       TBCPageControl(Control).FOnCloseButtonClick(Self);
     { stop dragging }
-    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+   // mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
     Break;
   end;
 end;
