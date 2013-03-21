@@ -14,8 +14,7 @@ type
     function InBooleanCols(ACol: Integer): Boolean;
   protected
     { Protected declarations }
-    procedure DrawCell(ACol, ARow: Longint; ARect: TRect;
-      AState: TGridDrawState); override;
+    procedure DrawCell(ACol, ARow: Longint; ARect: TRect; AState: TGridDrawState); override;
   public
     { Public declarations }
     procedure Click; override;
@@ -74,22 +73,17 @@ end;
 procedure TBCStringGrid.Click;
 var
   where: TPoint;
-  //ACol, ARow: integer;
   Rect, btnRect: TRect;
   s: TSize;
 begin
-  //Again, check to avoid recursion:
   if not FInMouseClick then
   begin
     FInMouseClick := True;
     try
       if InBooleanCols(Col) then
       begin
-        {MouseToCell(where.x, where.y, ACol, ARow);   }
         if Row > 0 then
         begin
-          //Get buttonrect for clicked cell:
-          //btnRect := GetBtnRect(ACol, ARow, false);
           s.cx := GetSystemMetrics(SM_CXMENUCHECK);
           s.cy := GetSystemMetrics(SM_CYMENUCHECK);
           Rect := CellRect(Col, Row);
@@ -289,126 +283,6 @@ begin
 
   if Assigned(OnDrawCell) then
     inherited DrawCell(ACol, ARow, ARect, AState)
-
 end;
-(*
-var
-  h: HTHEME;
-  s: TSize;
-  r, header, LRect: TRect;
-  InCBCols: Boolean;
-
-  function Checked: Boolean;
-  begin
-    if Cells[ACol, ARow] = 'True' then
-      Result := True
-    else
-      Result := False
-  end;
-begin
-  inherited;
-  InCBCols := InBooleanCols(ACol);
-  if InCBCols and (ARow = 0) then
-  begin  // ACol is zero based
-     Canvas.Brush.Color := FixedColor;
-     Canvas.FillRect(ARect);
-     Canvas.Brush.Style := bsClear;
-
-    if UseThemes then
-    begin
-      header := ARect;
-      header.Right := header.Right + 1;
-      header.Bottom := header.Bottom + 2;
-
-      StyleServices.DrawElement(Canvas.Handle, StyleServices.GetElementDetails(thHeaderItemNormal), header);
-    end;
-
-    DrawText(Canvas.Handle,
-      Cells[ACol, ARow],
-      Length(Cells[ACol, ARow]),
-      ARect,
-      DT_SINGLELINE or DT_VCENTER or DT_CENTER);
-  end;
-
-  if InCBCols and (ARow >= 1) then
-  begin
-    if not UseThemes and (gdSelected in AState) then
-    begin
-       Canvas.Brush.Color := clHighlight;
-       Canvas.Font.Color := clHighlightText;
-    end
-    else
-      Canvas.Brush.Color := Color;
-    Canvas.FillRect(ARect);
-    Canvas.Brush.Style := bsClear;
-    if (gdSelected in AState) then
-    begin
-      if UseThemes then
-      begin
-        LRect := ARect;
-
-        if (ACol >= FixedCols + 1) and (ACol < ColCount - 1) then
-          InflateRect(LRect, 4, 0)
-        else
-        if ACol = FixedCols then
-          Inc(LRect.Right, 4)
-        else
-        if ACol = (ColCount - 1) then
-          Dec(LRect.Left, 5);
-
-        h := StyleServices.Theme[teMenu];
-        DrawThemeBackground(h, Canvas.Handle, MENU_POPUPITEM, MPI_HOT,
-          LRect, {$IFNDEF CLR}@{$ENDIF}ARect);
-      end;
-    end;
-    s.cx := GetSystemMetrics(SM_CXMENUCHECK);
-    s.cy := GetSystemMetrics(SM_CYMENUCHECK);
-    if UseThemes then
-    begin
-      h := OpenThemeData(Handle, 'BUTTON');
-      if h <> 0 then
-        try
-          GetThemePartSize(h,
-            Canvas.Handle,
-            BP_CHECKBOX,
-            CBS_CHECKEDNORMAL,
-            nil,
-            TS_DRAW,
-            s);
-          r.Top := ARect.Top + (ARect.Bottom - ARect.Top - s.cy) div 2;
-          r.Bottom := r.Top + s.cy;
-          r.Left := ARect.Left + CELL_PADDING;
-          r.Right := r.Left + s.cx;
-
-          DrawThemeBackground(h,
-            Canvas.Handle,
-            BP_CHECKBOX,
-            IfThen(Checked, CBS_CHECKEDNORMAL, CBS_UNCHECKEDNORMAL),
-            r,
-            nil);
-        finally
-          CloseThemeData(h);
-        end;
-    end
-    else
-    begin
-      r.Top := ARect.Top + (ARect.Bottom - ARect.Top - s.cy) div 2;
-      r.Bottom := r.Top + s.cy;
-      r.Left := ARect.Left + CELL_PADDING;
-      r.Right := r.Left + s.cx;
-      DrawFrameControl(Canvas.Handle,
-        r,
-        DFC_BUTTON,
-        IfThen(Checked, DFCS_CHECKED, DFCS_BUTTONCHECK));
-    end;
-
-    r := Classes.Rect(r.Right + CELL_PADDING, ARect.Top, ARect.Right, ARect.Bottom);
-    DrawText(Canvas.Handle,
-      Cells[ACol, ARow],
-      length(Cells[ACol, ARow]),
-      r,
-      DT_SINGLELINE or DT_VCENTER or DT_LEFT or DT_END_ELLIPSIS);
-  end;
-end;   *)
 
 end.
