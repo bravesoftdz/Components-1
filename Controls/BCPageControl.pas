@@ -35,6 +35,7 @@ type
     { Protected declarations }
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
     procedure DragOver(Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean); override;
+    procedure Change; override;
   public
     { Public declarations }
     {$if CompilerVersion >= 23 }
@@ -231,6 +232,12 @@ begin
         Pages[i].Caption := Pages[i].Caption + SPACE_FOR_TAB_CLOSE_BUTTON_CARBON
     end;
   end;
+end;
+
+procedure TBCPageControl.Change;
+begin
+  inherited;
+  //SetShowCloseButton(FShowCloseButton);
 end;
 
 function TBCPageControl.PageIndexFromTabIndex(TabIndex: Integer): Integer;

@@ -113,30 +113,16 @@ type
     FRootDirectory: string;
     FDefaultDirectoryPath: string;
     FExcludeOtherBranches: Boolean;
-    //FSystemIconsImageList: TImageList;
     procedure DriveChange(NewDrive: Char);
     procedure SetDrive(Value: Char);
     function IncludeTrailingBackslash(Path: string): string;
-    {function IsDirectory(dWin32FD: TWin32FindData): Boolean;
-    function IsHidden(dWin32FD: TWin32FindData): Boolean;
-    function IsSystem(dWin32FD: TWin32FindData): Boolean;
-    function IsArchive(dWin32FD: TWin32FindData): Boolean; }
-//    function HasSubs(sPath: string): Boolean;
     function GetCloseIcon(Path: string): Integer;
     function GetOpenIcon(Path: string): Integer;
     procedure BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);
     function GetSelectedPath: string;
     function GetSelectedFile: string;
-//    function GetSelectedNode: PVirtualNode;
-  //  function ReadAttributes(const Name: UnicodeString): Cardinal;
   protected
-    //procedure ExpandNode(Node: TTreeNode);
-    //procedure Expanding(Sender: TObject; Node: TTreeNode; var AllowExpansion: Boolean);
-//    function MakePath(Node: PVirtualNode): string;
-//    procedure AddSubs(Path: string; Node: PVirtualNode);
-//    procedure Edit(const Item: TTVItem); override;
     function DeleteTreeNode(Node: PVirtualNode): Boolean;
-
     procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
     procedure DoFreeNode(Node: PVirtualNode); override;
     procedure DoPaintNode(var PaintInfo: TVTPaintInfo); override;
@@ -167,13 +153,12 @@ type
   private
     FEdit: TBCEdit;
     FTree: TVirtualDrawTree; // A back reference to the tree calling.
-    FNode: PVirtualNode;       // The node being edited.
-    FColumn: Integer;          // The column of the node being edited.
+    FNode: PVirtualNode; // The node being edited.
+    FColumn: Integer; // The column of the node being edited.
   protected
     procedure EditKeyPress(Sender: TObject; var Key: Char);
   public
     destructor Destroy; override;
-
     function BeginEdit: Boolean; stdcall;
     function CancelEdit: Boolean; stdcall;
     function EndEdit: Boolean; stdcall;
@@ -404,7 +389,7 @@ begin
 
   TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoChangeScale, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes];
   TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick];
-  TreeOptions.PaintOptions := [toShowBackground, toShowButtons, toShowDropmark, toShowRoot, toUseBlendedSelection, {toUseBlendedImages,} toThemeAware {, toUseExplorerTheme}];
+  TreeOptions.PaintOptions := [toShowBackground, toShowButtons, toShowDropmark, toShowRoot, toUseBlendedSelection, {toUseBlendedImages,} toThemeAware , toUseExplorerTheme];
 
   FShowHidden := False;
   FShowArchive := True;
@@ -419,6 +404,8 @@ begin
     Images.BkColor := ClNone;
     Images.ShareImages := True;
   end;
+
+  //Self.node
 
   FDrive := #0;
 end;
@@ -484,7 +471,6 @@ procedure TBCFileTreeView.BuildTree(RootDirectory: string; ExcludeOtherBranches:
 var
   FindFile: Integer;
   ANode: PVirtualNode;
-  //Win32FD: TWin32FindData;
   SR: TSearchRec;
   FileName: string;
   Data: PBCFileTreeNodeRec;
@@ -511,7 +497,7 @@ begin
       if (SR.Name <> '.') and (SR.Name <> '..') then
       begin
         ANode := AddChild(nil);
-
+        Include(ANode.States, vsInitialUserData);
         Data := GetNodeData(ANode);
         if not ExcludeOtherBranches then
           FileName := FDrive + ':\' + SR.Name
@@ -770,16 +756,7 @@ var
 begin
   inherited;
   Data := GetNodeData(Node);
-  if Assigned(Data) then
-  begin
-    Data^.FileType := ftNone;
-    Data^.FullPath := '';
-    Data^.Filename := '';
-    //Attributes: Cardinal;
-    Data^.OpenIndex := 0;
-    Data^.CloseIndex := 0;
-  end;
-  //Finalize(Data^); // Clear string data.
+  Finalize(Data^);
 end;
 
 procedure TBCFileTreeView.DoPaintNode(var PaintInfo: TVTPaintInfo);
@@ -937,6 +914,7 @@ begin
         if (SR.Name <> '.') and (SR.Name <> '..') then
         begin
           ChildNode := AddChild(Node);
+          Include(ChildNode.States, vsInitialUserData);
           ChildData := GetNodeData(ChildNode);
 
           if (SR.Attr and faDirectory <> 0) then
@@ -952,7 +930,6 @@ begin
           ChildData.Filename := SR.Name;
           ChildData.CloseIndex := GetOpenIcon(FName);
           ChildData.OpenIndex := GetCloseIcon(FName);
-         // ChildData.Attributes := ReadAttributes(FName);
           ValidateNode(Node, False);
         end;
       until FindNext(SR) <> 0;
