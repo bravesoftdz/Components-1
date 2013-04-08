@@ -31,11 +31,13 @@ type
     FOnCloseButtonClick: TNotifyEvent;
     function PageIndexFromTabIndex(TabIndex: Integer): Integer;
     procedure SetShowCloseButton(Value: Boolean);
+    procedure SetPageCaption(Page: TTabSheet);
   protected
     { Protected declarations }
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
+    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
     procedure DragOver(Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean); override;
-    procedure Change; override;
+    //procedure DrawTab(TabIndex: Integer; const Rect: TRect; Active: Boolean); override;
   public
     { Public declarations }
     {$if CompilerVersion >= 23 }
@@ -215,6 +217,18 @@ begin
   FHoldShiftToDragDrop := False;
 end;
 
+procedure TBCPageControl.SetPageCaption(Page: TTabSheet);
+begin
+  Page.Caption := Trim(Page.Caption);
+  if ShowCloseButton and (TStyleManager.ActiveStyle.Name <> 'Windows') then
+  begin
+    if TStyleManager.ActiveStyle.Name <> 'Carbon' then
+      Page.Caption := Page.Caption + SPACE_FOR_TAB_CLOSE_BUTTON
+    else
+      Page.Caption := Page.Caption + SPACE_FOR_TAB_CLOSE_BUTTON_CARBON
+  end;
+end;
+
 procedure TBCPageControl.SetShowCloseButton(Value: Boolean);
 var
   i: Integer;
@@ -222,23 +236,14 @@ begin
   FShowCloseButton := Value;
   { update tab captions }
   for i := 0 to PageCount - 1 do
-  begin
-    Pages[i].Caption := Trim(Pages[i].Caption);
-    if ShowCloseButton and (TStyleManager.ActiveStyle.Name <> 'Windows') then
-    begin
-      if TStyleManager.ActiveStyle.Name <> 'Carbon' then
-        Pages[i].Caption := Pages[i].Caption + SPACE_FOR_TAB_CLOSE_BUTTON
-      else
-        Pages[i].Caption := Pages[i].Caption + SPACE_FOR_TAB_CLOSE_BUTTON_CARBON
-    end;
-  end;
+    SetPageCaption(Pages[i]);
 end;
 
-procedure TBCPageControl.Change;
+{procedure TBCPageControl.DrawTab(TabIndex: Integer; const Rect: TRect; Active: Boolean);
 begin
   inherited;
-  //SetShowCloseButton(FShowCloseButton);
-end;
+  SetPageCaption(ActivePage);
+end; }
 
 function TBCPageControl.PageIndexFromTabIndex(TabIndex: Integer): Integer;
 var
@@ -311,6 +316,15 @@ begin
   end
   else
     inherited MouseDown(Button, Shift, X, Y);
+end;
+
+procedure TBCPageControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer);
+begin
+  if FTabDragDrop then
+    if Dragging then
+      EndDrag(True)
+  else
+    inherited MouseUp(Button, Shift, X, Y);
 end;
 
 end.
