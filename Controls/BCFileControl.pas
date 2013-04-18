@@ -497,7 +497,16 @@ begin
       if (SR.Name <> '.') and (SR.Name <> '..') then
       begin
         ANode := AddChild(nil);
-        Include(ANode.States, vsInitialUserData);
+        //Include(ANode.States, vsInitialUserData);
+        {
+          There's a bug in VirtualTrees.pas, comment following lines:
+
+          function TBaseVirtualTree.GetNodeData(Node: PVirtualNode): Pointer;
+          ...
+          //if ([vsInitialized, vsInitialUserData] * Node.States = []) then
+          //  InitNode(Node);
+          ...
+        }
         Data := GetNodeData(ANode);
         if not ExcludeOtherBranches then
           FileName := FDrive + ':\' + SR.Name
