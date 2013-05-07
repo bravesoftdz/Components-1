@@ -51,6 +51,7 @@ type
     property HoldShiftToDragDrop: Boolean read FHoldShiftToDragDrop write FHoldShiftToDragDrop;
     property ShowCloseButton: Boolean read FShowCloseButton write SetShowCloseButton;
     property OnCloseButtonClick: TNotifyEvent read FOnCloseButtonClick write FOnCloseButtonClick;
+    property OnDblClick;
   end;
 
 procedure Register;
@@ -215,6 +216,7 @@ begin
   FTabDragDrop := False;
   FShowCloseButton := False;
   FHoldShiftToDragDrop := False;
+  ControlStyle := ControlStyle + [csClickEvents];
 end;
 
 procedure TBCPageControl.SetPageCaption(Page: TTabSheet);
