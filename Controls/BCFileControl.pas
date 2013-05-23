@@ -923,7 +923,7 @@ begin
         if (SR.Name <> '.') and (SR.Name <> '..') then
         begin
           ChildNode := AddChild(Node);
-          Include(ChildNode.States, vsInitialUserData);
+          //Include(ChildNode.States, vsInitialUserData);
           ChildData := GetNodeData(ChildNode);
 
           if (SR.Attr and faDirectory <> 0) then
