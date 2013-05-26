@@ -59,9 +59,10 @@ end;
 
 procedure TBCComboBox.KeyPress(var Key: Char);
 begin
-  inherited;
   if FDKS or ReadOnly then
-    Key := #0;
+    Key := #0
+  else
+    inherited;
 end;
 
 procedure TBCComboBox.CMEnter(var Message: TCMEnter);
@@ -143,6 +144,7 @@ begin
 end;
 
 end.
+
 
 
 
