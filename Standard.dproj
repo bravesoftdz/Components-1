@@ -142,16 +142,16 @@
 			<DCCReference Include="Controls\BCProgressPanel.pas"/>
 			<DCCReference Include="Controls\Border.pas"/>
 			<DCCReference Include="Controls\Cards.pas"/>
-			<DCCReference Include="..\..\Common\units\Language.pas">
-				<Form>LanguageDataModule</Form>
-				<DesignClass>TDataModule</DesignClass>
-			</DCCReference>
 			<DCCReference Include="..\..\Common\units\BigIni.pas"/>
 			<DCCReference Include="Controls\BCSynEdit.pas"/>
 			<DCCReference Include="..\..\Common\units\Encoding.pas"/>
 			<DCCReference Include="Controls\BCOraSynEdit.pas"/>
 			<DCCReference Include="Controls\BCUnicodeStringHolder.pas"/>
 			<DCCReference Include="Controls\BCPageControl.pas"/>
+			<DCCReference Include="..\..\Common\units\Language.pas">
+				<Form>LanguageDataModule</Form>
+				<DesignClass>TDataModule</DesignClass>
+			</DCCReference>
 			<BuildConfiguration Include="Debug">
 				<Key>Cfg_2</Key>
 				<CfgParent>Base</CfgParent>

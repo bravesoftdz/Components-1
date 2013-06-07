@@ -70,13 +70,13 @@ contains
   BCProgressPanel in 'Controls\BCProgressPanel.pas',
   Border in 'Controls\Border.pas',
   Cards in 'Controls\Cards.pas',
-  Language in '..\..\Common\units\Language.pas' {LanguageDataModule: TDataModule},
   BigIni in '..\..\Common\units\BigIni.pas',
   BCSynEdit in 'Controls\BCSynEdit.pas',
   Encoding in '..\..\Common\units\Encoding.pas',
   BCOraSynEdit in 'Controls\BCOraSynEdit.pas',
   BCUnicodeStringHolder in 'Controls\BCUnicodeStringHolder.pas',
-  BCPageControl in 'Controls\BCPageControl.pas';
+  BCPageControl in 'Controls\BCPageControl.pas',
+  Language in '..\..\Common\units\Language.pas' {LanguageDataModule: TDataModule};
 
 end.
 
