@@ -43,7 +43,9 @@ requires
   vclactnband,
   SynEdit_RXE4,
   SynWeb_DXE4,
-  JvCmp;
+  JvCmp,
+  dac180,
+  odac180;
 
 contains
   BCFileControl in 'Controls\BCFileControl.pas',
@@ -71,7 +73,8 @@ contains
   Encoding in '..\..\Common\units\Encoding.pas',
   BCUnicodeStringHolder in 'Controls\BCUnicodeStringHolder.pas',
   BCPageControl in 'Controls\BCPageControl.pas',
-  Language in '..\..\Common\units\Language.pas' {LanguageDataModule: TDataModule};
+  Language in '..\..\Common\units\Language.pas' {LanguageDataModule: TDataModule},
+  BCOraSynEdit in 'Controls\BCOraSynEdit.pas';
 
 end.
 
