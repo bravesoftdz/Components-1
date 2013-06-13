@@ -96,7 +96,9 @@ end;
 {$if CompilerVersion >= 23 }
 class constructor TBCSynEdit.Create;
 begin
-  TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
+  inherited;
+  if Assigned(TStyleManager.Engine) then
+    TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
 end;
 {$ifend}
 

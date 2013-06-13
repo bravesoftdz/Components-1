@@ -41,12 +41,9 @@ requires
   VirtualTreesR,
   vcldb,
   vclactnband,
-  EhLib160,
-  SynEdit_RXE2,
-  SynWeb_DXE2,
-  JvCmp,
-  dac160,
-  odac160;
+  SynEdit_RXE4,
+  SynWeb_DXE4,
+  JvCmp;
 
 contains
   BCFileControl in 'Controls\BCFileControl.pas',
@@ -65,7 +62,6 @@ contains
   hh_funcs in 'HelpSystem\hh_funcs.pas',
   ThdTimer in 'ThdTimer\ThdTimer.pas',
   TimeRuler in 'TimeRuler\TimeRuler.pas',
-  BCDBGrid in 'Controls\BCDBGrid.pas',
   BCCheckBox in 'Controls\BCCheckBox.pas',
   BCProgressPanel in 'Controls\BCProgressPanel.pas',
   Border in 'Controls\Border.pas',
@@ -73,7 +69,6 @@ contains
   BigIni in '..\..\Common\units\BigIni.pas',
   BCSynEdit in 'Controls\BCSynEdit.pas',
   Encoding in '..\..\Common\units\Encoding.pas',
-  BCOraSynEdit in 'Controls\BCOraSynEdit.pas',
   BCUnicodeStringHolder in 'Controls\BCUnicodeStringHolder.pas',
   BCPageControl in 'Controls\BCPageControl.pas',
   Language in '..\..\Common\units\Language.pas' {LanguageDataModule: TDataModule};

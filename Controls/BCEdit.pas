@@ -40,6 +40,9 @@ procedure Register;
 
 implementation
 
+uses
+  System.UITypes;
+
 resourcestring
   TEXT_SET_VALUE = 'Set value %s.';
 

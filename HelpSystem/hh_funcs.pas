@@ -54,7 +54,8 @@ uses Windows,   //This line will not compile under Delphi 1 -- D1 is not support
      Forms,
      ShellApi,
      Registry,
-     FileCtrl;
+     FileCtrl,
+     System.AnsiStrings;
 
 const Delphi2009Version=20;
 
@@ -454,7 +455,7 @@ var
 
 function _IsSingleByte(const S: AnsiString; Index: Integer): Boolean;
 begin
-  Result := (not SysUtils.SysLocale.FarEast) and (SysUtils.ByteType(S, Index) = mbSingleByte);
+  Result := (not SysUtils.SysLocale.FarEast) and (System.AnsiStrings.ByteType(S, Index) = mbSingleByte);
 end;
 
 {Use this popup means we don't have to use Borland Dialogs Unit
@@ -1351,7 +1352,8 @@ function StrPosC(const s: AnsiString; const find: AnsiString): Integer;
 var p: PAnsiChar;
 begin
 {$IFDEF D3PLUS} // -- Delphi >=3
-  p := AnsiStrPos( PAnsiChar(s) , PAnsiChar(find) );   //double byte safe
+//p := AnsiStrPos( PAnsiChar(s) , PAnsiChar(find) );
+  p := System.AnsiStrings.AnsiStrPos( PAnsiChar(s) , PAnsiChar(find) );   //double byte safe
 {$ELSE}         // -- Delphi 2
   p := StrPos( PAnsiChar(s) , PAnsiChar(find) );   //double byte safe
 {$ENDIF}
