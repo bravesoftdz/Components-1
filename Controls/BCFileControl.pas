@@ -405,10 +405,9 @@ begin
     Images.ShareImages := True;
   end;
 
-  //Self.node
-
   FDrive := #0;
 end;
+
 
 destructor TBCFileTreeView.Destroy;
 begin
