@@ -70,13 +70,13 @@
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
-        <DCC_UsePackage>vclx;vcl;vclactnband;vclimg;vcldb;Jcl;JclVcl;JvCore;JvSystem;JvStdCtrls;VirtualTreesR;EhLib160;NxGridRun_xe2;NxCommonRun_xe2;NxDBGridRun_xe2;SynEdit_RXE2;odac160;dac160;JvCmp;SynEdit_RXE4;dac180;odac180;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>vclx;vcl;vclactnband;vclimg;vcldb;Jcl;JclVcl;JvCore;JvSystem;JvStdCtrls;VirtualTreesR;EhLib160;NxGridRun_xe2;NxCommonRun_xe2;NxDBGridRun_xe2;SynEdit_RXE2;odac160;dac160;JvCmp;SynEdit_RXE4;dac180;odac180;EhLib180;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Icon_MainIcon>Standard_Icon1.ico</Icon_MainIcon>
-        <DCC_UsePackage>vclx;vcl;vclactnband;vclimg;vcldb;EhLib160;NxGridRun_xe2;NxCommonRun_xe2;NxDBGridRun_xe2;SynEdit_RXE2;SynEdit_RXE4;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>vclx;vcl;vclactnband;vclimg;vcldb;EhLib160;NxGridRun_xe2;NxCommonRun_xe2;NxDBGridRun_xe2;SynEdit_RXE2;SynEdit_RXE4;EhLib180;$(DCC_UsePackage)</DCC_UsePackage>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
@@ -119,6 +119,7 @@
         <DCCReference Include="JvCmp.dcp"/>
         <DCCReference Include="dac180.dcp"/>
         <DCCReference Include="odac180.dcp"/>
+        <DCCReference Include="EhLib180.dcp"/>
         <DCCReference Include="Controls\BCFileControl.pas"/>
         <DCCReference Include="Controls\BCPopupMenu.pas"/>
         <DCCReference Include="Controls\BCStringGrid.pas"/>
@@ -149,6 +150,7 @@
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>
         <DCCReference Include="Controls\BCOraSynEdit.pas"/>
+        <DCCReference Include="Controls\BCDBGrid.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

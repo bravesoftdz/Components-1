@@ -45,7 +45,8 @@ requires
   SynWeb_DXE4,
   JvCmp,
   dac180,
-  odac180;
+  odac180,
+  EhLib180;
 
 contains
   BCFileControl in 'Controls\BCFileControl.pas',
@@ -74,7 +75,8 @@ contains
   BCUnicodeStringHolder in 'Controls\BCUnicodeStringHolder.pas',
   BCPageControl in 'Controls\BCPageControl.pas',
   Language in '..\..\Common\units\Language.pas' {LanguageDataModule: TDataModule},
-  BCOraSynEdit in 'Controls\BCOraSynEdit.pas';
+  BCOraSynEdit in 'Controls\BCOraSynEdit.pas',
+  BCDBGrid in 'Controls\BCDBGrid.pas';
 
 end.
 
