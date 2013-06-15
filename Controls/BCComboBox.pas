@@ -3,10 +3,10 @@ unit BCComboBox;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, JvComboBox, Dialogs;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Vcl.StdCtrls, Dialogs;
 
 type
-  TBCComboBox = class(TJvComboBox)
+  TBCComboBox = class(TComboBox)
   private
     { Private declarations }
     FItemWidth : Integer;
