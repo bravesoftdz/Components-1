@@ -152,7 +152,7 @@ type
   TEditLink = class(TInterfacedObject, IVTEditLink)
   private
     FEdit: TBCEdit;
-    FTree: TVirtualDrawTree; // A back reference to the tree calling.
+    FTree: TBCFileTreeView; //TVirtualDrawTree; // A back reference to the tree calling.
     FNode: PVirtualNode; // The node being edited.
     FColumn: Integer; // The column of the node being edited.
   protected
@@ -1051,7 +1051,7 @@ var
   Data: PBCFileTreeNodeRec;
 begin
   Result := True;
-  FTree := Tree as TVirtualDrawTree;
+  FTree := Tree as TBCFileTreeView; //TVirtualDrawTree;
   FNode := Node;
   FColumn := Column;
 
@@ -1064,6 +1064,8 @@ begin
   begin
     Visible := False;
     Parent := Tree;
+    FEdit.Font.Name := FTree.Canvas.Font.Name;
+    FEdit.Font.Size := FTree.Canvas.Font.Size;
     Flat := True;
     Text := Data.FileName;
     OnKeyPress := EditKeyPress;
