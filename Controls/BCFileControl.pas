@@ -93,17 +93,13 @@ type
 
   TBCFileType = (ftNone, ftDirectory, ftFile);
 
-  //TBCFileTreeNode = class
-  //private
   PBCFileTreeNodeRec = ^TBCFileTreeNodeRec;
   TBCFileTreeNodeRec = record
     FileType: TBCFileType;
     FullPath, Filename: UnicodeString;
-    //Attributes: Cardinal;
     OpenIndex, CloseIndex: Integer;
   end;
 
-  { FMargin must be added to get the button click ok: VirtualTrees.pas 19927:   if Offset < Indent + FMargin then }
   TBCFileTreeView = class(TVirtualDrawTree)
   private
     FDrive: Char;
@@ -152,7 +148,7 @@ type
   TEditLink = class(TInterfacedObject, IVTEditLink)
   private
     FEdit: TBCEdit;
-    FTree: TBCFileTreeView; //TVirtualDrawTree; // A back reference to the tree calling.
+    FTree: TBCFileTreeView; // A back reference to the tree calling.
     FNode: PVirtualNode; // The node being edited.
     FColumn: Integer; // The column of the node being edited.
   protected

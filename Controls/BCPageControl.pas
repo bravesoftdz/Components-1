@@ -3,8 +3,7 @@ unit BCPageControl;
 interface
 
 uses
-  System.SysUtils, System.Classes, Vcl.Controls, Vcl.ComCtrls, JvExComCtrls, JvComCtrls, Winapi.Messages,
-  JvCtrls, System.Types, Vcl.Graphics;
+  System.SysUtils, System.Classes, Vcl.Controls, Vcl.ComCtrls, Winapi.Messages, System.Types, Vcl.Graphics;
 
 type
   TTabControlStyleHookBtnClose = class(TTabControlStyleHook)
@@ -22,7 +21,7 @@ type
     constructor Create(AControl: TWinControl); override;
   end;
 
-  TBCPageControl = class(TJvPageControl)
+  TBCPageControl = class(TPageControl)
   private
     { Private declarations }
     FTabDragDrop: Boolean;

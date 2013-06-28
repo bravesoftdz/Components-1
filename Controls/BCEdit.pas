@@ -7,6 +7,8 @@ uses
   StdCtrls, JvEdit;
 
 type
+  TValidateEvent = procedure(Sender:TObject; var Error: Boolean) of Object;
+
   TBCEdit = class(TJvEdit)
   private
     { Private declarations }
@@ -15,6 +17,8 @@ type
     FNumwSpots: Boolean;
     FNegativeNumbers: Boolean;
     FEditColor: TColor;
+    FErrorColor: TColor;
+    FOnValidate: TValidateEvent;
     procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
     procedure WMKillFocus(var Message: TWMSetFocus); message WM_KILLFOCUS;
     procedure SetEditable(Value: Boolean);
@@ -32,8 +36,10 @@ type
     property NumbersWithDots: Boolean read FNumwDots write FNumwDots;
     property NumbersWithSpots: Boolean read FNumwSpots write FNumwSpots;
     property EditColor: TColor read FEditColor write FEditColor;
+    property ErrorColor: TColor read FErrorColor write FErrorColor;
     property NumbersAllowNegative: Boolean read FNegativeNumbers write FNegativeNumbers;
     property Editable: Boolean write SetEditable;
+    property OnValidate: TValidateEvent read FOnValidate write FOnValidate;
   end;
 
 procedure Register;
@@ -54,16 +60,24 @@ end;
 constructor TBCEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FOnlyNum := false;
+  FOnlyNum := False;
   FNegativeNumbers := False;
   FEditColor := clInfoBk;
+  FErrorColor := $00E1E0FE;
 end;
 
 procedure TBCEdit.WMKillFocus(var Message: TWMSetFocus);
+var
+  Error: Boolean;
 begin
   inherited;
+  Error := False;
   if not readonly then
     Color := clWindow;
+  if Assigned(FOnValidate) then
+    FOnValidate(Self, Error);
+  if Error then
+    Color := FErrorColor;
 end;
 
 procedure TBCEdit.WMSetFocus(var Message: TWMSetFocus);
@@ -136,11 +150,9 @@ begin
   if Trim(Text) = '' then
   begin
     MessageDlg(Format(TEXT_SET_VALUE, [LowerCase(Hint)]), mtError, [mbOK], 0);
-    try
+    if CanFocus then
       SetFocus;
-    except
-    end;
-    exit;
+    Exit;
   end;
   Result := True;
 end;
