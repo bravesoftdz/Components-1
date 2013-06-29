@@ -65,15 +65,14 @@ contains
   TimeRuler in 'TimeRuler\TimeRuler.pas',
   BCControls.BCCheckBox in 'Controls\BCControls.BCCheckBox.pas',
   BCControls.BCProgressPanel in 'Controls\BCControls.BCProgressPanel.pas',
-  Border in 'Controls\Border.pas',
-  Cards in 'Controls\Cards.pas',
   BigIni in '..\..\Common\units\BigIni.pas',
   BCControls.BCSynEdit in 'Controls\BCControls.BCSynEdit.pas',
-  BCUnicodeStringHolder in 'Controls\BCUnicodeStringHolder.pas',
+  BCControls.BCUnicodeStringHolder in 'Controls\BCControls.BCUnicodeStringHolder.pas',
   BCControls.BCPageControl in 'Controls\BCControls.BCPageControl.pas',
   BCCommon.Language in '..\..\Common\units\BCCommon.Language.pas' {LanguageDataModule: TDataModule},
   BCControls.BCOraSynEdit in 'Controls\BCControls.BCOraSynEdit.pas',
   BCControls.BCDBGrid in 'Controls\BCControls.BCDBGrid.pas',
-  BCCommon.Encoding in '..\..\Common\units\BCCommon.Encoding.pas';
+  BCCommon.Encoding in '..\..\Common\units\BCCommon.Encoding.pas',
+  Cards in 'Cards\Cards.pas';
 
 end.
