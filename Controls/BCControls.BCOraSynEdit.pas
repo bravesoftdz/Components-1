@@ -1,4 +1,4 @@
-unit BCOraSynEdit;
+unit BCControls.BCOraSynEdit;
 
 interface
 

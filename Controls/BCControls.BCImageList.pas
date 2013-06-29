@@ -1,9 +1,9 @@
-unit BCImageList;
+unit BCControls.BCImageList;
 
 interface
 
 uses
-  Windows, SysUtils, Classes, ImgList, Controls, Graphics, CommCtrl;
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.ImgList, Vcl.Controls, Vcl.Graphics, Winapi.CommCtrl;
 
 type
   TBCImageList = class(TImageList)

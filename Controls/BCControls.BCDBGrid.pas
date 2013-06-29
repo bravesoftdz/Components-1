@@ -1,12 +1,10 @@
-unit BCDBGrid;
-
-{ Fix: DBGridEh.pas
-  3809: AColor := clBtnShadow; => AColor := HighlightColor; }
+unit BCControls.BCDBGrid;
 
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, DBGridEh;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, DBGridEhGrouping, ToolCtrlsEh, DBGridEhToolCtrls, GridsEh,
+  DBAxisGridsEh, DBGridEh;
 
 type
   TBCDBGrid = class(TDBGridEh)

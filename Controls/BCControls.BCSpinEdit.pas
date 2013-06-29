@@ -1,9 +1,9 @@
-unit BCSpinEdit;
+unit BCControls.BCSpinEdit;
 
 interface
 
 uses
-  SysUtils, Classes, Controls, StdCtrls, Mask, JvExMask, JvSpin, Graphics, Messages;
+  System.SysUtils, System.Classes, Vcl.Controls, Vcl.StdCtrls, Vcl.Mask, JvExMask, JvSpin, Vcl.Graphics, Winapi.Messages;
 
 type
   TBCSpinEdit = class(TJvSpinEdit)

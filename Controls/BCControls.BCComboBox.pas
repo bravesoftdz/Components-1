@@ -1,4 +1,4 @@
-unit BCComboBox;
+unit BCControls.BCComboBox;
 
 interface
 

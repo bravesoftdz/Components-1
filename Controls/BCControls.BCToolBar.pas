@@ -1,4 +1,4 @@
-unit BCToolBar;
+unit BCControls.BCToolBar;
 
 interface
 

@@ -1,10 +1,10 @@
-unit BCFileControl;
+unit BCControls.BCFileControl;
 
 interface
 
 uses
-  System.SysUtils, Classes, Controls, Graphics, StdCtrls, Messages, Types,
-  Windows, VirtualTrees, ImgList, BCEdit;
+  System.SysUtils, System.Classes, Vcl.Controls, Vcl.Graphics, Vcl.StdCtrls, Winapi.Messages, System.Types,
+  Winapi.Windows, VirtualTrees, Vcl.ImgList, BCControls.BCEdit;
 
 type
   TBCFileTreeView = class;
@@ -170,7 +170,7 @@ implementation
 
 uses
   Vcl.Forms, Winapi.ShellAPI, Winapi.ShlObj, Winapi.ActiveX, Vcl.Dialogs, Vcl.Themes, BCCommon.Language,
-  BCImageList, System.UITypes;
+  BCControls.BCImageList, System.UITypes;
 
 const
   FILE_ATTRIBUTES = FILE_ATTRIBUTE_READONLY or FILE_ATTRIBUTE_HIDDEN or FILE_ATTRIBUTE_SYSTEM or FILE_ATTRIBUTE_ARCHIVE or FILE_ATTRIBUTE_NORMAL or FILE_ATTRIBUTE_DIRECTORY;

@@ -1,31 +1,26 @@
-unit BCEdit;
+unit BCControls.BCDBEdit;
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, JvEdit;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  Vcl.StdCtrls, Vcl.Mask, Vcl.DBCtrls;
 
 type
-  TValidateEvent = procedure(Sender:TObject; var Error: Boolean) of Object;
-
-  TBCEdit = class(TJvEdit)
+  TBCDBEdit = class(TDBEdit)
   private
     { Private declarations }
+    FNumAllowNegative: Boolean;
     FOnlyNum: Boolean;
     FNumwDots: Boolean;
     FNumwSpots: Boolean;
-    FNegativeNumbers: Boolean;
     FEditColor: TColor;
-    FErrorColor: TColor;
-    FOnValidate: TValidateEvent;
     procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
     procedure WMKillFocus(var Message: TWMSetFocus); message WM_KILLFOCUS;
     procedure SetEditable(Value: Boolean);
   protected
     { Protected declarations }
     procedure KeyPress(var Key: Char); override;
-    procedure DoExit; override;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -33,13 +28,11 @@ type
   published
     { Published declarations }
     property OnlyNumbers: Boolean read FOnlyNum write FOnlyNum;
+    property NumbersAllowNegative: Boolean read FNumAllowNegative write FNumAllowNegative;
     property NumbersWithDots: Boolean read FNumwDots write FNumwDots;
     property NumbersWithSpots: Boolean read FNumwSpots write FNumwSpots;
     property EditColor: TColor read FEditColor write FEditColor;
-    property ErrorColor: TColor read FErrorColor write FErrorColor;
-    property NumbersAllowNegative: Boolean read FNegativeNumbers write FNegativeNumbers;
     property Editable: Boolean write SetEditable;
-    property OnValidate: TValidateEvent read FOnValidate write FOnValidate;
   end;
 
 procedure Register;
@@ -54,40 +47,32 @@ resourcestring
 
 procedure Register;
 begin
-  RegisterComponents('bonecode', [TBCEdit]);
+  RegisterComponents('bonecode', [TBCDBEdit]);
 end;
 
-constructor TBCEdit.Create(AOwner: TComponent);
+constructor TBCDBEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FNumAllowNegative := True;
   FOnlyNum := False;
-  FNegativeNumbers := False;
   FEditColor := clInfoBk;
-  FErrorColor := $00E1E0FE;
 end;
 
-procedure TBCEdit.WMKillFocus(var Message: TWMSetFocus);
-var
-  Error: Boolean;
+procedure TBCDBEdit.WMKillFocus(var Message: TWMSetFocus);
 begin
   inherited;
-  Error := False;
-  if not readonly then
-    Color := clWindow;
-  if Assigned(FOnValidate) then
-    FOnValidate(Self, Error);
-  if Error then
-    Color := FErrorColor;
+  if not ReadOnly then
+    Color := clwindow;
 end;
 
-procedure TBCEdit.WMSetFocus(var Message: TWMSetFocus);
+procedure TBCDBEdit.WMSetFocus(var Message: TWMSetFocus);
 begin
   inherited;
-  if not readonly then
+  if not ReadOnly then
     Color := FEditColor;
 end;
 
-procedure TBCEdit.KeyPress(var Key: Char);
+procedure TBCDBEdit.KeyPress(var Key: Char);
 var
   CharSet: set of AnsiChar;
 begin
@@ -102,7 +87,7 @@ begin
       if Pos(',', text) = 0 then
         CharSet := CharSet + [','];
     end;
-    if FNegativeNumbers then
+    if FNumAllowNegative then
       if Pos('-', text) = 0 then
         CharSet := CharSet + ['-'];
     if Pos('+', text) = 0 then
@@ -113,26 +98,14 @@ begin
   end;
 end;
 
-procedure TBCEdit.DoExit;
-var
-  szText: string;
-begin
-  if FOnlyNum then
-    if FNegativeNumbers then
-    begin
-      szText := Text;
-      if Pos('-', Text) > 1 then
-        Delete(szText, Pos('-', szText), 1);
-      Text := szText;
-    end;
-  inherited;
-end;
-
-procedure TBCEdit.SetEditable(Value: Boolean);
+procedure TBCDBEdit.SetEditable(Value: Boolean);
 begin
   if Value then
   begin
-    Color := clWindow;
+    if Focused then
+      Color := FEditColor
+    else
+      Color := clWindow;
     ReadOnly := False;
     TabStop := True;
   end
@@ -144,14 +117,16 @@ begin
   end;
 end;
 
-function TBCEdit.IsEmpty: Boolean;
+function TBCDBEdit.IsEmpty: Boolean;
 begin
   Result := False;
   if Trim(Text) = '' then
   begin
     MessageDlg(Format(TEXT_SET_VALUE, [LowerCase(Hint)]), mtError, [mbOK], 0);
-    if CanFocus then
+    try
       SetFocus;
+    except
+    end;
     Exit;
   end;
   Result := True;

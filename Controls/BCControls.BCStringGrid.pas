@@ -1,4 +1,4 @@
-unit BCStringGrid;
+unit BCControls.BCStringGrid;
 
 interface
 
