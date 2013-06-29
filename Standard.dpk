@@ -71,13 +71,11 @@ contains
   Cards in 'Controls\Cards.pas',
   BigIni in '..\..\Common\units\BigIni.pas',
   BCSynEdit in 'Controls\BCSynEdit.pas',
-  Encoding in '..\..\Common\units\Encoding.pas',
   BCUnicodeStringHolder in 'Controls\BCUnicodeStringHolder.pas',
   BCPageControl in 'Controls\BCPageControl.pas',
-  Language in '..\..\Common\units\Language.pas' {LanguageDataModule: TDataModule},
+  BCCommon.Language in '..\..\Common\units\BCCommon.Language.pas' {LanguageDataModule: TDataModule},
   BCOraSynEdit in 'Controls\BCOraSynEdit.pas',
-  BCDBGrid in 'Controls\BCDBGrid.pas';
+  BCDBGrid in 'Controls\BCDBGrid.pas',
+  BCCommon.Encoding in '..\..\Common\units\BCCommon.Encoding.pas';
 
 end.
-
-

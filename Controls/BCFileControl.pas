@@ -169,7 +169,7 @@ procedure Register;
 implementation
 
 uses
-  Vcl.Forms, Winapi.ShellAPI, Winapi.ShlObj, Winapi.ActiveX, Vcl.Dialogs, Vcl.Themes, Language,
+  Vcl.Forms, Winapi.ShellAPI, Winapi.ShlObj, Winapi.ActiveX, Vcl.Dialogs, Vcl.Themes, BCCommon.Language,
   BCImageList, System.UITypes;
 
 const

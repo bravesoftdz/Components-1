@@ -3,7 +3,7 @@ unit BCStringGrid;
 interface
 
 uses
-  SysUtils, Classes, Controls, Grids, Types, JvStringGrid;
+  System.SysUtils, System.Classes, Vcl.Controls, Vcl.Grids, System.Types, JvStringGrid;
 
 type
   TBCStringGrid = class(TJvStringGrid)
@@ -30,7 +30,7 @@ procedure Register;
 implementation
 
 uses
-  Windows, Themes, UxTheme, Graphics, Math, Vcl.GraphUtil;
+  Winapi.Windows, Vcl.Themes, Winapi.UxTheme, Vcl.Graphics, System.Math, Vcl.GraphUtil;
 
 const
   CELL_PADDING = 4;
@@ -286,3 +286,4 @@ begin
 end;
 
 end.
+

@@ -46,7 +46,7 @@ procedure Register;
 implementation
 
 uses
-  SynUnicode, Winapi.Windows, Vcl.Themes, Encoding;
+  SynUnicode, Winapi.Windows, Vcl.Themes, BCCommon.Encoding;
 
 procedure Register;
 begin
