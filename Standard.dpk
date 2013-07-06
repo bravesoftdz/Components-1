@@ -69,7 +69,7 @@ contains
   BCControls.BCSynEdit in 'Controls\BCControls.BCSynEdit.pas',
   BCControls.BCUnicodeStringHolder in 'Controls\BCControls.BCUnicodeStringHolder.pas',
   BCControls.BCPageControl in 'Controls\BCControls.BCPageControl.pas',
-  BCCommon.Language in '..\..\Common\units\BCCommon.Language.pas' {LanguageDataModule: TDataModule},
+  BCCommon.LanguageStrings in '..\..\Common\units\BCCommon.LanguageStrings.pas' {LanguageDataModule: TDataModule},
   BCControls.BCOraSynEdit in 'Controls\BCControls.BCOraSynEdit.pas',
   BCControls.BCDBGrid in 'Controls\BCControls.BCDBGrid.pas',
   BCCommon.Encoding in '..\..\Common\units\BCCommon.Encoding.pas',
