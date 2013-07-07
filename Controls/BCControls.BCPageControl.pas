@@ -13,6 +13,8 @@ type
     procedure WMMouseMove(var Message: TMessage); message WM_MOUSEMOVE;
     procedure WMLButtonDown(var Message: TWMMouse); message WM_LBUTTONDOWN;
     function GetButtonCloseRect(Index: Integer): TRect;
+    function GetImageIndex(TabIndex: Integer): Integer;
+    procedure AngleTextOut(Canvas: TCanvas; Angle, X, Y: Integer; const Text: string);
   strict protected
     procedure DrawTab(Canvas: TCanvas; Index: Integer); override;
     procedure MouseEnter; override;
@@ -41,7 +43,7 @@ type
     { Public declarations }
     {$if CompilerVersion >= 23 }
     class constructor Create;
-    {$ifend}
+    {$endif}
     constructor Create(AOwner: TComponent); override;
     procedure DragDrop(Source: TObject; X, Y: Integer); override;
   published
@@ -64,6 +66,9 @@ const
   SPACE_FOR_TAB_CLOSE_BUTTON = '      ';
   SPACE_FOR_TAB_CLOSE_BUTTON_CARBON = '         ';
 
+type
+  THackCustomTabControl = class(TCustomTabControl);
+
 procedure Register;
 begin
   RegisterComponents('bonecode', [TBCPageControl]);
@@ -78,14 +83,182 @@ begin
   FWidthModified := False;
 end;
 
+procedure TTabControlStyleHookBtnClose.AngleTextOut(Canvas: TCanvas; Angle, X,
+  Y: Integer; const Text: string);
+var
+  NewFontHandle, OldFontHandle: hFont;
+  LogRec: TLogFont;
+begin
+  GetObject(Canvas.Font.Handle, SizeOf(LogRec), Addr(LogRec));
+  LogRec.lfEscapement := Angle * 10;
+  LogRec.lfOrientation := LogRec.lfEscapement;
+  NewFontHandle := CreateFontIndirect(LogRec);
+  OldFontHandle := SelectObject(Canvas.Handle, NewFontHandle);
+  SetBkMode(Canvas.Handle, TRANSPARENT);
+  Canvas.TextOut(X, Y, Text);
+  NewFontHandle := SelectObject(Canvas.Handle, OldFontHandle);
+  DeleteObject(NewFontHandle);
+end;
+
+function TTabControlStyleHookBtnClose.GetImageIndex(TabIndex: Integer): Integer;
+begin
+  Result:=-1;
+  if (Control <> nil) and (Control is TCustomTabControl) then
+   Result:=THackCustomTabControl(Control).GetImageIndex(TabIndex);
+end;
+
 procedure TTabControlStyleHookBtnClose.DrawTab(Canvas: TCanvas; Index: Integer);
 var
   Details: TThemedElementDetails;
   ButtonR: TRect;
   FButtonState: TThemedWindow;
-begin
-  inherited;
 
+  R, LayoutR, GlyphR: TRect;
+  ImageWidth, ImageHeight, ImageStep, TX, TY: Integer;
+  DrawState: TThemedTab;
+  ThemeTextColor: TColor;
+  ImageIndex:Integer;
+begin
+  ImageIndex := GetImageIndex(Index); //get the real image index
+
+  if (Images <> nil) and (ImageIndex < Images.Count) then
+  begin
+    ImageWidth := Images.Width;
+    ImageHeight := Images.Height;
+    ImageStep := 3;
+  end
+  else
+  begin
+    ImageWidth := 0;
+    ImageHeight := 0;
+    ImageStep := 0;
+  end;
+
+  R := TabRect[Index];
+  if R.Left < 0 then Exit;
+
+  if TabPosition in [tpTop, tpBottom] then
+  begin
+    if Index = TabIndex then
+      InflateRect(R, 0, 2);
+  end
+  else if Index = TabIndex then
+    Dec(R.Left, 2) else Dec(R.Right, 2);
+
+  Canvas.Font.Assign(THackCustomTabControl(Control).Font);//access the original protected font property using a helper hack class
+  LayoutR := R;
+  DrawState := ttTabDontCare;
+  case TabPosition of
+    tpTop:
+      begin
+        if Index = TabIndex then
+          DrawState := ttTabItemSelected
+        else if (Index = HotTabIndex) and MouseInControl then
+          DrawState := ttTabItemHot
+        else
+          DrawState := ttTabItemNormal;
+      end;
+    tpLeft:
+      begin
+        if Index = TabIndex then
+          DrawState := ttTabItemLeftEdgeSelected
+        else if (Index = HotTabIndex) and MouseInControl then
+          DrawState := ttTabItemLeftEdgeHot
+        else
+          DrawState := ttTabItemLeftEdgeNormal;
+      end;
+    tpBottom:
+      begin
+        if Index = TabIndex then
+          DrawState := ttTabItemBothEdgeSelected
+        else if (Index = HotTabIndex) and MouseInControl then
+          DrawState := ttTabItemBothEdgeHot
+        else
+          DrawState := ttTabItemBothEdgeNormal;
+      end;
+    tpRight:
+      begin
+        if Index = TabIndex then
+          DrawState := ttTabItemRightEdgeSelected
+        else if (Index = HotTabIndex) and MouseInControl then
+          DrawState := ttTabItemRightEdgeHot
+        else
+          DrawState := ttTabItemRightEdgeNormal;
+      end;
+  end;
+
+  if StyleServices.Available then
+  begin
+    Details := StyleServices.GetElementDetails(DrawState);
+    StyleServices.DrawElement(Canvas.Handle, Details, R);
+  end;
+
+  if (Images <> nil) and (ImageIndex < Images.Count) then//check the bounds of the image index to draw
+  begin
+    GlyphR := LayoutR;
+    case TabPosition of
+      tpTop, tpBottom:
+        begin
+          GlyphR.Left := GlyphR.Left + ImageStep;
+          GlyphR.Right := GlyphR.Left + ImageWidth;
+          LayoutR.Left := GlyphR.Right;
+          GlyphR.Top := GlyphR.Top + (GlyphR.Bottom - GlyphR.Top) div 2 - ImageHeight div 2;
+          if (TabPosition = tpTop) and (Index = TabIndex) then
+            OffsetRect(GlyphR, 0, -1)
+          else if (TabPosition = tpBottom) and (Index = TabIndex) then
+            OffsetRect(GlyphR, 0, 1);
+        end;
+      tpLeft:
+        begin
+          GlyphR.Bottom := GlyphR.Bottom - ImageStep;
+          GlyphR.Top := GlyphR.Bottom - ImageHeight;
+          LayoutR.Bottom := GlyphR.Top;
+          GlyphR.Left := GlyphR.Left + (GlyphR.Right - GlyphR.Left) div 2 - ImageWidth div 2;
+        end;
+      tpRight:
+        begin
+          GlyphR.Top := GlyphR.Top + ImageStep;
+          GlyphR.Bottom := GlyphR.Top + ImageHeight;
+          LayoutR.Top := GlyphR.Bottom;
+          GlyphR.Left := GlyphR.Left + (GlyphR.Right - GlyphR.Left) div 2 - ImageWidth div 2;
+        end;
+    end;
+    if StyleServices.Available then
+      StyleServices.DrawIcon(Canvas.Handle, Details, GlyphR, Images.Handle, ImageIndex);//Here the Magic is made using the "real" imageindex of the tab
+  end;
+
+  if StyleServices.Available then
+  begin
+    if (TabPosition = tpTop) and (Index = TabIndex) then
+      OffsetRect(LayoutR, 0, -1)
+    else if (TabPosition = tpBottom) and (Index = TabIndex) then
+      OffsetRect(LayoutR, 0, 1);
+
+    if TabPosition = tpLeft then
+    begin
+      TX := LayoutR.Left + (LayoutR.Right - LayoutR.Left) div 2 -
+        Canvas.TextHeight(Tabs[Index]) div 2;
+      TY := LayoutR.Top + (LayoutR.Bottom - LayoutR.Top) div 2 +
+        Canvas.TextWidth(Tabs[Index]) div 2;
+     if StyleServices.GetElementColor(Details, ecTextColor, ThemeTextColor) then
+       Canvas.Font.Color := ThemeTextColor;
+      AngleTextOut(Canvas, 90, TX, TY, Tabs[Index]);
+    end
+    else if TabPosition = tpRight then
+    begin
+      TX := LayoutR.Left + (LayoutR.Right - LayoutR.Left) div 2 +
+        Canvas.TextHeight(Tabs[Index]) div 2;
+      TY := LayoutR.Top + (LayoutR.Bottom - LayoutR.Top) div 2 -
+        Canvas.TextWidth(Tabs[Index]) div 2;
+      if StyleServices.GetElementColor(Details, ecTextColor, ThemeTextColor)
+      then
+        Canvas.Font.Color := ThemeTextColor;
+      AngleTextOut(Canvas, -90, TX, TY, Tabs[Index]);
+    end
+    else
+      DrawControlText(Canvas, Details, Tabs[Index], LayoutR, DT_VCENTER or DT_CENTER or DT_SINGLELINE  or DT_NOCLIP);
+  end;
+  { Close button }
   if Control is TBCPageControl then
     if not TBCPageControl(Control).ShowCloseButton then
       Exit;
@@ -208,7 +381,7 @@ begin
   if Assigned(TStyleManager.Engine) then
     TStyleManager.Engine.RegisterStyleHook(TCustomTabControl, TTabControlStyleHookBtnClose);
 end;
-{$ifend}
+{$endif}
 
 constructor TBCPageControl.Create(AOwner: TComponent);
 begin
