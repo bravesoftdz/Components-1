@@ -31,9 +31,11 @@ type
     FHoldShiftToDragDrop: Boolean;
     FOnCloseButtonClick: TNotifyEvent;
     function PageIndexFromTabIndex(TabIndex: Integer): Integer;
+    function GetActivePageCaption: TCaption;
+    procedure SetActivePageCaption(Value: TCaption);
     procedure SetShowCloseButton(Value: Boolean);
     procedure SetPageCaption(Page: TTabSheet);
-    procedure UpdateTabCaptions;
+    procedure UpdateTabCaptions(OnlyActivePage: Boolean = False);
   protected
     { Protected declarations }
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
@@ -49,6 +51,7 @@ type
     procedure Invalidate; override;
   published
     { Published declarations }
+    property ActivePageCaption: TCaption read GetActivePageCaption write SetActivePageCaption;
     property TabDragDrop: Boolean read FTabDragDrop write FTabDragDrop;
     property HoldShiftToDragDrop: Boolean read FHoldShiftToDragDrop write FHoldShiftToDragDrop;
     property ShowCloseButton: Boolean read FShowCloseButton write SetShowCloseButton;
@@ -400,6 +403,17 @@ begin
   UpdateTabCaptions;
 end;
 
+function TBCPageControl.GetActivePageCaption: TCaption;
+begin
+  Result := Trim(ActivePage.Caption);
+end;
+
+procedure TBCPageControl.SetActivePageCaption(Value: TCaption);
+begin
+  ActivePage.Caption := Value;
+  UpdateTabCaptions(True);
+end;
+
 procedure TBCPageControl.SetPageCaption(Page: TTabSheet);
 begin
   Page.Caption := Trim(Page.Caption);
@@ -412,10 +426,13 @@ begin
   end;
 end;
 
-procedure TBCPageControl.UpdateTabCaptions;
+procedure TBCPageControl.UpdateTabCaptions(OnlyActivePage: Boolean);
 var
   i: Integer;
 begin
+  if OnlyActivePage then
+    SetPageCaption(ActivePage)
+  else
   for i := 0 to PageCount - 1 do
     SetPageCaption(Pages[i]);
 end;
