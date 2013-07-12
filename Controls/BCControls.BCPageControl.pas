@@ -33,12 +33,12 @@ type
     function PageIndexFromTabIndex(TabIndex: Integer): Integer;
     procedure SetShowCloseButton(Value: Boolean);
     procedure SetPageCaption(Page: TTabSheet);
+    procedure UpdateTabCaptions;
   protected
     { Protected declarations }
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
     procedure DragOver(Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean); override;
-    //procedure DrawTab(TabIndex: Integer; const Rect: TRect; Active: Boolean); override;
   public
     { Public declarations }
     {$if CompilerVersion >= 23 }
@@ -46,6 +46,7 @@ type
     {$endif}
     constructor Create(AOwner: TComponent); override;
     procedure DragDrop(Source: TObject; X, Y: Integer); override;
+    procedure Invalidate; override;
   published
     { Published declarations }
     property TabDragDrop: Boolean read FTabDragDrop write FTabDragDrop;
@@ -392,6 +393,13 @@ begin
   ControlStyle := ControlStyle + [csClickEvents];
 end;
 
+procedure TBCPageControl.Invalidate;
+begin
+  inherited Invalidate;
+
+  UpdateTabCaptions;
+end;
+
 procedure TBCPageControl.SetPageCaption(Page: TTabSheet);
 begin
   Page.Caption := Trim(Page.Caption);
@@ -404,21 +412,20 @@ begin
   end;
 end;
 
-procedure TBCPageControl.SetShowCloseButton(Value: Boolean);
+procedure TBCPageControl.UpdateTabCaptions;
 var
   i: Integer;
 begin
-  FShowCloseButton := Value;
-  { update tab captions }
   for i := 0 to PageCount - 1 do
     SetPageCaption(Pages[i]);
 end;
 
-{procedure TBCPageControl.DrawTab(TabIndex: Integer; const Rect: TRect; Active: Boolean);
+procedure TBCPageControl.SetShowCloseButton(Value: Boolean);
 begin
-  inherited;
-  SetPageCaption(ActivePage);
-end; }
+  FShowCloseButton := Value;
+  Invalidate;
+  //UpdateTabCaptions;
+end;
 
 function TBCPageControl.PageIndexFromTabIndex(TabIndex: Integer): Integer;
 var
