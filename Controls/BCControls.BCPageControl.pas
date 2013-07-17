@@ -34,7 +34,6 @@ type
     function GetActivePageCaption: TCaption;
     procedure SetActivePageCaption(Value: TCaption);
     procedure SetShowCloseButton(Value: Boolean);
-    procedure SetPageCaption(Page: TTabSheet);
     procedure UpdateTabCaptions(OnlyActivePage: Boolean = False);
   protected
     { Protected declarations }
@@ -49,6 +48,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure DragDrop(Source: TObject; X, Y: Integer); override;
     procedure Invalidate; override;
+    procedure UpdatePageCaption(Page: TTabSheet);
   published
     { Published declarations }
     property ActivePageCaption: TCaption read GetActivePageCaption write SetActivePageCaption;
@@ -414,7 +414,7 @@ begin
   UpdateTabCaptions(True);
 end;
 
-procedure TBCPageControl.SetPageCaption(Page: TTabSheet);
+procedure TBCPageControl.UpdatePageCaption(Page: TTabSheet);
 begin
   Page.Caption := Trim(Page.Caption);
   if ShowCloseButton and (TStyleManager.ActiveStyle.Name <> 'Windows') then
@@ -431,10 +431,10 @@ var
   i: Integer;
 begin
   if OnlyActivePage then
-    SetPageCaption(ActivePage)
+    UpdatePageCaption(ActivePage)
   else
   for i := 0 to PageCount - 1 do
-    SetPageCaption(Pages[i]);
+    UpdatePageCaption(Pages[i]);
 end;
 
 procedure TBCPageControl.SetShowCloseButton(Value: Boolean);
