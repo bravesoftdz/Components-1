@@ -1,4 +1,4 @@
-unit BCControls.BCPopupMenu;
+unit BCControls.PopupMenu;
 
 interface
 

@@ -1,4 +1,4 @@
-unit BCControls.BCSpinEdit;
+unit BCControls.SpinEdit;
 
 interface
 

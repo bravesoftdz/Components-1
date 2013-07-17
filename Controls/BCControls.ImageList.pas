@@ -1,4 +1,4 @@
-unit BCControls.BCImageList;
+unit BCControls.ImageList;
 
 interface
 

@@ -1,4 +1,4 @@
-unit BCControls.BCSynEdit;
+unit BCControls.SynEdit;
 
 interface
 

@@ -1,4 +1,4 @@
-unit BCControls.BCFileControl;
+unit BCControls.FileControl;
 
 interface
 

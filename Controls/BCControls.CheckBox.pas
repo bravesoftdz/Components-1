@@ -1,4 +1,4 @@
-unit BCControls.BCCheckBox;
+unit BCControls.CheckBox;
 
 interface
 

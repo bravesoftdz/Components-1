@@ -1,4 +1,4 @@
-unit BCControls.BCDBGrid;
+unit BCControls.DBGrid;
 
 interface
 

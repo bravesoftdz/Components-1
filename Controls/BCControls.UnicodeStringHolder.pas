@@ -1,4 +1,4 @@
-unit BCControls.BCUnicodeStringHolder;
+unit BCControls.UnicodeStringHolder;
 
 interface
 

@@ -1,4 +1,4 @@
-unit BCControls.BCPageControl;
+unit BCControls.PageControl;
 
 interface
 

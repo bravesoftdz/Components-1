@@ -1,4 +1,4 @@
-unit BCControls.BCProgressPanel;
+unit BCControls.ProgressPanel;
 
 interface
 

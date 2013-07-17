@@ -1,4 +1,4 @@
-unit BCControls.BCEdit;
+unit BCControls.Edit;
 
 interface
 
