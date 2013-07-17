@@ -119,34 +119,34 @@
         <DCCReference Include="dac180.dcp"/>
         <DCCReference Include="odac180.dcp"/>
         <DCCReference Include="EhLib180.dcp"/>
-        <DCCReference Include="Controls\BCControls.BCFileControl.pas"/>
-        <DCCReference Include="Controls\BCControls.BCPopupMenu.pas"/>
-        <DCCReference Include="Controls\BCControls.BCStringGrid.pas"/>
-        <DCCReference Include="Controls\BCControls.BCDBEdit.pas"/>
-        <DCCReference Include="Controls\BCControls.BCEdit.pas"/>
-        <DCCReference Include="Controls\BCControls.BCComboBox.pas"/>
-        <DCCReference Include="Controls\BCControls.BCSpinEdit.pas"/>
-        <DCCReference Include="Controls\BCControls.BCImageList.pas"/>
-        <DCCReference Include="Controls\BCControls.BCToolBar.pas"/>
         <DCCReference Include="HelpSystem\HelpSystem.pas"/>
         <DCCReference Include="HelpSystem\hh.pas"/>
         <DCCReference Include="HelpSystem\hh_funcs.pas"/>
         <DCCReference Include="ThdTimer\ThdTimer.pas"/>
         <DCCReference Include="TimeRuler\TimeRuler.pas"/>
-        <DCCReference Include="Controls\BCControls.BCCheckBox.pas"/>
-        <DCCReference Include="Controls\BCControls.BCProgressPanel.pas"/>
         <DCCReference Include="..\..\Common\units\BigIni.pas"/>
-        <DCCReference Include="Controls\BCControls.BCSynEdit.pas"/>
-        <DCCReference Include="Controls\BCControls.BCUnicodeStringHolder.pas"/>
-        <DCCReference Include="Controls\BCControls.BCPageControl.pas"/>
         <DCCReference Include="..\..\Common\units\BCCommon.LanguageStrings.pas">
             <Form>LanguageDataModule</Form>
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>
-        <DCCReference Include="Controls\BCControls.BCOraSynEdit.pas"/>
-        <DCCReference Include="Controls\BCControls.BCDBGrid.pas"/>
         <DCCReference Include="..\..\Common\units\BCCommon.Encoding.pas"/>
         <DCCReference Include="Cards\Cards.pas"/>
+        <DCCReference Include="Controls\BCControls.CheckBox.pas"/>
+        <DCCReference Include="Controls\BCControls.ComboBox.pas"/>
+        <DCCReference Include="Controls\BCControls.DBEdit.pas"/>
+        <DCCReference Include="Controls\BCControls.DBGrid.pas"/>
+        <DCCReference Include="Controls\BCControls.Edit.pas"/>
+        <DCCReference Include="Controls\BCControls.FileControl.pas"/>
+        <DCCReference Include="Controls\BCControls.ImageList.pas"/>
+        <DCCReference Include="Controls\BCControls.OraSynEdit.pas"/>
+        <DCCReference Include="Controls\BCControls.PageControl.pas"/>
+        <DCCReference Include="Controls\BCControls.PopupMenu.pas"/>
+        <DCCReference Include="Controls\BCControls.ProgressPanel.pas"/>
+        <DCCReference Include="Controls\BCControls.SpinEdit.pas"/>
+        <DCCReference Include="Controls\BCControls.StringGrid.pas"/>
+        <DCCReference Include="Controls\BCControls.SynEdit.pas"/>
+        <DCCReference Include="Controls\BCControls.ToolBar.pas"/>
+        <DCCReference Include="Controls\BCControls.UnicodeStringHolder.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

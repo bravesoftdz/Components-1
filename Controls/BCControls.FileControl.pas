@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, Vcl.Controls, Vcl.Graphics, Vcl.StdCtrls, Winapi.Messages, System.Types,
-  Winapi.Windows, VirtualTrees, Vcl.ImgList, BCControls.BCEdit;
+  Winapi.Windows, VirtualTrees, Vcl.ImgList, BCControls.Edit;
 
 type
   TBCFileTreeView = class;
@@ -170,7 +170,7 @@ implementation
 
 uses
   Vcl.Forms, Winapi.ShellAPI, Winapi.ShlObj, Winapi.ActiveX, Vcl.Dialogs, Vcl.Themes, BCCommon.LanguageStrings,
-  BCControls.BCImageList, System.UITypes;
+  BCControls.ImageList, System.UITypes;
 
 const
   FILE_ATTRIBUTES = FILE_ATTRIBUTE_READONLY or FILE_ATTRIBUTE_HIDDEN or FILE_ATTRIBUTE_SYSTEM or FILE_ATTRIBUTE_ARCHIVE or FILE_ATTRIBUTE_NORMAL or FILE_ATTRIBUTE_DIRECTORY;
