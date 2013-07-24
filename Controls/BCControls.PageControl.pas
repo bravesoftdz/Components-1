@@ -512,18 +512,18 @@ begin
   begin
     if (Button = mbLeft) and ((FHoldShiftToDragDrop and (ssShift in Shift)) or not FHoldShiftToDragDrop) then
       BeginDrag(False)
-  end
-  else
-    inherited MouseDown(Button, Shift, X, Y);
+  end;
+
+  inherited MouseDown(Button, Shift, X, Y);
 end;
 
 procedure TBCPageControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer);
 begin
   if FTabDragDrop then
     if Dragging then
-      EndDrag(True)
-  else
-    inherited MouseUp(Button, Shift, X, Y);
+      EndDrag(True);
+
+  inherited MouseUp(Button, Shift, X, Y);
 end;
 
 end.
