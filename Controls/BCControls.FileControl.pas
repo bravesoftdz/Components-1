@@ -33,7 +33,7 @@ type
     { Protected declarations }
     procedure CreateWnd; override;
     procedure DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState); override;
-    procedure Click; override;
+    procedure Change; override;
     procedure BuildList; virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -100,21 +100,20 @@ type
     FFileTypeChangeNotifyTimer: TTimer;
     procedure ResetItemHeight;
     procedure SetFileTreeView(Value: TBCFileTreeView);
-    procedure SetFileTypeText(Value: string);
-    procedure SetFileTypes(Value: TStrings);
+    procedure SetExtensions(Value: string);
+    procedure UpdateVirtualTree;
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
     procedure OnFileTypeChangeDelayTimer(Sender: TObject);
   protected
     { Protected declarations }
-    procedure Click; override;
+    procedure Change; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    property Extensions: string write SetExtensions;
     property FileTypeChangeNotifyDelay: Integer read FFileTypeChangeNotifyDelay write FFileTypeChangeNotifyDelay;
-    property FileTypeText: string write SetFileTypeText;
-    property FileTypes: TStrings write SetFileTypes;
     property FileTreeView: TBCFileTreeView read FFileTreeView write SetFileTreeView;
   end;
 
@@ -128,12 +127,10 @@ type
     property Color;
     property Constraints;
     property FileTypeChangeNotifyDelay;
-    property FileTypes;
     property FileTreeView;
     property DoubleBuffered;
     property DragMode;
     property DragCursor;
-    property FileTypeText;
     property Enabled;
     property Font;
     property ParentColor;
@@ -144,6 +141,7 @@ type
     property ShowHint;
     property TabOrder;
     property TabStop;
+    property Text;
     property Visible;
     property OnChange;
     property OnClick;
@@ -248,7 +246,7 @@ implementation
 
 uses
   Vcl.Forms, Winapi.ShellAPI, Winapi.ShlObj, Winapi.ActiveX, Vcl.Dialogs, Vcl.Themes, BCCommon.LanguageStrings,
-  BCControls.ImageList, System.UITypes;
+  BCCommon.Fileutils, BCControls.ImageList, System.UITypes;
 
 const
   FILE_ATTRIBUTES = FILE_ATTRIBUTE_READONLY or FILE_ATTRIBUTE_HIDDEN or FILE_ATTRIBUTE_SYSTEM or FILE_ATTRIBUTE_ARCHIVE or FILE_ATTRIBUTE_NORMAL or FILE_ATTRIBUTE_DIRECTORY;
@@ -256,6 +254,7 @@ const
 procedure Register;
 begin
   RegisterComponents('bonecode', [TBCDriveComboBox]);
+  RegisterComponents('bonecode', [TBCFileTypeComboBox]);
   RegisterComponents('bonecode', [TBCFileTreeView]);
 end;
 
@@ -297,7 +296,7 @@ end;
 
 destructor TBCCustomDriveComboBox.Destroy;
 begin
-  ClearItems;
+  // ClearItems; Can't do this because object does not have a parent window anymore...
   FreeAndNil(FSystemIconsImageList);
   inherited Destroy;
 end;
@@ -422,11 +421,12 @@ begin
     TDriveComboFile(Items.Objects[Index]).FileName);
 end;
 
-procedure TBCCustomDriveComboBox.Click;
+procedure TBCCustomDriveComboBox.Change;
 begin
-  inherited Click;
+  inherited;
   if ItemIndex >= 0 then
-    Drive := TDriveComboFile(Items.Objects[ItemIndex]).Drive[1];
+    if Assigned(Items.Objects[ItemIndex]) then
+      Drive := TDriveComboFile(Items.Objects[ItemIndex]).Drive[1];
 end;
 
 procedure TBCCustomDriveComboBox.CMFontChanged(var Message: TMessage);
@@ -474,27 +474,16 @@ begin
   inherited;
 end;
 
-procedure TBCCustomFileTypeComboBox.SetFileTypeText(Value: string);
+procedure TBCCustomFileTypeComboBox.UpdateVirtualTree;
 begin
   if Assigned(FFileTreeView) then
-    FFileTreeView.FileType := Value;
-  Change;
-end;
-
-procedure TBCCustomFileTypeComboBox.SetFileTypes(Value: TStrings);
-var
-  i: Integer;
-begin
-  Clear;
-  for i := 0 to Value.Count - 1 do
-    AddItem(Value[i], nil);
+    FFileTreeView.FileType := Text;
 end;
 
 procedure TBCCustomFileTypeComboBox.SetFileTreeView(Value: TBCFileTreeView);
 begin
   FFileTreeView := Value;
-  if Assigned(FFileTreeView) then
-    FFileTreeView.FileType := Text;
+  UpdateVirtualTree;
 end;
 
 procedure TBCCustomFileTypeComboBox.CMFontChanged(var Message: TMessage);
@@ -517,17 +506,33 @@ begin
     FFileTreeView := nil;
 end;
 
-procedure TBCCustomFileTypeComboBox.Click;
+procedure TBCCustomFileTypeComboBox.Change;
 begin
-  inherited Click;
-  if ItemIndex >= 0 then
-    FileTypeText := Text;
+  inherited;
+  FFileTypeChangeNotifyTimer.Enabled := False;
+  FFileTypeChangeNotifyTimer.Enabled := True;
 end;
 
 procedure TBCCustomFileTypeComboBox.OnFileTypeChangeDelayTimer(Sender: TObject);
 begin
   FFileTypeChangeNotifyTimer.Enabled := False;
-  Click;
+  UpdateVirtualTree;
+end;
+
+procedure TBCCustomFileTypeComboBox.SetExtensions(Value: string);
+var
+  Temp: string;
+begin
+  Temp := Value;
+  with Items do
+  begin
+    Clear;
+    while Pos('|', Temp) <> 0 do
+    begin
+      Add(Copy(Temp, 1, Pos('|', Temp) - 1));
+      Temp := Copy(Temp, Pos('|', Temp) + 1, Length(Temp));
+    end;
+  end;
 end;
 
 { TBCFileTreeView }
@@ -663,40 +668,32 @@ begin
           Continue;
       {$WARNINGS ON}
       if (SR.Name <> '.') and (SR.Name <> '..') then
-      begin
-        ANode := AddChild(nil);
-        //Include(ANode.States, vsInitialUserData);
-        {
-          There's a bug in VirtualTrees.pas, comment following lines:
+        if (SR.Attr and faDirectory <> 0) or (FFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), FFileType) then
+        begin
+          ANode := AddChild(nil);
 
-          function TBaseVirtualTree.GetNodeData(Node: PVirtualNode): Pointer;
-          ...
-          //if ([vsInitialized, vsInitialUserData] * Node.States = []) then
-          //  InitNode(Node);
-          ...
-        }
-        Data := GetNodeData(ANode);
-        if not ExcludeOtherBranches then
-          FileName := FDrive + ':\' + SR.Name
-        else
-          FileName := IncludeTrailingBackslash(RootDirectory) + SR.Name;
-        if (SR.Attr and faDirectory <> 0) then
-        begin
-          Data.FileType := ftDirectory;
-          Data.FullPath := IncludeTrailingBackslash(FileName);
-        end
-        else
-        begin
-          Data.FileType := ftFile;
+          Data := GetNodeData(ANode);
           if not ExcludeOtherBranches then
-            Data.FullPath := FDrive + ':\'
+            FileName := FDrive + ':\' + SR.Name
           else
-            Data.FullPath := IncludeTrailingBackslash(RootDirectory);
+            FileName := IncludeTrailingBackslash(RootDirectory) + SR.Name;
+          if (SR.Attr and faDirectory <> 0) then
+          begin
+            Data.FileType := ftDirectory;
+            Data.FullPath := IncludeTrailingBackslash(FileName);
+          end
+          else
+          begin
+            Data.FileType := ftFile;
+            if not ExcludeOtherBranches then
+              Data.FullPath := FDrive + ':\'
+            else
+              Data.FullPath := IncludeTrailingBackslash(RootDirectory);
+          end;
+          Data.Filename := SR.Name;
+          Data.CloseIndex := GetCloseIcon(Filename);
+          Data.OpenIndex := GetOpenIcon(Filename);
         end;
-        Data.Filename := SR.Name;
-        Data.CloseIndex := GetCloseIcon(Filename);
-        Data.OpenIndex := GetOpenIcon(Filename);
-      end;
     until FindNext(SR) <> 0;
   finally
     System.SysUtils.FindClose(SR);
