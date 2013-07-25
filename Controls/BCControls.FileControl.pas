@@ -95,15 +95,15 @@ type
   TBCCustomFileTypeComboBox = class(TCustomComboBox)
   private
     { Private declarations }
-    FFileTypeChangeNotifyDelay: Integer;
+    FFileTreeViewChangeDelay: Integer;
     FFileTreeView: TBCFileTreeView;
-    FFileTypeChangeNotifyTimer: TTimer;
+    FFileTreeViewChangeTimer: TTimer;
     procedure ResetItemHeight;
     procedure SetFileTreeView(Value: TBCFileTreeView);
     procedure SetExtensions(Value: string);
     procedure UpdateVirtualTree;
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
-    procedure OnFileTypeChangeDelayTimer(Sender: TObject);
+    procedure OnFileTreeViewChangeDelayTimer(Sender: TObject);
   protected
     { Protected declarations }
     procedure Change; override;
@@ -113,7 +113,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Extensions: string write SetExtensions;
-    property FileTypeChangeNotifyDelay: Integer read FFileTypeChangeNotifyDelay write FFileTypeChangeNotifyDelay;
+    property FileTreeViewChangeDelay: Integer read FFileTreeViewChangeDelay write FFileTreeViewChangeDelay;
     property FileTreeView: TBCFileTreeView read FFileTreeView write SetFileTreeView;
   end;
 
@@ -126,7 +126,7 @@ type
     property AutoDropDown;
     property Color;
     property Constraints;
-    property FileTypeChangeNotifyDelay;
+    property FileTreeViewChangeDelay;
     property FileTreeView;
     property DoubleBuffered;
     property DragMode;
@@ -459,18 +459,18 @@ end;
 constructor TBCCustomFileTypeComboBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FFileTypeChangeNotifyDelay := 100;
-  FFileTypeChangeNotifyTimer := TTimer.Create(nil);
-  with FFileTypeChangeNotifyTimer do
+  FFileTreeViewChangeDelay := 100;
+  FFileTreeViewChangeTimer := TTimer.Create(nil);
+  with FFileTreeViewChangeTimer do
   begin
-    OnTimer := OnFileTypeChangeDelayTimer;
-    Interval := FFileTypeChangeNotifyDelay;
+    OnTimer := OnFileTreeViewChangeDelayTimer;
+    Interval := FFileTreeViewChangeDelay;
   end;
 end;
 
 destructor TBCCustomFileTypeComboBox.Destroy;
 begin
-  FFileTypeChangeNotifyTimer.Free;
+  FFileTreeViewChangeTimer.Free;
   inherited;
 end;
 
@@ -509,13 +509,13 @@ end;
 procedure TBCCustomFileTypeComboBox.Change;
 begin
   inherited;
-  FFileTypeChangeNotifyTimer.Enabled := False;
-  FFileTypeChangeNotifyTimer.Enabled := True;
+  FFileTreeViewChangeTimer.Enabled := False;
+  FFileTreeViewChangeTimer.Enabled := True;
 end;
 
-procedure TBCCustomFileTypeComboBox.OnFileTypeChangeDelayTimer(Sender: TObject);
+procedure TBCCustomFileTypeComboBox.OnFileTreeViewChangeDelayTimer(Sender: TObject);
 begin
-  FFileTypeChangeNotifyTimer.Enabled := False;
+  FFileTreeViewChangeTimer.Enabled := False;
   UpdateVirtualTree;
 end;
 
