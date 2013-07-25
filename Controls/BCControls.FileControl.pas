@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, Vcl.Controls, Vcl.Graphics, Vcl.StdCtrls, Winapi.Messages, System.Types,
-  Winapi.Windows, VirtualTrees, Vcl.ImgList, BCControls.Edit;
+  Winapi.Windows, VirtualTrees, Vcl.ImgList, BCControls.Edit, Vcl.ExtCtrls;
 
 type
   TBCFileTreeView = class;
@@ -25,6 +25,7 @@ type
     procedure SetFileTreeView(Value: TBCFileTreeView);
     procedure GetSystemIcons;
     procedure ResetItemHeight;
+    procedure ClearItems;
     function GetDrive: Char;
     procedure SetDrive(NewDrive: Char);
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
@@ -91,6 +92,80 @@ type
     property OnStartDrag;
   end;
 
+  TBCCustomFileTypeComboBox = class(TCustomComboBox)
+  private
+    { Private declarations }
+    FFileTypeChangeNotifyDelay: Integer;
+    FFileTreeView: TBCFileTreeView;
+    FFileTypeChangeNotifyTimer: TTimer;
+    procedure ResetItemHeight;
+    procedure SetFileTreeView(Value: TBCFileTreeView);
+    procedure SetFileTypeText(Value: string);
+    procedure SetFileTypes(Value: TStrings);
+    procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
+    procedure OnFileTypeChangeDelayTimer(Sender: TObject);
+  protected
+    { Protected declarations }
+    procedure Click; override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+  public
+    { Public declarations }
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    property FileTypeChangeNotifyDelay: Integer read FFileTypeChangeNotifyDelay write FFileTypeChangeNotifyDelay;
+    property FileTypeText: string write SetFileTypeText;
+    property FileTypes: TStrings write SetFileTypes;
+    property FileTreeView: TBCFileTreeView read FFileTreeView write SetFileTreeView;
+  end;
+
+  TBCFileTypeComboBox = class(TBCCustomFileTypeComboBox)
+  published
+    { Published declarations }
+    property Align;
+    property Anchors;
+    property AutoComplete;
+    property AutoDropDown;
+    property Color;
+    property Constraints;
+    property FileTypeChangeNotifyDelay;
+    property FileTypes;
+    property FileTreeView;
+    property DoubleBuffered;
+    property DragMode;
+    property DragCursor;
+    property FileTypeText;
+    property Enabled;
+    property Font;
+    property ParentColor;
+    property ParentDoubleBuffered;
+    property ParentFont;
+    property ParentShowHint;
+    property PopupMenu;
+    property ShowHint;
+    property TabOrder;
+    property TabStop;
+    property Visible;
+    property OnChange;
+    property OnClick;
+    property OnCloseUp;
+    property OnContextPopup;
+    property OnDblClick;
+    property OnDragDrop;
+    property OnDragOver;
+    property OnDropDown;
+    property OnEndDrag;
+    property OnEnter;
+    property OnExit;
+    property OnKeyDown;
+    property OnKeyPress;
+    property OnKeyUp;
+    property OnMouseEnter;
+    property OnMouseLeave;
+    property OnSelect;
+    property OnStartDock;
+    property OnStartDrag;
+  end;
+
   TBCFileType = (ftNone, ftDirectory, ftFile);
 
   PBCFileTreeNodeRec = ^TBCFileTreeNodeRec;
@@ -103,6 +178,7 @@ type
   TBCFileTreeView = class(TVirtualDrawTree)
   private
     FDrive: Char;
+    FFileType: string;
     FShowHidden: Boolean;
     FShowSystem: Boolean;
     FShowArchive: Boolean;
@@ -111,6 +187,7 @@ type
     FExcludeOtherBranches: Boolean;
     procedure DriveChange(NewDrive: Char);
     procedure SetDrive(Value: Char);
+    procedure SetFileType(NewFileType: string);
     function IncludeTrailingBackslash(Path: string): string;
     function GetCloseIcon(Path: string): Integer;
     function GetOpenIcon(Path: string): Integer;
@@ -136,6 +213,7 @@ type
     procedure RenameSelectedNode;
     procedure DeleteSelectedNode;
     property Drive: Char read FDrive write SetDrive;
+    property FileType: string read FFileType write SetFileType;
     property ShowHiddenFiles: Boolean read FShowHidden write FShowHidden;
     property ShowSystemFiles: Boolean read FShowSystem write FShowSystem;
     property ShowArchiveFiles: Boolean read FShowArchive write FShowArchive;
@@ -219,6 +297,7 @@ end;
 
 destructor TBCCustomDriveComboBox.Destroy;
 begin
+  ClearItems;
   FreeAndNil(FSystemIconsImageList);
   inherited Destroy;
 end;
@@ -247,8 +326,16 @@ var
 begin
   FileIconInit(True);
   FSystemIconsImageList := TImageList.Create(Self);
-  //PathInfo := 'dummy';
   FSystemIconsImageList.Handle := SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
+end;
+
+procedure TBCCustomDriveComboBox.ClearItems;
+begin
+  while Items.Count > 0 do
+  begin
+    Items.Objects[0].Free; { TDriveComboFile }
+    Items.Delete(0);
+  end;
 end;
 
 procedure TBCCustomDriveComboBox.BuildList;
@@ -261,7 +348,7 @@ var
 begin
   Items.BeginUpdate;
 
-  Items.Clear;
+  ClearItems;
   Integer(Drives) := GetLogicalDrives;
 
   for lp1 := 0 to 25 do
@@ -353,7 +440,7 @@ procedure TBCCustomDriveComboBox.ResetItemHeight;
 var
   nuHeight: Integer;
 begin
-  nuHeight :=  GetItemHeight(Font);
+  nuHeight := GetItemHeight(Font);
   if nuHeight < FSystemIconsImageList.Height then
     nuHeight := FSystemIconsImageList.Height;
   ItemHeight := nuHeight;
@@ -365,6 +452,82 @@ begin
   inherited Notification(AComponent, Operation);
   if (Operation = opRemove) and (AComponent = FFileTreeView) then
     FFileTreeView := nil;
+end;
+
+{ TBCCustomFileTypeComboBox }
+
+constructor TBCCustomFileTypeComboBox.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FFileTypeChangeNotifyDelay := 100;
+  FFileTypeChangeNotifyTimer := TTimer.Create(nil);
+  with FFileTypeChangeNotifyTimer do
+  begin
+    OnTimer := OnFileTypeChangeDelayTimer;
+    Interval := FFileTypeChangeNotifyDelay;
+  end;
+end;
+
+destructor TBCCustomFileTypeComboBox.Destroy;
+begin
+  FFileTypeChangeNotifyTimer.Free;
+  inherited;
+end;
+
+procedure TBCCustomFileTypeComboBox.SetFileTypeText(Value: string);
+begin
+  if Assigned(FFileTreeView) then
+    FFileTreeView.FileType := Value;
+  Change;
+end;
+
+procedure TBCCustomFileTypeComboBox.SetFileTypes(Value: TStrings);
+var
+  i: Integer;
+begin
+  Clear;
+  for i := 0 to Value.Count - 1 do
+    AddItem(Value[i], nil);
+end;
+
+procedure TBCCustomFileTypeComboBox.SetFileTreeView(Value: TBCFileTreeView);
+begin
+  FFileTreeView := Value;
+  if Assigned(FFileTreeView) then
+    FFileTreeView.FileType := Text;
+end;
+
+procedure TBCCustomFileTypeComboBox.CMFontChanged(var Message: TMessage);
+begin
+  inherited;
+  ResetItemHeight;
+  RecreateWnd;
+end;
+
+procedure TBCCustomFileTypeComboBox.ResetItemHeight;
+begin
+  ItemHeight := GetItemHeight(Font);
+end;
+
+procedure TBCCustomFileTypeComboBox.Notification(AComponent: TComponent;
+  Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if (Operation = opRemove) and (AComponent = FFileTreeView) then
+    FFileTreeView := nil;
+end;
+
+procedure TBCCustomFileTypeComboBox.Click;
+begin
+  inherited Click;
+  if ItemIndex >= 0 then
+    FileTypeText := Text;
+end;
+
+procedure TBCCustomFileTypeComboBox.OnFileTypeChangeDelayTimer(Sender: TObject);
+begin
+  FFileTypeChangeNotifyTimer.Enabled := False;
+  Click;
 end;
 
 { TBCFileTreeView }
@@ -418,6 +581,16 @@ begin
   begin
     FDrive := NewDrive;
     FRootDirectory := NewDrive + ':\';
+    if not (csDesigning in ComponentState) then
+      BuildTree(FRootDirectory, False);
+  end
+end;
+
+procedure TBCFileTreeView.SetFileType(NewFileType: string);
+begin
+  if UpperCase(NewFileType) <> UpperCase(FileType) then
+  begin
+    FFileType := NewFileType;
     if not (csDesigning in ComponentState) then
       BuildTree(FRootDirectory, False);
   end
