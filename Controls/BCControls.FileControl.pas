@@ -608,7 +608,7 @@ begin
   begin
     FFileType := NewFileType;
     if not (csDesigning in ComponentState) then
-      BuildTree(FRootDirectory, False);
+      OpenPath(FRootDirectory, SelectedPath, FExcludeOtherBranches);
   end
 end;
 
@@ -1097,26 +1097,27 @@ begin
         {$WARNINGS ON}
         FName := IncludeTrailingBackslash(Data.FullPath) + SR.Name; //StrPas(Win32FD.cFileName);
         if (SR.Name <> '.') and (SR.Name <> '..') then
-        begin
-          ChildNode := AddChild(Node);
-          //Include(ChildNode.States, vsInitialUserData);
-          ChildData := GetNodeData(ChildNode);
+          if (SR.Attr and faDirectory <> 0) or (FFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), FFileType) then
+          begin
+            ChildNode := AddChild(Node);
+            //Include(ChildNode.States, vsInitialUserData);
+            ChildData := GetNodeData(ChildNode);
 
-          if (SR.Attr and faDirectory <> 0) then
-          begin
-            ChildData.FileType := ftDirectory;
-            ChildData.FullPath := IncludeTrailingBackslash(FName);
-          end
-          else
-          begin
-            ChildData.FileType := ftFile;
-            ChildData.FullPath := IncludeTrailingBackslash(Data.FullPath);
+            if (SR.Attr and faDirectory <> 0) then
+            begin
+              ChildData.FileType := ftDirectory;
+              ChildData.FullPath := IncludeTrailingBackslash(FName);
+            end
+            else
+            begin
+              ChildData.FileType := ftFile;
+              ChildData.FullPath := IncludeTrailingBackslash(Data.FullPath);
+            end;
+            ChildData.Filename := SR.Name;
+            ChildData.CloseIndex := GetOpenIcon(FName);
+            ChildData.OpenIndex := GetCloseIcon(FName);
+            ValidateNode(Node, False);
           end;
-          ChildData.Filename := SR.Name;
-          ChildData.CloseIndex := GetOpenIcon(FName);
-          ChildData.OpenIndex := GetCloseIcon(FName);
-          ValidateNode(Node, False);
-        end;
       until FindNext(SR) <> 0;
 
       ChildCount := Self.ChildCount[Node];
