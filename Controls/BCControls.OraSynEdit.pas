@@ -32,7 +32,7 @@ type
   public
     {$if CompilerVersion >= 23 }
     class constructor Create;
-    {$ifend}
+    {$endif}
     constructor Create(AOwner: TComponent); override;
     property InThread: Boolean read FInThread write FInThread;
     property DocumentName: string read FDocumentName write FDocumentName;
@@ -103,7 +103,7 @@ class constructor TBCOraSynEdit.Create;
 begin
   TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
 end;
-{$ifend}
+{$endif}
 
 constructor TBCOraSynEdit.Create(AOwner: TComponent);
 begin
