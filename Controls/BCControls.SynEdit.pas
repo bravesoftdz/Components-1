@@ -30,7 +30,7 @@ type
   public
     {$if CompilerVersion >= 23 }
     class constructor Create;
-    {$ifend}
+    {$endif}
     destructor Destroy; override;
     procedure LoadFromFile(const FileName: String);
     procedure SaveToFile(const FileName: String);
@@ -100,7 +100,7 @@ begin
   if Assigned(TStyleManager.Engine) then
     TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
 end;
-{$ifend}
+{$endif}
 
 destructor TBCSynEdit.Destroy;
 begin
