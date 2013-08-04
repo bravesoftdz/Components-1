@@ -193,6 +193,7 @@ type
     procedure BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);
     function GetSelectedPath: string;
     function GetSelectedFile: string;
+    function IsDirectoryEmpty(const Directory: string): Boolean;
   protected
     function DeleteTreeNode(Node: PVirtualNode): Boolean;
     procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
@@ -912,7 +913,7 @@ begin
     DeleteTreeNode(SelectedNode);
 end;
 
-function IsDirectoryEmpty(const directory : string) : boolean;
+function TBCFileTreeView.IsDirectoryEmpty(const Directory: string): Boolean;
 var
   SearchRec :TSearchRec;
 begin

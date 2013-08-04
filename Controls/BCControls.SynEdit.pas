@@ -124,7 +124,7 @@ begin
       if WithBom then
         FEncoding := TEncoding.UTF8
       else
-        FEncoding := GetUTF8WithoutBOM;
+        FEncoding := TEncoding.UTF8WithoutBOM;
     end
     else
     begin
