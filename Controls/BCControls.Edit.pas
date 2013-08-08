@@ -19,12 +19,11 @@ type
     FNegativeNumbers: Boolean;
     FErrorColor: TColor;
     FOnValidate: TValidateEvent;
-    FFocusOnColor: TColor;
-    FFocusOffColor: TColor;
+    FEditColor: TColor;
     FUseColoring: Boolean;
-    procedure SetFocusOnColor(Value: TColor);
-    procedure SetFocusOffColor(Value: TColor);
+    procedure SetEditColor(Value: TColor);
     procedure SetEditable(Value: Boolean);
+    procedure SetUseColoring(Value: Boolean);
   protected
     { Protected declarations }
     procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
@@ -44,9 +43,8 @@ type
     property NumbersWithSpots: Boolean read FNumwSpots write FNumwSpots;
     property ErrorColor: TColor read FErrorColor write FErrorColor;
     property NumbersAllowNegative: Boolean read FNegativeNumbers write FNegativeNumbers;
-    property FocusOnColor: TColor read FFocusOnColor write SetFocusOnColor;
-    property FocusOffColor: TColor read FFocusOffColor write SetFocusOffColor;
-    property UseColoring: Boolean read FUseColoring write FUseColoring;
+    property EditColor: TColor read FEditColor write SetEditColor;
+    property UseColoring: Boolean read FUseColoring write SetUseColoring;
     property OnValidate: TValidateEvent read FOnValidate write FOnValidate;
     property Editable: Boolean write SetEditable;
   end;
@@ -75,36 +73,62 @@ begin
   FEnterToTab := False;
   FOnlyNum := False;
   FNegativeNumbers := False;
-  FFocusOnColor := clInfoBk;
-  FFocusOffColor := clWindow;
+  FEditColor := clInfoBk;
   FUseColoring := True;
   FErrorColor := clError;
   StyleElements := [seFont, seBorder];
 end;
 
+procedure TBCEdit.SetUseColoring(Value: Boolean);
+begin
+  FUseColoring := Value;
+  if FUseColoring then
+    StyleElements := [seFont, seBorder]
+  else
+    StyleElements := [seFont, seClient, seBorder]
+end;
+
 procedure TBCEdit.WMSetFocus(var Message: TWMSetFocus);
 var
   Error: Boolean;
+  LStyles: TCustomStyleServices;
 begin
+  LStyles := StyleServices;
   if not ReadOnly and UseColoring then
   begin
     Error := False;
     if Assigned(FOnValidate) then
       FOnValidate(Self, Error);
     if Error then
-      Color := FErrorColor
+    begin
+      if LStyles.Enabled then
+        Color := LStyles.GetSystemColor(FErrorColor)
+      else
+        Color := FErrorColor
+    end
     else
-      Color := FFocusOnColor;
+    begin
+      if LStyles.Enabled then
+        Color := LStyles.GetSystemColor(clHighlight)
+      else
+        Color := FEditColor;
+    end;
     InvalidateRect(Handle, nil, True);
   end;
   inherited;
 end;
 
 procedure TBCEdit.WMKillFocus(var Message: TWMKillFocus);
+var
+  LStyles: TCustomStyleServices;
 begin
+  LStyles := StyleServices;
   if not ReadOnly and UseColoring then
   begin
-    Color := FFocusOffColor;
+    if LStyles.Enabled then
+      Color := LStyles.GetStyleColor(scEdit)
+    else
+      Color := clWindow;
     InvalidateRect(Handle, nil, True);
   end;
   inherited;
@@ -114,8 +138,11 @@ procedure TBCEdit.WMPaint(var Message: TWMPaint);
 var
   DC: HDC;
   Error: Boolean;
+  LStyles: TCustomStyleServices;
 begin
   inherited;
+  LStyles := StyleServices;
+
   if (csDesigning in ComponentState) then
     Exit;
 
@@ -124,14 +151,42 @@ begin
     Error := False;
     DC := GetWindowDC(Handle);
     try
+      if LStyles.Enabled then
+      begin
+        if Focused then
+          Font.Color := LStyles.GetSystemColor(clHighlightText)
+        else
+          Font.Color := LStyles.GetStyleFontColor(sfEditBoxTextNormal);
+      end
+      else
+        Font.Color := clWindowText;
+
       if ReadOnly then
-        Color := clBtnFace
+      begin
+        if LStyles.Enabled then
+          Color := LStyles.GetStyleColor(scEditDisabled)
+        else
+          Color := clBtnFace
+      end
       else
       begin
         if Assigned(FOnValidate) then
           FOnValidate(Self, Error);
         if Error then
-          Color := FErrorColor;
+        begin
+          if LStyles.Enabled then
+            Color := LStyles.GetSystemColor(FErrorColor)
+          else
+            Color := FErrorColor;
+        end
+        else
+        if not Focused then
+        begin
+          if LStyles.Enabled then
+            Color := LStyles.GetStyleColor(scEdit)
+          else
+            Color := clWindow;
+        end;
       end;
       SetBKColor(DC, Color);
       //FrameRect(DC, Rect(1, 1, Pred(Width), Pred(Height)), CreateSolidBrush(ColorToRGB(Color)));
@@ -141,16 +196,10 @@ begin
   end;
 end;
 
-procedure TBCEdit.SetFocusOnColor(Value: TColor);
+procedure TBCEdit.SetEditColor(Value: TColor);
 begin
-  if FFocusOnColor <> Value then
-    FFocusOnColor := Value;
-end;
-
-procedure TBCEdit.SetFocusOffColor(Value: TColor);
-begin
-  if FocusOffColor <> Value then
-    FFocusOffColor := Value;
+  if FEditColor <> Value then
+    FEditColor := Value;
 end;
 
 procedure TBCEdit.KeyPress(var Key: Char);

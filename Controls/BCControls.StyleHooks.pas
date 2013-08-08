@@ -21,6 +21,9 @@ implementation
 uses
   Winapi.Windows, Vcl.Themes, Vcl.Graphics, System.UITypes;
 
+type
+  TWinControlClass = class(TWinControl);
+
 { TSynEditStyleHook }
 
 constructor TSynEditStyleHook.Create(AControl: TWinControl);

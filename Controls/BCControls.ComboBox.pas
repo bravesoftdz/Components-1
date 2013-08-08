@@ -13,13 +13,12 @@ type
     FDropDownFixedWidth: Integer;
     FDKS: Boolean;
     FReadOnly: Boolean;
-    FFocusOnColor: TColor;
-    FFocusOffColor: TColor;
+    FEditColor: TColor;
     FUseColoring: Boolean;
-    procedure SetFocusOnColor(Value: TColor);
-    procedure SetFocusOffColor(Value: TColor);
+    procedure SetEditColor(Value: TColor);
     procedure SetDropDownFixedWidth(const Value: Integer);
     function GetTextWidth(s: string): Integer;
+    procedure SetUseColoring(Value: Boolean);
   protected
     { Protected declarations }
     procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
@@ -38,9 +37,8 @@ type
     property DeniedKeyStrokes: Boolean read FDKS write FDKS;
     property Editable: Boolean write SetEditable;
     property ReadOnly: Boolean read FReadOnly write FReadOnly;
-    property FocusOnColor: TColor read FFocusOnColor write SetFocusOnColor;
-    property FocusOffColor: TColor read FFocusOffColor write SetFocusOffColor;
-    property UseColoring: Boolean read FUseColoring write FUseColoring;
+    property EditColor: TColor read FEditColor write SetEditColor;
+    property UseColoring: Boolean read FUseColoring write SetUseColoring;
     property DropDownFixedWidth: Integer read FDropDownFixedWidth write SetDropDownFixedWidth;
   end;
 
@@ -49,7 +47,7 @@ procedure Register;
 implementation
 
 uses
-  System.UITypes;
+  System.UITypes, Vcl.Themes, BCControls.StyleHooks;
 
 resourcestring
   TEXT_SET_VALUE = 'Set value %s.';
@@ -62,11 +60,19 @@ end;
 constructor TBCComboBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FFocusOnColor := clInfoBk;
-  FFocusOffColor := clWindow;
+  FEditColor := clInfoBk;
   FUseColoring := True;
   ReadOnly := False;
   StyleElements := [seFont, seBorder];
+end;
+
+procedure TBCComboBox.SetUseColoring(Value: Boolean);
+begin
+  FUseColoring := Value;
+  if FUseColoring then
+    StyleElements := [seFont, seBorder]
+  else
+    StyleElements := [seFont, seClient, seBorder];
 end;
 
 procedure TBCComboBox.KeyPress(var Key: Char);
@@ -78,20 +84,32 @@ begin
 end;
 
 procedure TBCComboBox.WMSetFocus(var Message: TWMSetFocus);
+var
+  LStyles: TCustomStyleServices;
 begin
+  LStyles := StyleServices;
   if not ReadOnly and UseColoring then
   begin
-    Color := FFocusOnColor;
+    if LStyles.Enabled then
+      Color := LStyles.GetSystemColor(clHighlight)
+    else
+      Color := FEditColor;
     InvalidateRect(Handle, nil, True);
   end;
   inherited;
 end;
 
 procedure TBCComboBox.WMKillFocus(var Message: TWMKillFocus);
+var
+  LStyles: TCustomStyleServices;
 begin
-  if not ReadOnly and UseColoring then
+  LStyles := StyleServices;
+  if UseColoring then
   begin
-    Color := FFocusOffColor;
+    if LStyles.Enabled then
+      Color := LStyles.GetStyleColor(scEdit)
+    else
+      Color := clWindow;
     InvalidateRect(Handle, nil, True);
   end;
   inherited;
@@ -100,8 +118,11 @@ end;
 procedure TBCComboBox.WMPaint(var Message: TWMPaint);
 var
   DC: HDC;
+  LStyles: TCustomStyleServices;
 begin
   inherited;
+  LStyles := StyleServices;
+
   if (csDesigning in ComponentState) then
     Exit;
 
@@ -109,8 +130,29 @@ begin
   begin
     DC := GetWindowDC(Handle);
     try
+      if LStyles.Enabled then
+      begin
+        if Focused then
+          Font.Color := LStyles.GetSystemColor(clHighlightText)
+        else
+        begin
+          Color := LStyles.GetStyleColor(scEdit);
+          Font.Color := LStyles.GetStyleFontColor(sfEditBoxTextNormal);
+        end;
+      end
+      else
+      begin
+        if not Focused then
+          Color := clWindow;
+        Font.Color := clWindowText;
+      end;
       if ReadOnly then
-        Color := clBtnFace;
+      begin
+        if LStyles.Enabled then
+          Color := LStyles.GetStyleColor(scEditDisabled)
+        else
+          Color := clBtnFace;
+      end;
       SetBKColor(DC, Color);
       //FrameRect(DC, Rect(1, 1, Pred(Width), Pred(Height)), CreateSolidBrush(ColorToRGB(Color)));
     finally
@@ -119,16 +161,10 @@ begin
   end;
 end;
 
-procedure TBCComboBox.SetFocusOnColor(Value: TColor);
+procedure TBCComboBox.SetEditColor(Value: TColor);
 begin
-  if FFocusOnColor <> Value then
-    FFocusOnColor := Value;
-end;
-
-procedure TBCComboBox.SetFocusOffColor(Value: TColor);
-begin
-  if FocusOffColor <> Value then
-    FFocusOffColor := Value;
+  if FEditColor <> Value then
+    FEditColor := Value;
 end;
 
 procedure TBCComboBox.SetEditable(Value: Boolean);

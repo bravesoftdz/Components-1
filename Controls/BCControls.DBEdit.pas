@@ -15,12 +15,11 @@ type
     FOnlyNum: Boolean;
     FNumwDots: Boolean;
     FNumwSpots: Boolean;
-    FFocusOnColor: TColor;
-    FFocusOffColor: TColor;
+    FEditColor: TColor;
     FUseColoring: Boolean;
-    procedure SetFocusOnColor(Value: TColor);
-    procedure SetFocusOffColor(Value: TColor);
+    procedure SetEditColor(Value: TColor);
     procedure SetEditable(Value: Boolean);
+    procedure SetUseColoring(Value: Boolean);
   protected
     { Protected declarations }
     procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
@@ -38,9 +37,8 @@ type
     property NumbersAllowNegative: Boolean read FNumAllowNegative write FNumAllowNegative;
     property NumbersWithDots: Boolean read FNumwDots write FNumwDots;
     property NumbersWithSpots: Boolean read FNumwSpots write FNumwSpots;
-    property FocusOnColor: TColor read FFocusOnColor write SetFocusOnColor;
-    property FocusOffColor: TColor read FFocusOffColor write SetFocusOffColor;
-    property UseColoring: Boolean read FUseColoring write FUseColoring;
+    property EditColor: TColor read FEditColor write SetEditColor;
+    property UseColoring: Boolean read FUseColoring write SetUseColoring;
     property Editable: Boolean write SetEditable;
   end;
 
@@ -49,7 +47,7 @@ procedure Register;
 implementation
 
 uses
-  System.UITypes;
+  System.UITypes, Vcl.Themes;
 
 resourcestring
   TEXT_SET_VALUE = 'Set value %s.';
@@ -65,27 +63,47 @@ begin
   FEnterToTab := False;
   FNumAllowNegative := True;
   FOnlyNum := False;
-  FFocusOnColor := clInfoBk;
-  FFocusOffColor := clWindow;
+  FEditColor := clInfoBk;
   FUseColoring := True;
   StyleElements := [seFont, seBorder];
 end;
 
-procedure TBCDBEdit.WMSetFocus(var Message: TWMSetFocus);
+procedure TBCDBEdit.SetUseColoring(Value: Boolean);
 begin
+  FUseColoring := Value;
+  if FUseColoring then
+    StyleElements := [seFont, seBorder]
+  else
+    StyleElements := [seFont, seClient, seBorder]
+end;
+
+procedure TBCDBEdit.WMSetFocus(var Message: TWMSetFocus);
+var
+  LStyles: TCustomStyleServices;
+begin
+  LStyles := StyleServices;
   if not ReadOnly and UseColoring then
   begin
-    Color := FFocusOnColor;
+    if LStyles.Enabled then
+      Color := LStyles.GetSystemColor(clHighlight)
+    else
+      Color := FEditColor;
     InvalidateRect(Handle, nil, True);
   end;
   inherited;
 end;
 
 procedure TBCDBEdit.WMKillFocus(var Message: TWMKillFocus);
+var
+  LStyles: TCustomStyleServices;
 begin
+  LStyles := StyleServices;
   if not ReadOnly and UseColoring then
   begin
-    Color := FFocusOffColor;
+    if LStyles.Enabled then
+      Color := LStyles.GetStyleColor(scEdit)
+    else
+      Color := clWindow;
     InvalidateRect(Handle, nil, True);
   end;
   inherited;
@@ -94,8 +112,10 @@ end;
 procedure TBCDBEdit.WMPaint(var Message: TWMPaint);
 var
   DC: HDC;
+  LStyles: TCustomStyleServices;
 begin
   inherited;
+  LStyles := StyleServices;
   if (csDesigning in ComponentState) then
     Exit;
 
@@ -103,8 +123,22 @@ begin
   begin
     DC := GetWindowDC(Handle);
     try
+      if LStyles.Enabled then
+      begin
+        if Focused then
+          Font.Color := LStyles.GetSystemColor(clHighlightText)
+        else
+          Font.Color := LStyles.GetStyleFontColor(sfEditBoxTextNormal);
+      end
+      else
+        Font.Color := clWindowText;
       if ReadOnly then
-        Color := clBtnFace;
+      begin
+        if LStyles.Enabled then
+          Color := LStyles.GetStyleColor(scEditDisabled)
+        else
+          Color := clBtnFace;
+      end;
       SetBKColor(DC, Color);
       //FrameRect(DC, Rect(1, 1, Pred(Width), Pred(Height)), CreateSolidBrush(ColorToRGB(Color)));
     finally
@@ -113,16 +147,10 @@ begin
   end;
 end;
 
-procedure TBCDBEdit.SetFocusOnColor(Value: TColor);
+procedure TBCDBEdit.SetEditColor(Value: TColor);
 begin
-  if FFocusOnColor <> Value then
-    FFocusOnColor := Value;
-end;
-
-procedure TBCDBEdit.SetFocusOffColor(Value: TColor);
-begin
-  if FocusOffColor <> Value then
-    FFocusOffColor := Value;
+  if FEditColor <> Value then
+    FEditColor := Value;
 end;
 
 procedure TBCDBEdit.KeyPress(var Key: Char);
