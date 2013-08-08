@@ -11,15 +11,20 @@ type
     { Private declarations }
     FItemWidth : Integer;
     FDropDownFixedWidth: Integer;
-    FEditColor: TColor;
     FDKS: Boolean;
     FReadOnly: Boolean;
-    procedure CMEnter(var Message: TCMEnter); message CM_ENTER;
-    procedure CMExit(var Message: TCMExit); message CM_EXIT;
+    FFocusOnColor: TColor;
+    FFocusOffColor: TColor;
+    FUseColoring: Boolean;
+    procedure SetFocusOnColor(Value: TColor);
+    procedure SetFocusOffColor(Value: TColor);
     procedure SetDropDownFixedWidth(const Value: Integer);
     function GetTextWidth(s: string): Integer;
   protected
     { Protected declarations }
+    procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
+    procedure WMKillFocus(var Message: TWMKillFocus); message WM_KILLFOCUS;
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     procedure SetEditable(Value: Boolean);
     procedure KeyPress(var Key: Char); override;
     procedure DropDown; override;
@@ -30,11 +35,12 @@ type
     property ItemWidth: Integer read FItemWidth write FItemWidth;
   published
     { Published declarations }
-    property EditColor: TColor read FEditColor write FEditColor;
     property DeniedKeyStrokes: Boolean read FDKS write FDKS;
-    //property TextCompletion: Boolean read GetTextCompletion write SetTextCompletion;
     property Editable: Boolean write SetEditable;
     property ReadOnly: Boolean read FReadOnly write FReadOnly;
+    property FocusOnColor: TColor read FFocusOnColor write SetFocusOnColor;
+    property FocusOffColor: TColor read FFocusOffColor write SetFocusOffColor;
+    property UseColoring: Boolean read FUseColoring write FUseColoring;
     property DropDownFixedWidth: Integer read FDropDownFixedWidth write SetDropDownFixedWidth;
   end;
 
@@ -56,8 +62,11 @@ end;
 constructor TBCComboBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FEditColor := clInfoBk;
+  FFocusOnColor := clInfoBk;
+  FFocusOffColor := clWindow;
+  FUseColoring := True;
   ReadOnly := False;
+  StyleElements := [seFont, seBorder];
 end;
 
 procedure TBCComboBox.KeyPress(var Key: Char);
@@ -68,31 +77,69 @@ begin
     inherited;
 end;
 
-procedure TBCComboBox.CMEnter(var Message: TCMEnter);
+procedure TBCComboBox.WMSetFocus(var Message: TWMSetFocus);
 begin
+  if not ReadOnly and UseColoring then
+  begin
+    Color := FFocusOnColor;
+    InvalidateRect(Handle, nil, True);
+  end;
   inherited;
-  if not Readonly then
-    Color := FEditColor
 end;
 
-procedure TBCComboBox.CMExit(var Message: TCMExit);
+procedure TBCComboBox.WMKillFocus(var Message: TWMKillFocus);
+begin
+  if not ReadOnly and UseColoring then
+  begin
+    Color := FFocusOffColor;
+    InvalidateRect(Handle, nil, True);
+  end;
+  inherited;
+end;
+
+procedure TBCComboBox.WMPaint(var Message: TWMPaint);
+var
+  DC: HDC;
 begin
   inherited;
-  if not Readonly then
-    Color := clwindow;
+  if (csDesigning in ComponentState) then
+    Exit;
+
+  if UseColoring then
+  begin
+    DC := GetWindowDC(Handle);
+    try
+      if ReadOnly then
+        Color := clBtnFace;
+      SetBKColor(DC, Color);
+      //FrameRect(DC, Rect(1, 1, Pred(Width), Pred(Height)), CreateSolidBrush(ColorToRGB(Color)));
+    finally
+      ReleaseDC(Handle, DC);
+    end;
+  end;
+end;
+
+procedure TBCComboBox.SetFocusOnColor(Value: TColor);
+begin
+  if FFocusOnColor <> Value then
+    FFocusOnColor := Value;
+end;
+
+procedure TBCComboBox.SetFocusOffColor(Value: TColor);
+begin
+  if FocusOffColor <> Value then
+    FFocusOffColor := Value;
 end;
 
 procedure TBCComboBox.SetEditable(Value: Boolean);
 begin
   if Value then
   begin
-    Color := clWindow;
     ReadOnly := False;
     TabStop := True;
   end
   else
   begin
-    Color := clBtnFace;
     ReadOnly := True;
     TabStop := False;
   end;

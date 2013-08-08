@@ -12,18 +12,24 @@ type
   TBCEdit = class(TJvEdit)
   private
     { Private declarations }
+    FEnterToTab: Boolean;
     FOnlyNum: Boolean;
     FNumwDots: Boolean;
     FNumwSpots: Boolean;
     FNegativeNumbers: Boolean;
-    FEditColor: TColor;
     FErrorColor: TColor;
     FOnValidate: TValidateEvent;
-    procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
-    procedure WMKillFocus(var Message: TWMSetFocus); message WM_KILLFOCUS;
+    FFocusOnColor: TColor;
+    FFocusOffColor: TColor;
+    FUseColoring: Boolean;
+    procedure SetFocusOnColor(Value: TColor);
+    procedure SetFocusOffColor(Value: TColor);
     procedure SetEditable(Value: Boolean);
   protected
     { Protected declarations }
+    procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
+    procedure WMKillFocus(var Message: TWMKillFocus); message WM_KILLFOCUS;
+    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
     procedure KeyPress(var Key: Char); override;
     procedure DoExit; override;
   public
@@ -32,14 +38,17 @@ type
     function IsEmpty: Boolean;
   published
     { Published declarations }
+    property EnterToTab: Boolean read FEnterToTab write FEnterToTab;
     property OnlyNumbers: Boolean read FOnlyNum write FOnlyNum;
     property NumbersWithDots: Boolean read FNumwDots write FNumwDots;
     property NumbersWithSpots: Boolean read FNumwSpots write FNumwSpots;
-    property EditColor: TColor read FEditColor write FEditColor;
     property ErrorColor: TColor read FErrorColor write FErrorColor;
     property NumbersAllowNegative: Boolean read FNegativeNumbers write FNegativeNumbers;
-    property Editable: Boolean write SetEditable;
+    property FocusOnColor: TColor read FFocusOnColor write SetFocusOnColor;
+    property FocusOffColor: TColor read FFocusOffColor write SetFocusOffColor;
+    property UseColoring: Boolean read FUseColoring write FUseColoring;
     property OnValidate: TValidateEvent read FOnValidate write FOnValidate;
+    property Editable: Boolean write SetEditable;
   end;
 
 procedure Register;
@@ -47,7 +56,10 @@ procedure Register;
 implementation
 
 uses
-  System.UITypes;
+  System.UITypes, Vcl.Themes;
+
+const
+  clError = TColor($E1E1FF);
 
 resourcestring
   TEXT_SET_VALUE = 'Set value %s.';
@@ -60,31 +72,85 @@ end;
 constructor TBCEdit.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FEnterToTab := False;
   FOnlyNum := False;
   FNegativeNumbers := False;
-  FEditColor := clInfoBk;
-  FErrorColor := $00E1E0FE;
-end;
-
-procedure TBCEdit.WMKillFocus(var Message: TWMSetFocus);
-var
-  Error: Boolean;
-begin
-  inherited;
-  Error := False;
-  if not readonly then
-    Color := clWindow;
-  if Assigned(FOnValidate) then
-    FOnValidate(Self, Error);
-  if Error then
-    Color := FErrorColor;
+  FFocusOnColor := clInfoBk;
+  FFocusOffColor := clWindow;
+  FUseColoring := True;
+  FErrorColor := clError;
+  StyleElements := [seFont, seBorder];
 end;
 
 procedure TBCEdit.WMSetFocus(var Message: TWMSetFocus);
+var
+  Error: Boolean;
+begin
+  if not ReadOnly and UseColoring then
+  begin
+    Error := False;
+    if Assigned(FOnValidate) then
+      FOnValidate(Self, Error);
+    if Error then
+      Color := FErrorColor
+    else
+      Color := FFocusOnColor;
+    InvalidateRect(Handle, nil, True);
+  end;
+  inherited;
+end;
+
+procedure TBCEdit.WMKillFocus(var Message: TWMKillFocus);
+begin
+  if not ReadOnly and UseColoring then
+  begin
+    Color := FFocusOffColor;
+    InvalidateRect(Handle, nil, True);
+  end;
+  inherited;
+end;
+
+procedure TBCEdit.WMPaint(var Message: TWMPaint);
+var
+  DC: HDC;
+  Error: Boolean;
 begin
   inherited;
-  if not readonly then
-    Color := FEditColor;
+  if (csDesigning in ComponentState) then
+    Exit;
+
+  if UseColoring then
+  begin
+    Error := False;
+    DC := GetWindowDC(Handle);
+    try
+      if ReadOnly then
+        Color := clBtnFace
+      else
+      begin
+        if Assigned(FOnValidate) then
+          FOnValidate(Self, Error);
+        if Error then
+          Color := FErrorColor;
+      end;
+      SetBKColor(DC, Color);
+      //FrameRect(DC, Rect(1, 1, Pred(Width), Pred(Height)), CreateSolidBrush(ColorToRGB(Color)));
+    finally
+      ReleaseDC(Handle, DC);
+    end;
+  end;
+end;
+
+procedure TBCEdit.SetFocusOnColor(Value: TColor);
+begin
+  if FFocusOnColor <> Value then
+    FFocusOnColor := Value;
+end;
+
+procedure TBCEdit.SetFocusOffColor(Value: TColor);
+begin
+  if FocusOffColor <> Value then
+    FFocusOffColor := Value;
 end;
 
 procedure TBCEdit.KeyPress(var Key: Char);
@@ -132,13 +198,11 @@ procedure TBCEdit.SetEditable(Value: Boolean);
 begin
   if Value then
   begin
-    Color := clWindow;
     ReadOnly := False;
     TabStop := True;
   end
   else
   begin
-    Color := clBtnFace;
     ReadOnly := True;
     TabStop := False;
   end;
