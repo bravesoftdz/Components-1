@@ -3,7 +3,8 @@ unit BCControls.PageControl;
 interface
 
 uses
-  System.SysUtils, System.Classes, Vcl.Controls, Vcl.ComCtrls, Winapi.Messages, System.Types, Vcl.Graphics;
+  System.SysUtils, System.Classes, Vcl.Controls, Vcl.ComCtrls, Winapi.Messages, System.Types, Vcl.Graphics,
+  JvComCtrls;
 
 type
   TTabControlStyleHookBtnClose = class(TTabControlStyleHook)
@@ -23,7 +24,7 @@ type
     constructor Create(AControl: TWinControl); override;
   end;
 
-  TBCPageControl = class(TPageControl)
+  TBCPageControl = class(TJvPageControl)
   private
     { Private declarations }
     FTabDragDrop: Boolean;
@@ -38,7 +39,6 @@ type
   protected
     { Protected declarations }
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
-    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
     procedure DragOver(Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean); override;
   public
     { Public declarations }
@@ -501,7 +501,7 @@ begin
     if Accept then
       DragDrop(Source, X, Y);
   end
-  else
+  else { must be else otherwise the cursor will be prohibited }
     inherited DragOver(Source, X, Y, State, Accept);
 end;
 
@@ -515,15 +515,6 @@ begin
   end;
 
   inherited MouseDown(Button, Shift, X, Y);
-end;
-
-procedure TBCPageControl.MouseUp(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer);
-begin
-  if FTabDragDrop then
-    if Dragging then
-      EndDrag(True);
-
-  inherited MouseUp(Button, Shift, X, Y);
 end;
 
 end.
