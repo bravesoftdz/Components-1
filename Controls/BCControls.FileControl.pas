@@ -303,23 +303,6 @@ begin
   inherited Destroy;
 end;
 
-function FileIconInit(FullInit: BOOL): BOOL; stdcall;
-type
-  TFileIconInit = function(FullInit: BOOL): BOOL; stdcall;
-var
-  ShellDLL: HMODULE;
-  PFileIconInit: TFileIconInit;
-begin
-  Result := False;
-  if Win32Platform = VER_PLATFORM_WIN32_NT then
-  begin
-    ShellDLL := LoadLibrary(PChar('shell32.dll'));
-    PFileIconInit := GetProcAddress(ShellDLL, PChar(660));
-    if Assigned(PFileIconInit) then
-      Result := PFileIconInit(FullInit);
-  end;
-end;
-
 procedure TBCCustomDriveComboBox.GetSystemIcons;
 var
   SHFileInfo: TSHFileInfo;
@@ -632,24 +615,14 @@ begin
     Result := Path;
 end;
 
-function GetIconIndex(Path: string; Flags: Cardinal): Integer;
-var
-  SHFileInfo: TSHFileInfo;
-begin
-  if SHGetFileInfo(PChar(Path), 0, SHFileInfo, SizeOf(SHFileInfo), Flags) = 0 then
-    Result := -1
-  else
-    Result := SHFileInfo.iIcon;
-end;
-
 function TBCFileTreeView.GetCloseIcon(Path: string): Integer;
 begin
-  Result := GetIconIndex(Path, SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
+  Result := GetIconIndex(Path);
 end;
 
 function TBCFileTreeView.GetOpenIcon(Path: string): Integer;
 begin
-  Result := GetIconIndex(Path, SHGFI_SYSICONINDEX or SHGFI_SMALLICON or SHGFI_OPENICON);
+  Result := GetIconIndex(Path, SHGFI_OPENICON);
 end;
 
 procedure TBCFileTreeView.BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);

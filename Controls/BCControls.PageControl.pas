@@ -106,9 +106,9 @@ end;
 
 function TTabControlStyleHookBtnClose.GetImageIndex(TabIndex: Integer): Integer;
 begin
-  Result:=-1;
+  Result := -1;
   if (Control <> nil) and (Control is TCustomTabControl) then
-   Result:=THackCustomTabControl(Control).GetImageIndex(TabIndex);
+   Result := THackCustomTabControl(Control).GetImageIndex(TabIndex);
 end;
 
 procedure TTabControlStyleHookBtnClose.DrawTab(Canvas: TCanvas; Index: Integer);
@@ -116,7 +116,6 @@ var
   Details: TThemedElementDetails;
   ButtonR: TRect;
   FButtonState: TThemedWindow;
-
   R, LayoutR, GlyphR: TRect;
   ImageWidth, ImageHeight, ImageStep, TX, TY: Integer;
   DrawState: TThemedTab;
@@ -139,17 +138,21 @@ begin
   end;
 
   R := TabRect[Index];
-  if R.Left < 0 then Exit;
+  if R.Left < 0 then
+    Exit;
 
   if TabPosition in [tpTop, tpBottom] then
   begin
     if Index = TabIndex then
       InflateRect(R, 0, 2);
   end
-  else if Index = TabIndex then
-    Dec(R.Left, 2) else Dec(R.Right, 2);
+  else
+  if Index = TabIndex then
+    Dec(R.Left, 2)
+  else
+    Dec(R.Right, 2);
 
-  Canvas.Font.Assign(THackCustomTabControl(Control).Font);//access the original protected font property using a helper hack class
+  Canvas.Font.Assign(THackCustomTabControl(Control).Font); //access the original protected font property using a helper hack class
   LayoutR := R;
   DrawState := ttTabDontCare;
   case TabPosition of
