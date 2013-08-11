@@ -13,20 +13,14 @@ type
     FDropDownFixedWidth: Integer;
     FDKS: Boolean;
     FReadOnly: Boolean;
-    FEditColor: TColor;
-    FUseColoring: Boolean;
-    procedure SetEditColor(Value: TColor);
+    procedure SetEditable(Value: Boolean);
     procedure SetDropDownFixedWidth(const Value: Integer);
     function GetTextWidth(s: string): Integer;
-    procedure SetUseColoring(Value: Boolean);
   protected
     { Protected declarations }
-    procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
-    procedure WMKillFocus(var Message: TWMKillFocus); message WM_KILLFOCUS;
-    procedure WMPaint(var Message: TWMPaint); message WM_PAINT;
-    procedure SetEditable(Value: Boolean);
     procedure KeyPress(var Key: Char); override;
     procedure DropDown; override;
+//    procedure DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState); override;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -37,8 +31,6 @@ type
     property DeniedKeyStrokes: Boolean read FDKS write FDKS;
     property Editable: Boolean write SetEditable;
     property ReadOnly: Boolean read FReadOnly write FReadOnly;
-    property EditColor: TColor read FEditColor write SetEditColor;
-    property UseColoring: Boolean read FUseColoring write SetUseColoring;
     property DropDownFixedWidth: Integer read FDropDownFixedWidth write SetDropDownFixedWidth;
   end;
 
@@ -60,19 +52,7 @@ end;
 constructor TBCComboBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FEditColor := clInfoBk;
-  FUseColoring := True;
   ReadOnly := False;
-  StyleElements := [seFont, seBorder];
-end;
-
-procedure TBCComboBox.SetUseColoring(Value: Boolean);
-begin
-  FUseColoring := Value;
-  if FUseColoring then
-    StyleElements := [seFont, seBorder]
-  else
-    StyleElements := [seFont, seClient, seBorder];
 end;
 
 procedure TBCComboBox.KeyPress(var Key: Char);
@@ -83,89 +63,26 @@ begin
     inherited;
 end;
 
-procedure TBCComboBox.WMSetFocus(var Message: TWMSetFocus);
+{procedure TBCComboBox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState);
+const
+  ColorStates: array[Boolean] of TStyleColor = (scComboBoxDisabled, scComboBox);
+  FontColorStates: array[Boolean] of TStyleFont = (sfComboBoxItemDisabled, sfComboBoxItemNormal);
 var
-  LStyles: TCustomStyleServices;
+  LStyles  : TCustomStyleServices;
 begin
-  LStyles := StyleServices;
-  if not ReadOnly and UseColoring then
+  LStyles  := StyleServices;
+  if LStyles.Enabled then
   begin
-    if LStyles.Enabled then
-      Color := LStyles.GetSystemColor(clHighlight)
-    else
-      Color := FEditColor;
-    InvalidateRect(Handle, nil, True);
+    Canvas.Brush.Color := LStyles.GetStyleColor(ColorStates[Enabled]);
+    Canvas.Font.Color  := LStyles.GetStyleFontColor(FontColorStates[Enabled]);
+
+    if odSelected in State then
+      Canvas.Brush.Color := LStyles.GetSystemColor(clHighlight);
+
+    Canvas.FillRect(Rect) ;
+    Canvas.TextOut(Rect.Left+2, Rect.Top, Items[Index]);
   end;
-  inherited;
-end;
-
-procedure TBCComboBox.WMKillFocus(var Message: TWMKillFocus);
-var
-  LStyles: TCustomStyleServices;
-begin
-  LStyles := StyleServices;
-  if UseColoring then
-  begin
-    if LStyles.Enabled then
-      Color := LStyles.GetStyleColor(scEdit)
-    else
-      Color := clWindow;
-    InvalidateRect(Handle, nil, True);
-  end;
-  inherited;
-end;
-
-procedure TBCComboBox.WMPaint(var Message: TWMPaint);
-var
-  DC: HDC;
-  LStyles: TCustomStyleServices;
-begin
-  inherited;
-  LStyles := StyleServices;
-
-  if (csDesigning in ComponentState) then
-    Exit;
-
-  if UseColoring then
-  begin
-    DC := GetWindowDC(Handle);
-    try
-      if LStyles.Enabled then
-      begin
-        if Focused then
-          Font.Color := LStyles.GetSystemColor(clHighlightText)
-        else
-        begin
-          Color := LStyles.GetStyleColor(scEdit);
-          Font.Color := LStyles.GetStyleFontColor(sfEditBoxTextNormal);
-        end;
-      end
-      else
-      begin
-        if not Focused then
-          Color := clWindow;
-        Font.Color := clWindowText;
-      end;
-      if ReadOnly then
-      begin
-        if LStyles.Enabled then
-          Color := LStyles.GetStyleColor(scEditDisabled)
-        else
-          Color := clBtnFace;
-      end;
-      SetBKColor(DC, Color);
-      //FrameRect(DC, Rect(1, 1, Pred(Width), Pred(Height)), CreateSolidBrush(ColorToRGB(Color)));
-    finally
-      ReleaseDC(Handle, DC);
-    end;
-  end;
-end;
-
-procedure TBCComboBox.SetEditColor(Value: TColor);
-begin
-  if FEditColor <> Value then
-    FEditColor := Value;
-end;
+end;  }
 
 procedure TBCComboBox.SetEditable(Value: Boolean);
 begin
