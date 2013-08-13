@@ -20,7 +20,7 @@ type
     { Protected declarations }
     procedure KeyPress(var Key: Char); override;
     procedure DropDown; override;
-//    procedure DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState); override;
+    procedure DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState); override;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -63,9 +63,9 @@ begin
     inherited;
 end;
 
-{procedure TBCComboBox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState);
+procedure TBCComboBox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState);
 const
-  ColorStates: array[Boolean] of TStyleColor = (scComboBoxDisabled, scComboBox);
+  ColorStates: array[Boolean] of TStyleColor = (scComboBoxDisabled, scEdit); // scComboBox);
   FontColorStates: array[Boolean] of TStyleFont = (sfComboBoxItemDisabled, sfComboBoxItemNormal);
 var
   LStyles  : TCustomStyleServices;
@@ -77,12 +77,15 @@ begin
     Canvas.Font.Color  := LStyles.GetStyleFontColor(FontColorStates[Enabled]);
 
     if odSelected in State then
+    begin
       Canvas.Brush.Color := LStyles.GetSystemColor(clHighlight);
+      Canvas.Font.Color  := LStyles.GetSystemColor(clHighlightText);
+    end;
 
     Canvas.FillRect(Rect) ;
     Canvas.TextOut(Rect.Left+2, Rect.Top, Items[Index]);
   end;
-end;  }
+end;
 
 procedure TBCComboBox.SetEditable(Value: Boolean);
 begin
