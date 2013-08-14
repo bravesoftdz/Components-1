@@ -150,6 +150,7 @@ type
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -489,6 +490,27 @@ uses
 {$ELSE}
   SynEditStrConst;
 {$ENDIF}
+
+procedure TSynProgressSyn.AddKeywords(var StringList: TStrings);
+var
+  S, Word: string;
+begin
+  inherited;
+  S := DefaultKeywords + ' ' + DefaultNonReservedKeywords + ' ' + DefaultEvents + ' ' + DefaultDataTypes;
+  while S <> '' do
+  begin
+    if Pos(' ', S) <> 0 then
+      Word := Trim(Copy(S, 1, Pos(' ', S) - 1))
+    else
+    begin
+      Word := Trim(S);
+      S := '';
+    end;
+    if Pos(' ', S) <> 0 then
+      S := Copy(S, Pos(' ', S) + 1, Length(S));
+    StringList.Add(Word);
+  end;
+end;
 
 function TSynProgressSyn.HashKey(Str: PWideChar): Integer;
 

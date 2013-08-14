@@ -293,10 +293,10 @@ var
   S, Word: string;
 begin
   inherited;
-  S := KeyWords;
+  S := KeyWords + ', ' + PreprocessorWords + ', ' + StringWords + ', ' + AmbigiousWords;
   while S <> '' do
   begin
-    if  Pos(',', S) <> 0 then
+    if Pos(',', S) <> 0 then
       Word := Trim(Copy(S, 1, Pos(',', S) - 1))
     else
     begin
