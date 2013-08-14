@@ -1218,7 +1218,7 @@ begin
     Parent := Tree;
     FEdit.Font.Name := FTree.Canvas.Font.Name;
     FEdit.Font.Size := FTree.Canvas.Font.Size;
-    Flat := True;
+    //Flat := True;
     Text := Data.FileName;
     OnKeyPress := EditKeyPress;
   end;
