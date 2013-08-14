@@ -290,7 +290,6 @@ end;
 
 procedure TSynCobolSyn.AddKeywords(var StringList: TStrings);
 var
-  i: Integer;
   S, Word: string;
 begin
   inherited;
