@@ -134,6 +134,7 @@ type
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -447,6 +448,15 @@ begin
     KeywordList.AddObject(KEYWORDS[f], Pointer(Ord(tkKey)));
   for f := 1 to NONKEYWORDCOUNT do
     KeywordList.AddObject(NONKEYWORDS[f], Pointer(Ord(tkNonKeyword)));
+end;
+
+procedure TSynPythonSyn.AddKeywords(var StringList: TStrings);
+var
+  i: Integer;
+begin
+  inherited;
+  for i := 0 to Keywords.Count - 1 do
+    StringList.Add(Keywords.Strings[i]);
 end;
 
 function TSynPythonSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;

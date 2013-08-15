@@ -138,6 +138,7 @@ type
     function IsSecondKeyWord(AToken: UnicodeString): Boolean;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: Integer; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -218,6 +219,17 @@ begin
       if Compare < 0 then First := I + 1 else Last := I - 1;
   end;
 end; { IsKeyWord }
+
+procedure TSynUNIXShellScriptSyn.AddKeywords(var StringList: TStrings);
+var
+  i: Integer;
+begin
+  inherited;
+  for i := 0 to Length(ShellScriptKeys) - 1 do
+    StringList.Add(ShellScriptKeys[i]);
+  for i := 0 to Length(ShellScriptSecondKeys) - 1 do
+    StringList.Add(ShellScriptSecondKeys[i]);
+end;
 
 function TSynUNIXShellScriptSyn.IsSecondKeyWord(AToken: UnicodeString): Boolean;
 var

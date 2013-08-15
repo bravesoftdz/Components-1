@@ -137,6 +137,7 @@ type
     function IsSecondKeyWord(aToken: UnicodeString): Boolean;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -204,6 +205,15 @@ begin
       Last := I - 1;
   end;
 end; { IsKeyWord }
+
+procedure TSynRubySyn.AddKeywords(var StringList: TStrings);
+var
+  i: Integer;
+begin
+  inherited;
+  for i := 0 to Length(RubyKeys) - 1 do
+    StringList.Add(RubyKeys[i]);
+end;
 
 function TSynRubySyn.IsSecondKeyWord(aToken: UnicodeString): Boolean;
 var
