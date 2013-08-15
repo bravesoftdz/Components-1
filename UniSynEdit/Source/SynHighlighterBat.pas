@@ -134,6 +134,7 @@ type
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
@@ -183,6 +184,15 @@ begin
   fStringLen := Str - fToIdent;
 end;
 {$Q+}
+
+procedure TSynBatSyn.AddKeywords(var StringList: TStrings);
+var
+  i: Integer;
+begin
+  inherited;
+  for i := 0 to Length(KeyWords) - 1 do
+    StringList.Add(KeyWords[i]);
+end;
 
 function TSynBatSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var

@@ -165,6 +165,7 @@ type
     function GetTokenKind: Integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
     function IsKeyword(const AKeyword: UnicodeString): Boolean; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
@@ -1199,6 +1200,40 @@ begin
   end;
   Result := Result and $FF; // 255
   fStringLen := Str - fToIdent;
+end;
+
+procedure TSynSQLSyn.AddKeywords(var StringList: TStrings);
+var
+  S, Word: string;
+begin
+  inherited;
+  case SQLDialect of
+    sqlStandard: S := StandardKW;
+    sqlSybase: S := SybaseKW;
+    sqlPostgres: S := PostgresKW + ', ' + PostgresFunctions + ', ' + PostgresTypes + ', ' + PostgresExceptions;
+    sqlOracle: S := OracleKW + ', ' + OraclePLSQLKW + ', ' + OracleTypes + ', ' + OracleExceptions + ', ' +
+      OracleFunctions + ', ' + OracleDefaultPackages + ', ' + OracleSQLPlusCommands + ', ' + OracleCommentKW;
+    sqlMSSQL7: S := MSSQL7KW + ', ' + MSSQL7Functions + ', ' + MSSQL7Types;
+    sqlMSSQL2K: S := MSSQL2000KW + ', ' + MSSQL2000Functions + ', ' + MSSQL2000Types;
+    sqlInterbase6: S := Interbase6Functions + ', ' +Interbase6KW + ', ' + Interbase6Types;
+    sqlMySQL: S := MySqlKW + ', ' + MySQLPLSQLKW + ', ' + MySQLTypes + ', ' + MySQLFunctions;
+    sqlIngres: S := IngresKW + ', ' + IngresTypes + ', ' + IngresFunctions;
+    sqlNexus: S := NexusKW + ', ' + NexusFunctions + ', ' + NexusTypes;
+  end;
+
+  while S <> '' do
+  begin
+    if Pos(',', S) <> 0 then
+      Word := Trim(Copy(S, 1, Pos(',', S) - 1))
+    else
+    begin
+      Word := Trim(S);
+      S := '';
+    end;
+    if Pos(',', S) <> 0 then
+      S := Copy(S, Pos(',', S) + 1, Length(S));
+    StringList.Add(Word);
+  end;
 end;
 
 function TSynSQLSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;

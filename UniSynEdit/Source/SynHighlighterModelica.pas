@@ -124,6 +124,7 @@ type
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -186,6 +187,15 @@ begin
   fStringLen := Str - fToIdent;
 end;
 {$Q+}
+
+procedure TSynModelicaSyn.AddKeywords(var StringList: TStrings);
+var
+  i: Integer;
+begin
+  inherited;
+  for i := 0 to Length(KeyWords) - 1 do
+    StringList.Add(KeyWords[i]);
+end;
 
 function TSynModelicaSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var

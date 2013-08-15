@@ -184,6 +184,7 @@ type
     function GetRange: Pointer; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     {$IFNDEF SYN_CLX}
     function SaveToRegistry(RootKey: HKEY; Key: string): boolean; override;
     function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; override;
@@ -551,6 +552,31 @@ begin
   FSAsmNoField.free;
   inherited Destroy;
 end; { Destroy }
+
+procedure TSynHP48Syn.AddKeywords(var StringList: TStrings);
+var
+  i: Integer;
+  S, Word: string;
+begin
+  inherited;
+  S := DefaultAsmKeyWords + #13#10 + DefaultRplKeyWords + #13#10 + SasmNoField;
+  while S <> '' do
+  begin
+    if Pos(#13#10, S) <> 0 then
+      Word := Trim(Copy(S, 1, Pos(#13#10, S) - 1))
+    else
+    begin
+      Word := Trim(S);
+      S := '';
+    end;
+    if Pos(#13#10, S) <> 0 then
+      S := Copy(S, Pos(#13#10, S) + 1, Length(S));
+    StringList.Add(Word);
+  end;
+
+  for i := 0 to Length(OtherAsmKeyWords) - 1 do
+    StringList.Add(OtherAsmKeyWords[i]);
+end;
 
 function TSynHP48Syn.AsmComProc(c: WideChar): TtkTokenKind;
 begin

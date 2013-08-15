@@ -118,6 +118,7 @@ type
     function SaveToRegistry(RootKey: HKEY; Key: string): boolean; override;
     function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; override;
     {$ENDIF}
+    procedure AddKeywords(var StringList: TStrings); override;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
       write fCommentAttri;
@@ -148,6 +149,15 @@ begin
     else
       Result := False;
   end;
+end;
+
+procedure TSynGalaxySyn.AddKeywords(var StringList: TStrings);
+var
+  i: Integer;
+begin
+  inherited;
+  for i := 0 to FKeyWords.Count - 1 do
+    StringList.Add(FKeyWords.Strings[i]);
 end;
 
 function TSynGalaxySyn.IsKeyword(const AKeyword: UnicodeString): Boolean;

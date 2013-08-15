@@ -129,6 +129,7 @@ type
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
@@ -211,6 +212,27 @@ begin
   end;
   Result := Result and $FF; // 255
   fStringLen := Str - fToIdent;
+end;
+
+procedure TSynM3Syn.AddKeywords(var StringList: TStrings);
+var
+  S, Word: string;
+begin
+  inherited;
+  S := KeyWords + ', ' + ReservedWords;
+  while S <> '' do
+  begin
+    if Pos(',', S) <> 0 then
+      Word := Trim(Copy(S, 1, Pos(',', S) - 1))
+    else
+    begin
+      Word := Trim(S);
+      S := '';
+    end;
+    if Pos(',', S) <> 0 then
+      S := Copy(S, Pos(',', S) + 1, Length(S));
+    StringList.Add(Word);
+  end;
 end;
 
 function TSynM3Syn.IdentKind(MayBe: PWideChar): TtkTokenKind;
