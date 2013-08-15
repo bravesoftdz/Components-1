@@ -186,6 +186,7 @@ type
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: Integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
   published
     property ArgumentsAttri: TSynHighlighterAttributes read fArgumentsAttri write fArgumentsAttri;
@@ -292,6 +293,15 @@ begin
   InitIdent;
   fDefaultFilter := SYNS_FilterWebIDL;
   fRange := rsUnknown;
+end;
+
+procedure TSynWebIDLSyn.AddKeywords(var StringList: TStrings);
+var
+  i: Integer;
+begin
+  inherited;
+  for i := 0 to Length(KeyWords) - 1 do
+    StringList.Add(KeyWords[i]);
 end;
 
 procedure TSynWebIDLSyn.InitIdent;

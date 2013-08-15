@@ -129,6 +129,7 @@ type
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
@@ -191,6 +192,27 @@ var
 begin
   HashValue := HashKey(PWideChar(AKeyword));
   fKeywords[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
+end;
+
+procedure TSynHC11Syn.AddKeywords(var StringList: TStrings);
+var
+  S, Word: string;
+begin
+  inherited;
+  S := KeyWords + ',' + Directives;
+  while S <> '' do
+  begin
+    if Pos(',', S) <> 0 then
+      Word := Trim(Copy(S, 1, Pos(',', S) - 1))
+    else
+    begin
+      Word := Trim(S);
+      S := '';
+    end;
+    if Pos(',', S) <> 0 then
+      S := Copy(S, Pos(',', S) + 1, Length(S));
+    StringList.Add(Word);
+  end;
 end;
 
 function TSynHC11Syn.HashKey(Str: PWideChar): Integer;

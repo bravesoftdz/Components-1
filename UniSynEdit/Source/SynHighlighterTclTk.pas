@@ -137,6 +137,7 @@ type
     function IsKeyword(const AKeyword: UnicodeString): Boolean; override;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -277,6 +278,21 @@ begin
     else
       if Compare < 0 then First := I + 1 else Last := I - 1;
   end;
+end;
+
+procedure TSynTclTkSyn.AddKeywords(var StringList: TStrings);
+var
+  i: Integer;
+begin
+  inherited;
+  for i := 0 to Length(TclTkKeys) - 1 do
+    StringList.Add(TclTkKeys[i]);
+  for i := 0 to Length(SecondTclTkKeys) - 1 do
+    StringList.Add(SecondTclTkKeys[i]);
+  for i := 0 to Length(TixKeys) - 1 do
+    StringList.Add(TixKeys[i]);
+  for i := 0 to Length(WidgetKeys) - 1 do
+    StringList.Add(WidgetKeys[i]);
 end;
 
 function TSynTclTkSyn.IsKeyword(const AKeyword: UnicodeString): Boolean;

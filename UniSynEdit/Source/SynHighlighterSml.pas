@@ -136,6 +136,7 @@ type
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
   published
     property CharacterAttri: TSynHighlighterAttributes read fCharacterAttri
@@ -198,6 +199,15 @@ begin
   fStringLen := Str - fToIdent;
 end;
 {$Q+}
+
+procedure TSynSMLSyn.AddKeywords(var StringList: TStrings);
+var
+  i: Integer;
+begin
+  inherited;
+  for i := 0 to Length(KeyWords) - 1 do
+    StringList.Add(KeyWords[i]);
+end;
 
 function TSynSMLSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var

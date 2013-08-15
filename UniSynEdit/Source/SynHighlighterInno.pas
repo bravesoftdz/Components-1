@@ -119,6 +119,7 @@ type
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenKind: integer; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
   published
     property ConstantAttri: TSynHighlighterAttributes read fConstantAttri
@@ -232,6 +233,27 @@ begin
   end;
   Result := Result and $1FF; // 511
   fStringLen := Str - fToIdent;
+end;
+
+procedure TSynInnoSyn.AddKeywords(var StringList: TStrings);
+var
+  S, Word: string;
+begin
+  inherited;
+  S := KeyWords + ',' + Parameters + ',' + KeyOrParameter;
+  while S <> '' do
+  begin
+    if Pos(',', S) <> 0 then
+      Word := Trim(Copy(S, 1, Pos(',', S) - 1))
+    else
+    begin
+      Word := Trim(S);
+      S := '';
+    end;
+    if Pos(',', S) <> 0 then
+      S := Copy(S, Pos(',', S) + 1, Length(S));
+    StringList.Add(Word);
+  end;
 end;
 
 function TSynInnoSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;

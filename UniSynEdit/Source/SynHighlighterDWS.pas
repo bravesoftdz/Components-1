@@ -143,6 +143,7 @@ type
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenKind: Integer; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
@@ -227,6 +228,17 @@ begin
    end;
    fStringLen := Str - fToIdent;
    Result := Result mod Cardinal(Length(fIdentFuncTable));
+end;
+
+procedure TSynDWSSyn.AddKeywords(var StringList: TStrings);
+var
+  i: Integer;
+begin
+  inherited;
+  for i := 0 to Length(cKeyWords) - 1 do
+    StringList.Add(cKeyWords[i]);
+  for i := 0 to Length(cKeyWords_PropertyScoped) - 1 do
+    StringList.Add(cKeyWords_PropertyScoped[i]);
 end;
 
 function TSynDWSSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;

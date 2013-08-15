@@ -211,6 +211,7 @@ type
     function GetTokenID :TtkTokenKind;
     function GetTokenAttribute :TSynHighlighterAttributes; override;
     function GetTokenKind :integer; override;
+    procedure AddKeywords(var StringList: TStrings); override;
     procedure Next; override;
     procedure SetRange(Value :Pointer); override;
     procedure ResetRange; override;
@@ -437,6 +438,30 @@ var
 begin
   HashValue := HashKey(PWideChar(AKeyword));
   fKeywords[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
+end;
+
+procedure TSynVrml97Syn.AddKeywords(var StringList: TStrings);
+var
+  S, Word: string;
+begin
+  inherited;
+  S := Events + ', ' + KeyWords + ', ' + NonReservedKeys + ', ' + VrmlAppearances + ', ' + VrmlAttributes + ', ' +
+    VrmlDefinitions + ', ' + VrmlEvents + ', ' + VrmlGroupings + ', ' + VrmlInterpolators + ', ' + VrmlLights + ', ' +
+    VrmlNodes + ', ' + VrmlParameters + ', ' + VrmlProtos + ', ' + VrmlSensors + ', ' + VrmlShapes + ', ' +
+    VrmlShape_Hints + ', ' + VrmlTime_dependents + ', ' + VrmlViewpoints + ', ' + VrmlWorldInfos;
+  while S <> '' do
+  begin
+    if Pos(',', S) <> 0 then
+      Word := Trim(Copy(S, 1, Pos(',', S) - 1))
+    else
+    begin
+      Word := Trim(S);
+      S := '';
+    end;
+    if Pos(',', S) <> 0 then
+      S := Copy(S, Pos(',', S) + 1, Length(S));
+    StringList.Add(Word);
+  end;
 end;
 
 function TSynVrml97Syn.HashKey(Str: PWideChar): Integer;
