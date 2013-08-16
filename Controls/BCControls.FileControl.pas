@@ -165,7 +165,7 @@ type
     property OnStartDrag;
   end;
 
-  TBCFileType = (ftNone, ftDirectory, ftFile);
+  TBCFileType = (ftNone, ftDirectory, ftFile, ftDirectoryAccessDenied, ftFileAccessDenied);
 
   PBCFileTreeNodeRec = ^TBCFileTreeNodeRec;
   TBCFileTreeNodeRec = record
@@ -675,6 +675,14 @@ begin
             else
               Data.FullPath := IncludeTrailingBackslash(RootDirectory);
           end;
+          if not CheckAccessToFile(FILE_GENERIC_READ, Data.FullPath) then
+          begin
+            if Data.FileType = ftDirectory then
+              Data.FileType := ftDirectoryAccessDenied
+            else
+              Data.FileType := ftFileAccessDenied;
+          end;
+
           Data.Filename := SR.Name;
           Data.CloseIndex := GetCloseIcon(Filename);
           Data.OpenIndex := GetOpenIcon(Filename);
@@ -966,6 +974,16 @@ begin
       Canvas.Brush.Color := clHighlight;
       Canvas.Font.Color := clHighlightText;
     end;
+    Canvas.Font.Style := [];
+    if (Data.FileType = ftDirectoryAccessDenied) or (Data.FileType = ftFileAccessDenied) then
+    begin
+      Canvas.Font.Style := [fsItalic];
+
+      if LStyles.Enabled then
+        Canvas.Font.Color := LStyles.GetStyleFontColor(sfMenuItemTextDisabled)
+      else
+        Canvas.Font.Color := clBtnFace;
+    end;
 
     SetBKMode(Canvas.Handle, TRANSPARENT);
 
@@ -1027,7 +1045,7 @@ begin
 
    if Data1.FileType <> Data2.FileType then
     begin
-     if Data1.FileType = ftDirectory then
+     if (Data1.FileType = ftDirectory) or (Data1.FileType = ftDirectoryAccessDenied) then
        Result := -1
      else
        Result := 1;
@@ -1087,6 +1105,13 @@ begin
               ChildData.FileType := ftFile;
               ChildData.FullPath := IncludeTrailingBackslash(Data.FullPath);
             end;
+            if not CheckAccessToFile(FILE_GENERIC_READ, ChildData.FullPath) then
+            begin
+              if ChildData.FileType = ftDirectory then
+                ChildData.FileType := ftDirectoryAccessDenied
+              else
+                ChildData.FileType := ftFileAccessDenied;
+            end;
             ChildData.Filename := SR.Name;
             ChildData.CloseIndex := GetOpenIcon(FName);
             ChildData.OpenIndex := GetCloseIcon(FName);
@@ -1135,10 +1160,16 @@ begin
 end;
 
 function TEditLink.BeginEdit: Boolean;
+var
+  Data: PBCFileTreeNodeRec;
 begin
-  Result := True;
-  FEdit.Show;
-  FEdit.SetFocus;
+  Data := FTree.GetNodeData(FNode);
+  Result := (Data.FileType = ftDirectory) or (Data.FileType = ftFile);
+  if Result then
+  begin
+    FEdit.Show;
+    FEdit.SetFocus;
+  end;
 end;
 
 function TEditLink.CancelEdit: Boolean;
