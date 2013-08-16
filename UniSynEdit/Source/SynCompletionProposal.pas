@@ -35,6 +35,10 @@ You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
 
 Known Issues:
+
+Modified by KV to
+  - apply FormatParams to only the first line of the ItemList
+  - to show the commas between parameters in parameter completion
 -------------------------------------------------------------------------------}
 
 {$IFNDEF QSYNCOMPLETIONPROPOSAL}
@@ -155,6 +159,7 @@ type
     fClSelectText: TColor;
     FClTitleBackground: TColor;
     fClBackGround: TColor;
+    fClBorder: TColor;
     Bitmap: TBitmap; // used for drawing
     TitleBitmap: TBitmap; // used for title-drawing
     FCurrentEditor: TCustomSynEdit;
@@ -268,6 +273,7 @@ type
     property ClSelectedText: TColor read FClSelectText write FClSelectText default clHighlightText;
     property ClBackground: TColor read FClBackGround write FClBackGround default clWindow;
     property ClTitleBackground: TColor read FClTitleBackground write FClTitleBackground default clBtnFace;
+    property ClBorder: TColor read FClBorder write FClBorder default clBtnFace;
     property ItemHeight: Integer read FItemHeight write SetItemHeight default 0;
     property Margin: Integer read FMargin write FMargin default 2;
 
@@ -300,6 +306,7 @@ type
     FDotOffset: Integer;
     FOptions: TSynCompletionOptions;
     FNbLinesInWindow: Integer;
+    FFormatParams : Boolean;
 
     FCanExecute: Boolean;
     function GetClSelect: TColor;
@@ -339,6 +346,8 @@ type
     procedure SetEndOfTokenChar(const Value: UnicodeString);
     function GetClTitleBackground: TColor;
     procedure SetClTitleBackground(const Value: TColor);
+    function GetClBorder: TColor;
+    procedure SetClBorder(const Value: TColor);
     procedure SetTitle(const Value: UnicodeString);
     function GetTitle: UnicodeString;
     function GetFont: TFont;
@@ -391,6 +400,7 @@ type
     property Form: TSynBaseCompletionProposalForm read FForm;
     property PreviousToken: UnicodeString read FPreviousToken;
     property Position: Integer read GetPosition write SetPosition;
+    property FormatParams : boolean read fFormatParams write fFormatParams;
   published
     property DefaultType: SynCompletionType read GetDefaultKind write SetDefaultKind default ctCode;
     property Options: TSynCompletionOptions read GetOptions write SetOptions default DefaultProposalOptions;
@@ -402,6 +412,7 @@ type
     property ClSelectedText: TColor read GetClSelectedText write SetClSelectedText default clHighlightText;
     property ClBackground: TColor read GetClBack write SetClBack default clWindow;
     property ClTitleBackground: TColor read GetClTitleBackground write SetClTitleBackground default clBtnFace;
+    property ClBorder: TColor read GetClBorder write SetClBorder default clBtnFace;
     property Width: Integer read FWidth write SetWidth default 260;
     property EndOfTokenChr: UnicodeString read GetEndOfTokenChar write SetEndOfTokenChar;
     property TriggerChars: UnicodeString read GetTriggerChars write SetTriggerChars;
@@ -1203,6 +1214,7 @@ begin
   Result := '';
   List := TUnicodeStringList.Create;
   try
+    List.StrictDelimiter := True;
     List.CommaText := S;
     for i := 0 to List.Count - 1 do
     begin
@@ -1212,8 +1224,8 @@ begin
         Result := Result + List[i];
 
       if i < List.Count - 1 then
-//        Result := Result + ', ';
-        Result := Result + ' ';
+        Result := Result + ', ';
+// KV        Result := Result + ' ';
     end;
   finally
     List.Free;
@@ -1254,20 +1266,20 @@ begin
   Visible := False;
 
   FTitleFont := TFont.Create;
-  FTitleFont.Name := 'MS Sans Serif';
+  FTitleFont.Name := 'MS Shell Dlg 2';
   FTitleFont.Size := 8;
   FTitleFont.Style := [fsBold];
   FTitleFont.Color := clBtnText;
 
   FFont := TFont.Create;
-  FFont.Name := 'MS Sans Serif';
+  FFont.Name := 'MS Shell Dlg 2';
   FFont.Size := 8;
 
   ClSelect := clHighlight;
   ClSelectedText := clHighlightText;
   ClBackground := clWindow;
   ClTitleBackground := clBtnFace;
-
+  ClBorder := clBtnFace;
 
   (FItemList as TUnicodeStringList).OnChange := StringListChange;  // Really necessary? It seems to work
   FTitle := '';                                             // fine without it
@@ -1362,11 +1374,11 @@ begin
     {$ENDIF}
       Params.WindowClass.style := Params.WindowClass.style or CS_DROPSHADOW;
 
-    if DisplayType = ctCode then
+    {if DisplayType = ctCode then
       if FResizeable then
         Style := Style or WS_THICKFRAME
       else
-        Style := Style or WS_DLGFRAME;
+        Style := Style or WS_DLGFRAME;  }
   end;
 end;
 
@@ -1386,13 +1398,13 @@ end;
 procedure TSynBaseCompletionProposalForm.Activate;
 begin
   Visible := True;
-  if DisplayType = ctCode then
+  if (DisplayType = ctCode) and Assigned(CurrentEditor) then  //KV
     (CurrentEditor as TCustomSynEdit).AddFocusControl(Self);
 end;
 
 procedure TSynBaseCompletionProposalForm.Deactivate;
 begin
-  if (DisplayType = ctCode) then
+  if (DisplayType = ctCode) and Assigned(CurrentEditor) then  //KV
     (CurrentEditor as TCustomSynEdit).RemoveFocusControl(Self);
   Visible := False;
 end;
@@ -1584,7 +1596,8 @@ begin
 
       if FEffectiveItemHeight <> 0 then
       begin
-        NewLinesInWindow := (NewHeight-FHeightBuffer) div FEffectiveItemHeight;
+        //KV Subtracted BorderWidth
+        NewLinesInWindow := (NewHeight - BorderWidth - FHeightBuffer) div FEffectiveItemHeight;
         if NewLinesInWindow < 1 then
           NewLinesInWindow := 1;
       end else
@@ -1609,7 +1622,8 @@ begin
   inherited;
 
   if FEffectiveItemHeight <> 0 then
-    FLinesInWindow := (Height - FHeightBuffer) div FEffectiveItemHeight;
+    //KV Replaced Height with ClientHeight
+    FLinesInWindow := (ClientHeight - FHeightBuffer) div FEffectiveItemHeight;
 
   if not(csCreating in ControlState) then
     AdjustMetrics;
@@ -1645,8 +1659,8 @@ begin
     with Bitmap do
     begin
       ResetCanvas;
-      Canvas.Pen.Color := clBtnFace;
-      Canvas.Rectangle(0, 0, ClientWidth - FScrollbar.Width, ClientHeight);
+      //Canvas.Pen.Color := clRed; // clBtnFace;
+      Canvas.Rectangle(0, 0, ClientWidth, ClientHeight);
       for i := 0 to Min(FLinesInWindow - 1, FAssignedList.Count - 1) do
       begin
         if i + FScrollbar.Position = Position then
@@ -1691,6 +1705,11 @@ begin
       end;
     end;
     Canvas.Draw(0, FHeightBuffer, Bitmap);
+    Canvas.Pen.Color := ClBorder;
+    Canvas.LineTo(ClientWidth, 0);
+    Canvas.LineTo(0, 0);
+    Canvas.LineTo(0, ClientHeight - 1);
+    Canvas.LineTo(ClientWidth, ClientHeight - 1);
 
     if FTitle <> '' then
     begin
@@ -1741,7 +1760,10 @@ begin
           ResetCanvas
         else
         begin
-          if FDisplayKind = ctParams then
+//KV          if FDisplayKind = ctParams then
+          if (FDisplayKind = ctParams) and (i = 0) and
+             (Owner as TSynBaseCompletionProposal).FormatParams
+          then
             TmpString := FormatParamList(FAssignedList[i], CurrentIndex)
           else
             TmpString := FAssignedList[i];
@@ -2268,7 +2290,6 @@ begin
   inherited Notification(AComponent, Operation);
 end;
 
-
 { TSynBaseCompletionProposal }
 
 constructor TSynBaseCompletionProposal.Create(Aowner: TComponent);
@@ -2279,6 +2300,7 @@ begin
   FForm := TSynBaseCompletionProposalForm.Create(Self);
   EndOfTokenChr := DefaultEndOfTokenChr;
   FDotOffset := 0;
+  FFormatParams := True;  // KV
   DefaultType := ctCode;
 end;
 
@@ -2394,7 +2416,10 @@ procedure TSynBaseCompletionProposal.ExecuteEx(s: UnicodeString; x, y: integer; 
         Form.Canvas.Font.Assign(Font);
         for i := 0 to ItemList.Count -1 do
         begin
-          NewWidth := GetParamWidth(StripFormatCommands(ItemList[i]));
+          if (i = 0) and FFormatParams then  //KV
+            NewWidth := GetParamWidth(StripFormatCommands(ItemList[i]))
+          else
+            NewWidth := FormattedTextWidth(Form.Canvas, ItemList[i], nil, FForm.Images);
 
           if Assigned(Form.OnMeasureItem) then
             Form.OnMeasureItem(Self, i, Form.Canvas, NewWidth);
@@ -2444,13 +2469,20 @@ begin
     exit;
   end;
 
-  Form.FormStyle := fsStayOnTop;
+  {$IFDEF SYN_COMPILER_10_UP}
+    Form.PopupMode := pmExplicit;
+  {$ELSE}
+    Form.FormStyle := fsStayOnTop;
+  {$ENDIF}
 
   if Assigned(Form.CurrentEditor) then
   begin
     TmpOffset := TextWidth((Form.CurrentEditor as TCustomSynEdit).Canvas, Copy(s, 1, DotOffset));
     if DotOffset > 1 then
-      TmpOffset := TmpOffset + (3 * (DotOffset -1))
+      TmpOffset := TmpOffset + (3 * (DotOffset -1));
+    {$IFDEF SYN_COMPILER_10_UP}
+    Form.PopupParent := GetParentForm(Form.CurrentEditor);
+    {$ENDIF}
   end else
     TmpOffset := 0;
   x := x - tmpOffset;
@@ -2472,6 +2504,13 @@ begin
       Form.Show;
 
       CurrentString := s;  // bug id 1496148
+      if not(scoLimitToMatchedText in Options) then
+      begin
+        Form.AdjustScrollBarPosition;
+        Form.FScrollbar.Position := Form.Position;
+      end;
+      if Form.AssignedList.Count > 0 then
+        Form.Show
     end;
   ctParams, ctHint:
     begin
@@ -2796,6 +2835,17 @@ begin
   Form.ClTitleBackground := Value;
 end;
 
+function TSynBaseCompletionProposal.GetClBorder: TColor;
+begin
+  Result := Form.ClBorder;
+end;
+
+procedure TSynBaseCompletionProposal.SetClBorder(
+  const Value: TColor);
+begin
+  Form.ClBorder := Value;
+end;
+
 function TSynBaseCompletionProposal.GetTitle: UnicodeString;
 begin
   Result := Form.Title;
@@ -2911,7 +2961,8 @@ begin
       ((F.CurrentEditor as TCustomSynEdit).Owner as TWinControl).SetFocus;
     end;
 
-    (F.CurrentEditor as TCustomSynEdit).SetFocus;
+    if (F.CurrentEditor as TCustomSynEdit).CanFocus then //KV added line
+      (F.CurrentEditor as TCustomSynEdit).SetFocus;
 
 {$IFDEF SYN_CLX}
     GetParentForm( F.CurrentEditor ).Show;
@@ -2993,7 +3044,8 @@ begin
           //sending a WM_MOUSEDOWN message. The problem with the mouse down is
           //that the editor would bounce back to the left margin, very irritating
           InternalCancelCompletion;
-          SetFocus;
+          if CanFocus then  // KV added
+            SetFocus;
 {$IFDEF SYN_CLX}
           GetParentForm( F.CurrentEditor ).Show;
 {$ENDIF}
@@ -3218,7 +3270,12 @@ begin
   begin
     DoExecute(Form.CurrentEditor as TCustomSynEdit);
     FNoNextKey := False;
-  end else if Form.Visible then Form.Hide;
+  end else if Form.Visible then begin
+    Form.Hide;
+    {$IFDEF SYN_COMPILER_10_UP}
+    Form.PopupParent := nil;
+    {$ENDIF}
+  end;
 end;
 
 function TSynCompletionProposal.GetTimerInterval: Integer;
@@ -3359,6 +3416,9 @@ begin
   begin
     Deactivate;
     Form.Hide;
+    {$IFDEF SYN_COMPILER_10_UP}
+    Form.PopupParent := nil;
+    {$ENDIF}
   end;
 end;
 
@@ -3451,9 +3511,8 @@ end;
 procedure TSynCompletionProposal.ActivateCompletion;
 begin
   DoExecute(Editor);
+  fNoNextKey := False;   //  Synedit bug report 1496151
 end;
-
-
 
 { TSynAutoComplete }
 
