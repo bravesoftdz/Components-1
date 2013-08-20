@@ -8,8 +8,8 @@ uses
 type
   TProgressBarStyleHookMarquee = class(TProgressBarStyleHook)
   private
-    Timer : TTimer;
-    FStep : Integer;
+    FTimer: TTimer;
+    FStep: Integer;
     procedure TimerAction(Sender: TObject);
   protected
     procedure PaintBar(Canvas: TCanvas); override;
@@ -26,6 +26,7 @@ type
   public
     { Public declarations }
     class constructor Create;
+    class destructor Destroy;
   published
     { Published declarations }
   end;
@@ -46,18 +47,18 @@ end;
 
 constructor TProgressBarStyleHookMarquee.Create(AControl: TWinControl);
 begin
-  inherited;
+  inherited Create(AControl);
   FStep := 0;
-  Timer := TTimer.Create(nil);
-  Timer.Interval := 100;
-  Timer.OnTimer := TimerAction;
-  Timer.Enabled := TJvProgressBar(Control).Marquee;
+  FTimer := TTimer.Create(nil);
+  FTimer.Interval := 100;
+  FTimer.OnTimer := TimerAction;
+  FTimer.Enabled := TJvProgressBar(Control).Marquee;
 end;
 
 destructor TProgressBarStyleHookMarquee.Destroy;
 begin
-  Timer.Free;
-  inherited;
+  FTimer.Free;
+  inherited Destroy;
 end;
 
 procedure TProgressBarStyleHookMarquee.PaintBar(Canvas: TCanvas);
@@ -116,18 +117,19 @@ begin
     end;
   end
   else
-  Timer.Enabled := False;
+    FTimer.Enabled := False;
 end;
 
 { TBCProgressBar }
 
-{$if CompilerVersion >= 23 }
 class constructor TBCProgressBar.Create;
 begin
-  inherited;
-  if Assigned(TStyleManager.Engine) then
-    TStyleManager.Engine.RegisterStyleHook(TBCProgressBar, TProgressBarStyleHookMarquee);
+  TStyleManager.Engine.RegisterStyleHook(TBCProgressBar, TProgressBarStyleHookMarquee);
 end;
-{$endif}
+
+class destructor TBCProgressBar.Destroy;
+begin
+  TStyleManager.Engine.UnRegisterStyleHook(TBCProgressBar, TProgressBarStyleHookMarquee);
+end;
 
 end.

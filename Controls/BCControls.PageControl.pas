@@ -42,9 +42,8 @@ type
     procedure DragOver(Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean); override;
   public
     { Public declarations }
-    {$if CompilerVersion >= 23 }
     class constructor Create;
-    {$endif}
+    class destructor Destroy;
     constructor Create(AOwner: TComponent); override;
     procedure DragDrop(Source: TObject; X, Y: Integer); override;
     procedure Invalidate; override;
@@ -381,14 +380,15 @@ end;
 
 { TBCPageControl }
 
-{$if CompilerVersion >= 23 }
 class constructor TBCPageControl.Create;
 begin
-  inherited;
-  if Assigned(TStyleManager.Engine) then
-    TStyleManager.Engine.RegisterStyleHook(TCustomTabControl, TTabControlStyleHookBtnClose);
+  TStyleManager.Engine.RegisterStyleHook(TCustomTabControl, TTabControlStyleHookBtnClose);
 end;
-{$endif}
+
+class destructor TBCPageControl.Destroy;
+begin
+  TStyleManager.Engine.UnRegisterStyleHook(TCustomTabControl, TTabControlStyleHookBtnClose);
+end;
 
 constructor TBCPageControl.Create(AOwner: TComponent);
 begin

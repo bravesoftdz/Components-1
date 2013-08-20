@@ -1661,7 +1661,7 @@ begin
       ResetCanvas;
       //Canvas.Pen.Color := clRed; // clBtnFace;
       Canvas.Rectangle(0, 0, ClientWidth, ClientHeight);
-      for i := 0 to Min(FLinesInWindow - 1, FAssignedList.Count - 1) do
+      for i := 0 to Min(FLinesInWindow, FAssignedList.Count - 1) do
       begin
         if i + FScrollbar.Position = Position then
         begin

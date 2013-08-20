@@ -18,9 +18,8 @@ type
     procedure DoOnProcessCommand(var Command: TSynEditorCommand;
       var AChar: WideChar; Data: pointer); override;
   public
-    {$if CompilerVersion >= 23 }
     class constructor Create;
-    {$endif}
+    class destructor Destroy;
     destructor Destroy; override;
     procedure LoadFromFile(const FileName: String);
     procedure SaveToFile(const FileName: String);
@@ -43,14 +42,15 @@ begin
   RegisterComponents('bonecode', [TBCSynEdit]);
 end;
 
-{$if CompilerVersion >= 23 }
 class constructor TBCSynEdit.Create;
 begin
-  inherited;
-  if Assigned(TStyleManager.Engine) then
-    TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
+  TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
 end;
-{$endif}
+
+class destructor TBCSynEdit.Destroy;
+begin
+  TStyleManager.Engine.UnRegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
+end;
 
 destructor TBCSynEdit.Destroy;
 begin

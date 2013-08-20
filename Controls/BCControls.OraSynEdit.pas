@@ -20,9 +20,8 @@ type
     FInThread: Boolean;
     function GetQueryOpened: Boolean;
   public
-    {$if CompilerVersion >= 23 }
     //class constructor Create;
-    {$endif}
+    //class destructor Destroy;
     constructor Create(AOwner: TComponent); override;
     property InThread: Boolean read FInThread write FInThread;
     property DocumentName: string read FDocumentName write FDocumentName;
@@ -48,12 +47,15 @@ begin
   RegisterComponents('bonecode', [TBCOraSynEdit]);
 end;
 
-{$if CompilerVersion >= 23 }
 {class constructor TBCOraSynEdit.Create;
 begin
-  TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
+  TStyleManager.Engine.RegisterStyleHook(TBCOraSynEdit, TSynEditStyleHook);
+end;
+
+class destructor TBCOraSynEdit.Destroy;
+begin
+  TStyleManager.Engine.UnRegisterStyleHook(TBCOraSynEdit, TSynEditStyleHook);
 end; }
-{$endif}
 
 constructor TBCOraSynEdit.Create(AOwner: TComponent);
 begin
