@@ -499,6 +499,8 @@ type
     FAdditionalWordBreakChars: TSysCharSet;
     FAdditionalIdentChars: TSysCharSet;
 
+    FScrollInfoFmtTop: string;
+
 {$IFDEF SYN_COMPILER_6_UP}
     fSearchNotFound: TCustomSynEditSearchNotFoundEvent;
     OnFindBeforeSearch: TNotifyEvent;
@@ -949,6 +951,8 @@ type
     property OnProcessCommand: TProcessCommandEvent
       read FOnProcessCommand write FOnProcessCommand;
 
+    property ScrollInfoFmtTop: string read FScrollInfoFmtTop write FScrollInfoFmtTop; 
+
     property BookMarkOptions: TSynBookMarkOpt
       read fBookMarkOpt write fBookMarkOpt;
     property BorderStyle: TSynBorderStyle read FBorderStyle write SetBorderStyle
@@ -1381,7 +1385,7 @@ end;
       finally
         Clipboard.Close;
       end;
-
+                                                            
       // ----------------------Å@
       // Microsoft VisualStudio
       // ----------------------Å@
@@ -1465,7 +1469,7 @@ begin
   fRedoList := TSynEditUndoList.Create;
   fRedoList.OnAddedUndo := UndoRedoAdded;
   fOrigRedoList := fRedoList;
-
+  FScrollInfoFmtTop := 'Top Line: %d';
 {$IFDEF SYN_COMPILER_4_UP}
 {$IFDEF SYN_CLX}
 {$ELSE}
@@ -5507,7 +5511,7 @@ begin
           ScrollHint.Color := fScrollHintColor;
           case FScrollHintFormat of
             shfTopLineOnly:
-              s := Format(SYNS_ScrollInfoFmtTop, [RowToLine(TopLine)]);
+              s := Format(FScrollInfoFmtTop, [RowToLine(TopLine)]);
             else
               s := Format(SYNS_ScrollInfoFmt, [RowToLine(TopLine),
                 RowToLine(TopLine + Min(LinesInWindow, DisplayLineCount-TopLine))]);

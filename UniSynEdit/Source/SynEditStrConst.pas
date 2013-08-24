@@ -414,7 +414,7 @@ resourcestring
 
   // TCustomSynEdit scroll hint window caption
   SYNS_ScrollInfoFmt            =  '%d - %d';
-  SYNS_ScrollInfoFmtTop         =  'Top Line: %d';
+  //SYNS_ScrollInfoFmtTop         =  'Top Line: %d';
   // TSynEditPrintPreview page number
   SYNS_PreviewScrollInfoFmt     =  'Page: %d';
 
