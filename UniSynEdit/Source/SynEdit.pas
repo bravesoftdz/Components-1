@@ -217,7 +217,8 @@ type
     eoSpecialLineDefaultFg,    //disables the foreground text color override when using the OnSpecialLineColor event
     eoTabIndent,               //When active <Tab> and <Shift><Tab> act as block indent, unindent when text is selected
     eoTabsToSpaces,            //Converts a tab character to a specified number of space characters
-    eoTrimTrailingSpaces       //Spaces at the end of lines will be trimmed and not saved
+    eoTrimTrailingSpaces,       //Spaces at the end of lines will be trimmed and not saved
+    eoTripleClicks
     );
 
   TSynEditorOptions = set of TSynEditorOption;
@@ -444,7 +445,7 @@ type
     fWordWrapPlugin: ISynEditBufferPlugin;
     fWordWrapGlyph: TSynGlyph;
     fCaretAtEOL: Boolean; // used by wordwrap
-
+    FLastDblClick: UINT;
     fGutter: TSynGutter;
     fTabWidth: Integer;
     fTextDrawer: TheTextDrawer;
@@ -460,6 +461,7 @@ type
     fFocusList: TList;
     fPlugins: TObjectList;
     fScrollTimer: TTimer;
+    FDoubleClickTime: Cardinal;
     fScrollDeltaX, fScrollDeltaY: Integer;
     // event handlers
     fOnChange: TNotifyEvent;
@@ -657,6 +659,7 @@ type
     procedure InvalidateRect(const aRect: TRect; aErase: Boolean); virtual;
 {$ENDIF}
     procedure DblClick; override;
+    procedure TripleClick;
     procedure DecPaintLock;
     procedure DefineProperties(Filer: TFiler); override;
     procedure DoChange; virtual;
@@ -1574,6 +1577,8 @@ begin
   fScrollHintColor := clInfoBk;
   fScrollHintFormat := shfTopLineOnly;
 
+  FDoubleClickTime := GetDoubleClickTime;
+
   SynFontChanged(nil);
 end;
 
@@ -2309,6 +2314,14 @@ begin
   end;
 end;
 
+procedure TCustomSynEdit.TripleClick;
+// mark entire line if the user clicked three times within the double click interval
+begin
+  BlockBegin := BufferCoord(0, CaretY);
+  BlockEnd := BufferCoord(0, CaretY + 1);
+  FLastDblClick := 0;
+end;
+
 procedure TCustomSynEdit.MouseDown(Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
 var
@@ -2339,7 +2352,21 @@ begin
 
   inherited MouseDown(Button, Shift, X, Y);
 
-  if (Button = mbLeft) and (ssDouble in Shift) then Exit;
+  if (Button = mbLeft) and (ssDouble in Shift) then
+  begin
+    FLastDblClick := GetTickCount;
+    Exit;
+  end
+  else
+  if (eoTripleClicks in FOptions) and (Shift = [ssLeft]) and (FLastDblClick > 0) then
+  begin
+    if (GetTickCount - FLastDblClick) < FDoubleClickTime then
+    begin
+      TripleClick;
+      Exit;
+    end;
+    FLastDblClick := 0;
+  end;
 
   fKbdHandler.ExecuteMouseDown(Self, Button, Shift, X, Y);
 

@@ -15,8 +15,7 @@ type
     FSynMacroRecorder: TSynMacroRecorder;
     FEncoding: TEncoding;
   protected
-    procedure DoOnProcessCommand(var Command: TSynEditorCommand;
-      var AChar: WideChar; Data: pointer); override;
+    procedure DoOnProcessCommand(var Command: TSynEditorCommand; var AChar: WideChar; Data: pointer); override;
   public
     class constructor Create;
     class destructor Destroy;
@@ -35,7 +34,7 @@ procedure Register;
 implementation
 
 uses
-  SynUnicode, BCControls.StyleHooks, Vcl.Themes, BCCommon.Encoding;
+  Winapi.Windows, SynUnicode, BCControls.StyleHooks, Vcl.Themes, BCCommon.Encoding, SynEditTypes;
 
 procedure Register;
 begin
