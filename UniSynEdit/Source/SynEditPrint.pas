@@ -776,13 +776,13 @@ begin
         end
         else
         begin
-          FCanvas.Font.Color := fFontColor;                                     
+          FCanvas.Font.Color := fFontColor;
           FCanvas.Brush.Color := FDefaultBG;
         end;
       end
       else
       begin
-        FCanvas.Font.Color := fFontColor;                                       
+        FCanvas.Font.Color := fFontColor;
         FCanvas.Brush.Color := FDefaultBG;
       end;
       Handled := False;
@@ -866,6 +866,48 @@ begin
   FYPos := FYPos + FLineHeight;
 end;
 
+{procedure TSynEditPrint.PaintPageToCanvas(ACanvas: TCanvas; Num: Integer);
+var
+  i, iEnd: Integer;
+  iSelStart, iSelLen: integer;
+begin
+  ACanvas.Brush.Color := Color;
+  with FMargins do
+    ACanvas.FillRect(Rect(PLeft, PTop, PRight, PBottom));
+  FMargins.InitPage(ACanvas, Num, FPrinterInfo, FLineNumbers,
+    FLineNumbersInMargin, FLines.Count - 1 + FLineOffset);
+  FHeader.Print(ACanvas, Num + FPageOffset);
+  if FPages.Count > 0 then
+  begin
+    FYPos := FMargins.PTop;
+    if Num = FPageCount then
+      iEnd := FLines.Count - 1
+    else
+      iEnd := TPageLine(FPages[Num]).FirstLine - 1;
+    for i := TPageLine(FPages[Num - 1]).FirstLine to iEnd do
+    begin
+      FLineNumber := i + 1;
+      if (not fSelectedOnly or ((i >= fBlockBegin.Line - 1) and (i <= fBlockEnd.Line - 1))) then begin
+        if (not fSelectedOnly or (fSelMode = smLine)) then
+          WriteLine(Lines[i])
+        else
+        begin
+          if (fSelMode = smColumn) or (i = fBlockBegin.Line -1) then
+            iSelStart := fBlockBegin.Char
+          else
+            iSelStart := 1;
+          if (fSelMode = smColumn) or (i = fBlockEnd.Line -1) then
+            iSelLen := fBlockEnd.Char  - iSelStart
+          else
+            iSelLen := MaxInt;
+          WriteLine( Copy( Lines[i], iSelStart, iSelLen ) );
+        end;
+      end;
+    end;
+  end;
+  FFooter.Print(ACanvas, Num + FPageOffset);
+end; }
+
 procedure TSynEditPrint.PrintPage(Num: Integer);
 //Prints a page
 var
@@ -930,6 +972,30 @@ begin
   FCanvas := ACanvas;
   PrintPage(PageNumber);
 end;
+
+{procedure TSynEditPrint.PrintToCanvas(ACanvas: TCanvas; ARect: TRect; PageNumber: Integer);
+var
+  Bitmap: TBitmap;
+begin
+  FAbort := False;
+  FPrinting := False;
+  Bitmap := TBitmap.Create;
+  //Bitmap.Width := ARect.Width; // FMargins.PRight - FMargins.PLeft;
+  //Bitmap.Height := ARect.Height; // FMargins.PBottom - FMargins.PTop;
+  SetMapMode(Bitmap.Canvas.Handle, MM_ANISOTROPIC);
+  with PrinterInfo do
+  begin
+    SetWindowExtEx(Bitmap.Canvas.Handle, PhysicalWidth, PhysicalHeight, nil);
+  end;
+  try
+    FCanvas := Bitmap.Canvas;
+    PrintPage(PageNumber);
+    //Bitmap.SaveToFile(Format('C:\temp\test%d.bmp', [PageNumber]));
+    ACanvas.StretchDraw(ARect, Bitmap);
+  finally
+    Bitmap.Free;
+  end;
+end; }
 
 procedure TSynEditPrint.Print;
 begin

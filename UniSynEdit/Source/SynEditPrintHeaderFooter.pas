@@ -830,7 +830,8 @@ begin
       end;
     end;
       //Find X-position of text
-    with FMargins do begin
+    with FMargins do
+    begin
       X := PLeftHFTextIndent;
       case TheAlignment of
         taRightJustify: X := PRightHFTextIndent - TextWidth(ACanvas, AStr);
