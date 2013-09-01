@@ -76,7 +76,6 @@ contains
   BCControls.ToolBar in 'Controls\BCControls.ToolBar.pas',
   BCControls.UnicodeStringHolder in 'Controls\BCControls.UnicodeStringHolder.pas',
   BCCommon.FileUtils in '..\..\Common\units\BCCommon.FileUtils.pas',
-  BCCommon.StringUtils in '..\..\Common\units\BCCommon.StringUtils.pas',
   BCControls.ProgressBar in 'Controls\BCControls.ProgressBar.pas',
   BCControls.StyleHooks in 'Controls\BCControls.StyleHooks.pas';
 

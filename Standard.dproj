@@ -165,7 +165,6 @@
         <DCCReference Include="Controls\BCControls.ToolBar.pas"/>
         <DCCReference Include="Controls\BCControls.UnicodeStringHolder.pas"/>
         <DCCReference Include="..\..\Common\units\BCCommon.FileUtils.pas"/>
-        <DCCReference Include="..\..\Common\units\BCCommon.StringUtils.pas"/>
         <DCCReference Include="Controls\BCControls.ProgressBar.pas"/>
         <DCCReference Include="Controls\BCControls.StyleHooks.pas"/>
         <BuildConfiguration Include="Debug">

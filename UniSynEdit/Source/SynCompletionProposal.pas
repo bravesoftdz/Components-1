@@ -1781,6 +1781,8 @@ end;
 
 procedure TSynBaseCompletionProposalForm.ScrollbarOnChange(Sender: TObject);
 begin
+  if FScrollbar.Position >= FItemList.Count then
+    Exit;
   if Position < FScrollbar.Position then
     Position := FScrollbar.Position
   else

@@ -240,6 +240,7 @@ type
   public
     {$if CompilerVersion >= 23 }
     class constructor Create;
+    class destructor Destroy;
     {$endif}
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -599,6 +600,11 @@ begin
   inherited;
   if Assigned(TStyleManager.Engine) then
     TStyleManager.Engine.RegisterStyleHook(TSynMiniMap, TSynEditStyleHook);
+end;
+
+class destructor TSynMiniMap.Destroy;
+begin
+  TStyleManager.Engine.UnRegisterStyleHook(TSynMiniMap, TSynEditStyleHook);
 end;
 {$endif}
 
