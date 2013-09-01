@@ -1663,6 +1663,8 @@ begin
       Canvas.Rectangle(0, 0, ClientWidth, ClientHeight);
       for i := 0 to Min(FLinesInWindow, FAssignedList.Count - 1) do
       begin
+        if i + FScrollbar.Position >= FAssignedList.Count then
+          Continue;
         if i + FScrollbar.Position = Position then
         begin
           Canvas.Brush.Color := FClSelect;
@@ -1781,8 +1783,6 @@ end;
 
 procedure TSynBaseCompletionProposalForm.ScrollbarOnChange(Sender: TObject);
 begin
-  if FScrollbar.Position >= FItemList.Count then
-    Exit;
   if Position < FScrollbar.Position then
     Position := FScrollbar.Position
   else
