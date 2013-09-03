@@ -15,9 +15,9 @@ type
   protected
     { Protected declarations }
     procedure DrawCell(ACol, ARow: Longint; ARect: TRect; AState: TGridDrawState); override;
+    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
   public
     { Public declarations }
-    procedure Click; override;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
@@ -51,6 +51,7 @@ begin
   DefaultRowHeight := 18;
   FixedCols := 0;
   RowCount := 2;
+  FInMouseClick := False;
 end;
 
 procedure TBCStringGrid.SetLines(Lines: TStrings);
@@ -70,41 +71,25 @@ begin
   Result := FBooleanCols.IndexOf(IntToStr(ACol)) <> -1;
 end;
 
-procedure TBCStringGrid.Click;
+procedure TBCStringGrid.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  where: TPoint;
-  Rect, btnRect: TRect;
-  s: TSize;
+  Cell: TGridCoord;
 begin
+  inherited;
+  if Button = mbLeft then
+    MouseToCell(X, Y, Cell.X, Cell.Y);
   if not FInMouseClick then
   begin
     FInMouseClick := True;
     try
-      if InBooleanCols(Col) then
+      if InBooleanCols(Cell.X) then
       begin
-        if Row > 0 then
+        if Cell.Y > 0 then
         begin
-          s.cx := GetSystemMetrics(SM_CXMENUCHECK);
-          s.cy := GetSystemMetrics(SM_CYMENUCHECK);
-          Rect := CellRect(Col, Row);
-          btnRect.Top := Rect.Top + (Rect.Bottom - Rect.Top - s.cy) div 2;
-          btnRect.Bottom := btnRect.Top + s.cy;
-          btnRect.Left := Rect.Left + CELL_PADDING;
-          btnRect.Right := btnRect.Left + s.cx;
-
-          InflateRect(btnrect, 2, 2);  //Allow 2px 'error-range'...
-
-          //Check if clicked inside buttonrect:
-          //Get clicked coordinates and cell:
-          where := Mouse.CursorPos;
-          where := ScreenToClient(where);
-          if PtInRect(btnRect, where) then
-          begin
-            if Cells[Col, Row] = 'True' then
-              Cells[Col, Row] := 'False'
-            else
-              Cells[Col, Row] := 'True'
-          end;
+          if Cells[Cell.X, Cell.Y] = 'True' then
+            Cells[Cell.X, Cell.Y] := 'False'
+          else
+            Cells[Cell.X, Cell.Y] := 'True'
         end;
       end
       else
