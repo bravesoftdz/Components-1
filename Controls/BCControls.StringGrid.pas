@@ -75,11 +75,12 @@ procedure TBCStringGrid.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y
 var
   Cell: TGridCoord;
 begin
-  inherited;
   if Button = mbLeft then
     MouseToCell(X, Y, Cell.X, Cell.Y);
   if not FInMouseClick then
   begin
+    //Row := Cell.Y;
+    //Col := Cell.X;
     FInMouseClick := True;
     try
       if InBooleanCols(Cell.X) then
@@ -97,7 +98,9 @@ begin
     finally
       FInMouseClick := False;
     end;
-  end;
+  end
+  else
+    inherited;
 end;
 
 procedure TBCStringGrid.DrawCell(ACol, ARow: Longint; ARect: TRect;
