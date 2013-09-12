@@ -2360,7 +2360,8 @@ begin
   else
   if (eoTripleClicks in FOptions) and (Shift = [ssLeft]) and (FLastDblClick > 0) then
   begin
-    if (GetTickCount - FLastDblClick) < FDoubleClickTime then
+    if ((GetTickCount - FLastDblClick) < FDoubleClickTime) and
+      IsPointInSelection(DisplayToBufferPos(PixelsToRowColumn(X, Y))) then
     begin
       TripleClick;
       Exit;
