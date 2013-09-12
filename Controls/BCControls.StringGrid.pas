@@ -14,6 +14,8 @@ type
     function InBooleanCols(ACol: Integer): Boolean;
   protected
     { Protected declarations }
+    function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean; override;
+    function DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean; override;
     procedure DrawCell(ACol, ARow: Longint; ARect: TRect; AState: TGridDrawState); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
   public
@@ -271,6 +273,20 @@ begin
 
   if Assigned(OnDrawCell) then
     inherited DrawCell(ACol, ARow, ARect, AState)
+end;
+
+function TBCStringGrid.DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean;
+begin
+  if Row < RowCount - 1 then
+    Row := Row + 1;
+  Result := inherited DoMouseWheelDown(Shift, MousePos);
+end;
+
+function TBCStringGrid.DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean;
+begin
+  if Row > FixedRows then
+    Row := Row - 1;
+  Result := inherited DoMouseWheelUp(Shift, MousePos);
 end;
 
 end.
