@@ -187,7 +187,6 @@ type
     procedure DriveChange(NewDrive: Char);
     procedure SetDrive(Value: Char);
     procedure SetFileType(NewFileType: string);
-    function IncludeTrailingBackslash(Path: string): string;
     function GetCloseIcon(Path: string): Integer;
     function GetOpenIcon(Path: string): Integer;
     procedure BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);
@@ -605,16 +604,6 @@ begin
   end;
 end;
 
-function TBCFileTreeView.IncludeTrailingBackslash(Path: string): string;
-begin
-  if Path = '' then
-    Exit;
-  if not IsPathDelimiter(Path, Length(Path)) then
-    Result := Path + '\'
-  else
-    Result := Path;
-end;
-
 function TBCFileTreeView.GetCloseIcon(Path: string): Integer;
 begin
   Result := GetIconIndex(Path);
@@ -640,7 +629,9 @@ begin
   if not ExcludeOtherBranches then
     FindFile := FindFirst(FDrive + ':\*.*', faAnyFile, SR)
   else
+    {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
     FindFile := FindFirst(IncludeTrailingBackslash(RootDirectory) + '*.*', faAnyFile, SR);
+    {$WARNINGS ON}
 
   if FindFile = 0 then
   try
@@ -661,11 +652,15 @@ begin
           if not ExcludeOtherBranches then
             FileName := FDrive + ':\' + SR.Name
           else
+            {$WARNINGS OFF}
             FileName := IncludeTrailingBackslash(RootDirectory) + SR.Name;
+            {$WARNINGS ON}
           if (SR.Attr and faDirectory <> 0) then
           begin
             Data.FileType := ftDirectory;
+            {$WARNINGS OFF}
             Data.FullPath := IncludeTrailingBackslash(FileName);
+            {$WARNINGS ON}
           end
           else
           begin
@@ -673,7 +668,9 @@ begin
             if not ExcludeOtherBranches then
               Data.FullPath := FDrive + ':\'
             else
+              {$WARNINGS OFF}
               Data.FullPath := IncludeTrailingBackslash(RootDirectory);
+              {$WARNINGS ON}
           end;
           if not CheckAccessToFile(FILE_GENERIC_READ, Data.FullPath) then
           begin
@@ -715,7 +712,9 @@ begin
   else
   begin
     Data := GetNodeData(TreeNode);
+    {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
     Result := IncludeTrailingBackslash(Data.FullPath);
+    {$WARNINGS ON}
   end;
 end;
 
@@ -733,7 +732,9 @@ begin
 
   Data := GetNodeData(TreeNode);
 
+  {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
   Result := IncludeTrailingBackslash(Data.FullPath);
+  {$WARNINGS ON}
   if System.SysUtils.FileExists(Result + Data.Filename) then
     Result := Result + Data.Filename;
 end;
@@ -754,7 +755,9 @@ begin
   FRootDirectory := RootDirectory;
   BuildTree(RootDirectory, ExcludeOtherBranches);
 
+  {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
   TempPath := IncludeTrailingBackslash(Copy(DirectoryPath, 4, Length(DirectoryPath)));
+  {$WARNINGS ON}
   if ExcludeOtherBranches and (Pos('\', TempPath) > 0) then
     TempPath := Copy(TempPath, Pos('\', TempPath) + 1, Length(TempPath));
 
@@ -780,14 +783,6 @@ begin
     TempPath := Copy(TempPath, Pos('\', TempPath) + 1, Length(TempPath));
   end;
   EndUpdate;
-end;
-
-function DelSlash(Path: string): string;
-begin
-  Result := Path;
-  if Path <> '' then
-    if Path[Length(Path)] = '\' then
-      Delete(Result, Length(Path), 1);
 end;
 
 function StrContains(Str1, Str2: string): Boolean;
@@ -871,8 +866,9 @@ begin
 
     if DelName = '' then
       exit;
-
-    DelName := DelSlash(DelName);
+    {$WARNINGS OFF} { ExcludeTrailingBackslash is specific to a platform }
+    DelName := ExcludeTrailingBackslash(DelName);
+    {$WARNINGS ON}
 
     if DoSHFileOp(FO_DELETE, DelName, '', Aborted) then
     begin
@@ -1076,7 +1072,9 @@ var
 begin
   Data := GetNodeData(Node);
 
+  {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
   if FindFirst(IncludeTrailingBackslash(Data.FullPath) + '*.*', faAnyFile, SR) = 0 then
+  {$WARNINGS OFF}
   begin
     Screen.Cursor := crHourGlass;
     try
@@ -1086,24 +1084,28 @@ begin
           ((SR.Attr and faArchive <> 0) and not ShowArchiveFiles) or
           ((SR.Attr and faSysFile <> 0) and not ShowSystemFiles) then
           Continue;
-        {$WARNINGS ON}
+
         FName := IncludeTrailingBackslash(Data.FullPath) + SR.Name; //StrPas(Win32FD.cFileName);
+        {$WARNINGS ON}
         if (SR.Name <> '.') and (SR.Name <> '..') then
           if (SR.Attr and faDirectory <> 0) or (FFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), FFileType) then
           begin
             ChildNode := AddChild(Node);
-            //Include(ChildNode.States, vsInitialUserData);
             ChildData := GetNodeData(ChildNode);
 
             if (SR.Attr and faDirectory <> 0) then
             begin
               ChildData.FileType := ftDirectory;
+              {$WARNINGS OFF}
               ChildData.FullPath := IncludeTrailingBackslash(FName);
+              {$WARNINGS ON}
             end
             else
             begin
               ChildData.FileType := ftFile;
+              {$WARNINGS OFF}
               ChildData.FullPath := IncludeTrailingBackslash(Data.FullPath);
+              {$WARNINGS ON}
             end;
             if not CheckAccessToFile(FILE_GENERIC_READ, ChildData.FullPath) then
             begin
