@@ -1010,6 +1010,7 @@ begin
   if not Assigned(Result) then
   begin
     Data := GetNodeData(Node);
+    if Assigned(Data) then
     case Kind of
       ikNormal,
       ikSelected:
@@ -1115,8 +1116,8 @@ begin
                 ChildData.FileType := ftFileAccessDenied;
             end;
             ChildData.Filename := SR.Name;
-            ChildData.CloseIndex := GetOpenIcon(FName);
-            ChildData.OpenIndex := GetCloseIcon(FName);
+            ChildData.CloseIndex := GetCloseIcon(FName);
+            ChildData.OpenIndex := GetOpenIcon(FName);
             ValidateNode(Node, False);
           end;
       until FindNext(SR) <> 0;
