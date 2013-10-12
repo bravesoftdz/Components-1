@@ -127,7 +127,6 @@ uses
   // SynEdit components
   SynEdit,
   SynMemo,
-  SynMiniMap,
   {$IFNDEF SYN_DELPHI_PE}
   SynDBEdit,
   {$ENDIF}
@@ -248,7 +247,7 @@ begin
 
 // SynEdit extra components
   RegisterComponents(SYNS_ComponentsPage, [TSynExporterHTML, TSynExporterRTF,
-    TSynExporterTeX, TSynEditPythonBehaviour, TSynMultiSyn, TSynMiniMap,
+    TSynExporterTeX, TSynEditPythonBehaviour, TSynMultiSyn,
     TSynCompletionProposal, TSynAutoComplete, TSynMacroRecorder,
     TSynEditPrint, TSynEditPrintPreview, TSynAutoCorrect, TSynEditWildcardSearch,
     TSynEditSearch, TSynEditRegexSearch, TSynEditOptionsDialog, TSynURIOpener]);
