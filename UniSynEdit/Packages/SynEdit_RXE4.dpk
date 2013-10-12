@@ -138,7 +138,6 @@ contains
   SynHighlighterYAML in '..\Source\SynHighlighterYAML.pas',
   SynHighlighterWebIDL in '..\Source\SynHighlighterWebIDL.pas',
   SynHighlighterLLVM in '..\Source\SynHighlighterLLVM.pas',
-  SynEditWildcardSearch in '..\Source\SynEditWildcardSearch.pas',
-  SynMiniMap in '..\Source\SynMiniMap.pas';
+  SynEditWildcardSearch in '..\Source\SynEditWildcardSearch.pas';
 
 end.
