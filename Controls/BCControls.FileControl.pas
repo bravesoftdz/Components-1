@@ -246,7 +246,7 @@ procedure Register;
 implementation
 
 uses
-  Vcl.Forms, Winapi.ShellAPI, Winapi.ShlObj, Winapi.ActiveX, Vcl.Dialogs, Vcl.Themes, BCCommon.LanguageStrings,
+  Vcl.Forms, Winapi.ShellAPI, Vcl.Dialogs, Vcl.Themes, BCCommon.LanguageStrings,
   BCCommon.Fileutils, BCControls.ImageList, System.UITypes;
 
 const
@@ -843,14 +843,12 @@ function TBCFileTreeView.DeleteTreeNode(Node: PVirtualNode): Boolean;
 var
   DelName: string;
   PrevNode, SelectedNode: PVirtualNode;
-  oldCur: TCursor;
   Aborted: Boolean;
   Data: PBCFileTreeNodeRec;
 begin
   Result := False;
   Aborted := True;
   PrevNode := Node.Parent;
-  oldCur := Screen.Cursor;
   SelectedNode := GetFirstSelected;
   if Assigned(Node) then
   try
@@ -877,7 +875,7 @@ begin
       DeleteNode(Node);
     end;
   finally
-    Screen.Cursor := oldCur;
+    Screen.Cursor := crDefault;
   end;
 end;
 

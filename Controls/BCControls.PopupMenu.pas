@@ -3,7 +3,7 @@ unit BCControls.PopupMenu;
 interface
 
 uses
-  System.SysUtils, System.Classes, Vcl.ActnPopup, Vcl.ImgList;
+  System.Classes, Vcl.ActnPopup, Vcl.ImgList;
 
 type
   TBCPopupMenu = class(Vcl.ActnPopup.TPopupActionBar)

@@ -3,7 +3,7 @@ unit BCControls.ToolBar;
 interface
 
 uses
-  Winapi.Windows, System.SysUtils, System.Classes, Vcl.ToolWin, Vcl.ComCtrls;
+  System.Classes, Vcl.ToolWin, Vcl.ComCtrls;
 
 type
   TBCToolBar = class(TToolBar)

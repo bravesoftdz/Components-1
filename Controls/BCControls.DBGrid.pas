@@ -3,8 +3,7 @@ unit BCControls.DBGrid;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, DBGridEhGrouping, ToolCtrlsEh, DBGridEhToolCtrls, GridsEh,
-  DBAxisGridsEh, DBGridEh;
+  System.Classes, GridsEh, DBAxisGridsEh, DBGridEh;
 
 type
   TBCDBGrid = class(TDBGridEh)

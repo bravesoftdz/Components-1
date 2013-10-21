@@ -3,7 +3,7 @@ unit BCControls.SpinEdit;
 interface
 
 uses
-  System.SysUtils, System.Classes, Vcl.Controls, Vcl.StdCtrls, Vcl.Mask, JvExMask, JvSpin, Vcl.Graphics, Winapi.Messages;
+  System.Classes, Vcl.Controls, Vcl.StdCtrls, Vcl.Mask, JvExMask, JvSpin, Vcl.Graphics, Winapi.Messages;
 
 type
   TBCSpinEdit = class(TJvSpinEdit)
@@ -21,8 +21,7 @@ procedure Register;
 
 implementation
 
-uses
-  Winapi.Windows, System.UITypes, Vcl.Themes;
+
 
 procedure Register;
 begin

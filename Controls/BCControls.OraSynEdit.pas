@@ -3,8 +3,7 @@ unit BCControls.OraSynEdit;
 interface
 
 uses
-  Winapi.Messages, System.SysUtils, System.Classes, Vcl.Controls, SynEdit, SynEditKeyCmds,
-  Ora, SynCompletionProposal;
+  System.SysUtils, System.Classes, Vcl.Controls, SynEdit, Ora, SynCompletionProposal;
 
 type
   TBCOraSynEdit = class(TSynEdit)
@@ -39,8 +38,7 @@ procedure Register;
 
 implementation
 
-uses
-  SynUnicode, BCControls.StyleHooks, Vcl.Themes;
+
 
 procedure Register;
 begin

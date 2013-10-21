@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, Vcl.Controls, SynEdit, SynHighlighterWebData, SynMacroRecorder,
-  SynEditKeyCmds, Vcl.StdCtrls, Winapi.Messages;
+  SynEditKeyCmds, Winapi.Messages;
 
 type
   TBCSynEdit = class(TSynEdit)
@@ -34,7 +34,7 @@ procedure Register;
 implementation
 
 uses
-  Winapi.Windows, SynUnicode, BCControls.StyleHooks, Vcl.Themes, BCCommon.Encoding, SynEditTypes;
+  SynUnicode, BCControls.StyleHooks, Vcl.Themes, BCCommon.Encoding, SynEditTypes;
 
 procedure Register;
 begin
