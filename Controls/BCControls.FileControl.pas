@@ -747,7 +747,7 @@ var
 begin
   if not DirectoryExists(RootDirectory) then
     Exit;
-  if not DirectoryExists(DirectoryPath) then
+  if not DirectoryExists(ExtractFileDir(DirectoryPath)) then
     Exit;
   BeginUpdate;
   FDefaultDirectoryPath := DirectoryPath;
@@ -762,9 +762,12 @@ begin
     TempPath := Copy(TempPath, Pos('\', TempPath) + 1, Length(TempPath));
 
   CurNode := GetFirst;
-  while Pos('\', TempPath) > 0 do
+  while TempPath <> '' do //Pos('\', TempPath) > 0 do
   begin
-    Directory := Copy(TempPath, 1, Pos('\', TempPath)-1);
+    if Pos('\', TempPath) <> 0 then
+      Directory := Copy(TempPath, 1, Pos('\', TempPath)-1)
+    else
+      Directory := TempPath;
 
     Data := GetNodeData(CurNode);
     while Assigned(CurNode) and (AnsiCompareText(Directory, Data.Filename) <> 0) do
@@ -780,7 +783,10 @@ begin
       CurNode := CurNode.FirstChild;
     end;
 
-    TempPath := Copy(TempPath, Pos('\', TempPath) + 1, Length(TempPath));
+    if Pos('\', TempPath) <> 0 then
+      TempPath := Copy(TempPath, Pos('\', TempPath) + 1, Length(TempPath))
+    else
+      TempPath := '';
   end;
   EndUpdate;
 end;
