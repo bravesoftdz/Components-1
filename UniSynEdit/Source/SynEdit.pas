@@ -446,6 +446,7 @@ type
     fWordWrapGlyph: TSynGlyph;
     fCaretAtEOL: Boolean; // used by wordwrap
     FLastDblClick: UINT;
+    FLastRow: Integer;
     fGutter: TSynGutter;
     fTabWidth: Integer;
     fTextDrawer: TheTextDrawer;
@@ -2340,7 +2341,6 @@ begin
   bWasSel := False;
   bStartDrag := False;
   if Button = mbLeft then
-  begin
     if SelAvail then
     begin
       //remember selection state, as it will be cleared later
@@ -2348,20 +2348,19 @@ begin
       fMouseDownX := X;
       fMouseDownY := Y;
     end;
-  end;
 
   inherited MouseDown(Button, Shift, X, Y);
 
   if (Button = mbLeft) and (ssDouble in Shift) then
   begin
     FLastDblClick := GetTickCount;
+    FLastRow := PixelsToRowColumn(X, Y).Row;
     Exit;
   end
   else
   if (eoTripleClicks in FOptions) and (Shift = [ssLeft]) and (FLastDblClick > 0) then
   begin
-    if ((GetTickCount - FLastDblClick) < FDoubleClickTime) and
-      IsPointInSelection(DisplayToBufferPos(PixelsToRowColumn(X, Y))) then
+    if ((GetTickCount - FLastDblClick) < FDoubleClickTime) and (FLastRow = PixelsToRowColumn(X, Y).Row) then
     begin
       TripleClick;
       Exit;
@@ -2433,12 +2432,11 @@ begin
     end;
   end;
 
-  if (X < fGutterWidth) then
+  if X < fGutterWidth then
     Include(fStateFlags, sfPossibleGutterClick);
+
   if (sfPossibleGutterClick in fStateFlags) and (Button = mbRight) then
-  begin
-    DoOnGutterClick(Button, X, Y)
-  end;
+    DoOnGutterClick(Button, X, Y);
 
   SetFocus;
 {$IFNDEF SYN_CLX}
