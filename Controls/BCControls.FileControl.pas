@@ -813,29 +813,6 @@ begin
     Result := Path;
 end;
 
-function DoSHFileOp(OpMode: UInt; Src: string; Dest: string; var Aborted: Boolean): Boolean;
-var
-  ipFileOp: TSHFileOpStruct;
-begin
-  Src := AddNullToStr(Src);
-  Dest := AddNullToStr(Dest);
-  FillChar(ipFileOp, SizeOf(ipFileOp), 0);
-  with ipFileOp do
-  begin
-    wnd := GetActiveWindow;
-    wFunc := OpMode;
-    pFrom := pChar(Src);
-    pTo := pChar(Dest);
-    fFlags := FOF_ALLOWUNDO;
-    fAnyOperationsAborted := Aborted;
-    hNameMappings := nil;
-    lpszProgressTitle := '';
-  end;
-  Result := SHFileOperation(ipFileOp) = 0;
-  if ipFileOp.fAnyOperationsAborted = True then
-    Result := False;
-end;
-
 procedure TBCFileTreeView.RenameSelectedNode;
 var
   SelectedNode: PVirtualNode;
@@ -849,11 +826,9 @@ function TBCFileTreeView.DeleteTreeNode(Node: PVirtualNode): Boolean;
 var
   DelName: string;
   PrevNode, SelectedNode: PVirtualNode;
-  Aborted: Boolean;
   Data: PBCFileTreeNodeRec;
 begin
   Result := False;
-  Aborted := True;
   PrevNode := Node.Parent;
   SelectedNode := GetFirstSelected;
   if Assigned(Node) then
@@ -874,7 +849,7 @@ begin
     DelName := ExcludeTrailingBackslash(DelName);
     {$WARNINGS ON}
 
-    if DoSHFileOp(FO_DELETE, DelName, '', Aborted) then
+    if System.SysUtils.DeleteFile(DelName) then
     begin
       if Assigned(PrevNode) then
         Selected[PrevNode] := True;
@@ -1189,8 +1164,7 @@ function TEditLink.EndEdit: Boolean;
 var
   Data: PBCFileTreeNodeRec;
   Buffer: array[0..254] of Char;
-  S, OldDirName, NewDirName: UnicodeString;
-  Aborted: Boolean;
+  S, OldDirName, NewDirName, FullPath: UnicodeString;
 begin
   Result := True;
 
@@ -1207,24 +1181,30 @@ begin
       Exit;
     end;
 
-    OldDirName := Data.FullPath + Data.Filename;
-    NewDirName := Data.FullPath + S;
+    if Data.FileType = ftDirectory then
+    {$WARNINGS OFF}
+      FullPath := ExtractFilePath(ExcludeTrailingBackslash(Data.FullPath))
+    {$WARNINGS ON}
+    else
+      FullPath := Data.FullPath;
+    OldDirName := FullPath + Data.Filename;
+    NewDirName := FullPath + S;
     if OldDirName = NewDirName then
       Exit;
     if MessageDlg(Format(LanguageDataModule.GetConstant('Rename'), [ExtractFileName(OldDirName),
       ExtractFileName(NewDirName)]), mtConfirmation, [mbYes, mbNo], 0) = mrNo then
       Exit;
     FTree.SetFocus;
-    try
-      DoSHFileOp(FO_RENAME, OldDirName, NewDirName, Aborted);
-    except
-
-    end;
-    if S <> Data.FileName then
+    if System.SysUtils.RenameFile(OldDirName, NewDirName) then
     begin
-      Data.FileName := S;
-      FTree.InvalidateNode(FNode);
-    end;
+      if S <> Data.FileName then
+      begin
+        Data.FileName := S;
+        FTree.InvalidateNode(FNode);
+      end;
+    end
+    else
+      ShowMessage(Format('%s rename failed.', [OldDirName]));
   finally
     FEdit.Hide;
     FTree.SetFocus;
