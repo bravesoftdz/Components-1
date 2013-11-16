@@ -3,7 +3,7 @@
         <ProjectGuid>{F32E8596-9D33-42C4-A9BA-DB908A1DA6DD}</ProjectGuid>
         <MainSource>Standard.dpk</MainSource>
         <ProjectVersion>14.6</ProjectVersion>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
         <Base>True</Base>
         <AppType>Package</AppType>
