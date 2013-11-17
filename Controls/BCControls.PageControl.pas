@@ -27,6 +27,7 @@ type
   TBCPageControl = class(TJvPageControl)
   private
     { Private declarations }
+    FTabClosed: Boolean;
     FTabDragDrop: Boolean;
     FShowCloseButton: Boolean;
     FHoldShiftToDragDrop: Boolean;
@@ -52,6 +53,8 @@ type
     { Published declarations }
     property ActivePageCaption: TCaption read GetActivePageCaption write SetActivePageCaption;
     property TabDragDrop: Boolean read FTabDragDrop write FTabDragDrop;
+    { Set TabClosed to True, when a tab is closed otherwise drag will begin and the cursor will be prohibited }
+    property TabClosed: Boolean read FTabClosed write FTabClosed;
     property HoldShiftToDragDrop: Boolean read FHoldShiftToDragDrop write FHoldShiftToDragDrop;
     property ShowCloseButton: Boolean read FShowCloseButton write SetShowCloseButton;
     property OnCloseButtonClick: TNotifyEvent read FOnCloseButtonClick write FOnCloseButtonClick;
@@ -298,7 +301,11 @@ begin
   begin
     TBCPageControl(Control).ActivePageIndex := LIndex;
     if Assigned(TBCPageControl(Control).FOnCloseButtonClick) then
+    begin
+      TBCPageControl(Control).TabDragDrop := False;
       TBCPageControl(Control).OnCloseButtonClick(Self);
+      TBCPageControl(Control).TabDragDrop := True;
+    end;
     Break;
   end;
 end;
@@ -393,6 +400,7 @@ end;
 constructor TBCPageControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FTabClosed := False;
   FTabDragDrop := False;
   FShowCloseButton := False;
   FHoldShiftToDragDrop := False;
@@ -511,12 +519,12 @@ end;
 procedure TBCPageControl.MouseDown(Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
 begin
-  if FTabDragDrop then
+  if not FTabClosed and FTabDragDrop then
   begin
     if (Button = mbLeft) and ((FHoldShiftToDragDrop and (ssShift in Shift)) or not FHoldShiftToDragDrop) then
       BeginDrag(False)
   end;
-
+  FTabClosed := False;
   inherited MouseDown(Button, Shift, X, Y);
 end;
 
