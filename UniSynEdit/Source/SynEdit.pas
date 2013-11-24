@@ -3473,7 +3473,7 @@ begin
             SetBkMode(dc, TRANSPARENT)
           else
             Canvas.FillRect(rcLine);
-          r := fGutterWidth - fGutter.RightOffset - 4;
+          r := fGutterWidth - fGutter.RightOffset - 1;
           w := fGutterCharWidth;
           OldColor := Canvas.Pen.Color;
           Canvas.Pen.Color := Gutter.Font.Color;
