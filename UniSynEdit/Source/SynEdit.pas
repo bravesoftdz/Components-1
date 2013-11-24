@@ -13131,6 +13131,8 @@ end;
 {$ENDIF}
 
 procedure TCustomSynEdit.SetModified(Value: Boolean);
+var
+  i: integer;
 begin
   if Value <> fModified then
   begin
@@ -13139,6 +13141,13 @@ begin
       UndoList.AddGroupBreak;
     UndoList.InitialState := not Value;
     StatusChanged([scModified]);
+    if not fModified then
+    begin
+      for i := 0 to ExpandLines.Count - 1 do
+        if ExpandLines.Attributes[i].aLineState = lsModified then
+          ExpandLines.Attributes[i].aLineState := lsNormal;
+      InvalidateGutter;
+    end;
   end;
 end;
 
