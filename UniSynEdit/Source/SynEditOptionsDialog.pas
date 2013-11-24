@@ -318,9 +318,8 @@ type
     FExtraLineSpacing: Integer;
     FTabWidth: Integer;
     FMaxScrollWidth: Integer;
-    FRightEdge: Integer;
+    FRightEdge: TSynRightEdge;
     FSelectedColor: TSynSelectedColor;
-    FRightEdgeColor: TColor;
     FFont: TFont;
     FBookmarks: TSynBookMarkOpt;
     FOverwriteCaret: TSynEditCaretType;
@@ -346,8 +345,7 @@ type
     property Font : TFont read FFont write SetFont;
     property ExtraLineSpacing : Integer read FExtraLineSpacing write FExtraLineSpacing;
     property Gutter : TSynGutter read FSynGutter write SetSynGutter;
-    property RightEdge : Integer read FRightEdge write FRightEdge;
-    property RightEdgeColor : TColor read FRightEdgeColor write FRightEdgeColor;
+    property RightEdge : TSynRightEdge read FRightEdge write FRightEdge;
     property WantTabs : Boolean read FWantTabs write FWantTabs;
     property InsertCaret : TSynEditCaretType read FInsertCaret write FInsertCaret;
     property OverwriteCaret : TSynEditCaretType read FOverwriteCaret write FOverwriteCaret;
@@ -435,14 +433,12 @@ begin
 
     Self.Color := TCustomSynEdit(Source).Color;
     Self.Options := TCustomSynEdit(Source).Options;
-    Self.ExtraLineSpacing := TCustomSynEdit(Source).ExtraLineSpacing;
     Self.HideSelection := TCustomSynEdit(Source).HideSelection;
     Self.InsertCaret := TCustomSynEdit(Source).InsertCaret;
     Self.OverwriteCaret := TCustomSynEdit(Source).OverwriteCaret;
     Self.MaxScrollWidth := TCustomSynEdit(Source).MaxScrollWidth;
     Self.MaxUndo := TCustomSynEdit(Source).MaxUndo;
     Self.RightEdge := TCustomSynEdit(Source).RightEdge;
-    Self.RightEdgeColor := TCustomSynEdit(Source).RightEdgeColor;
     Self.TabWidth := TCustomSynEdit(Source).TabWidth;
     Self.WantTabs := TCustomSynEdit(Source).WantTabs;
   end else
@@ -461,14 +457,12 @@ begin
 
     TCustomSynEdit(Dest).Color := Self.Color;
     TCustomSynEdit(Dest).Options := Self.Options;
-    TCustomSynEdit(Dest).ExtraLineSpacing := Self.ExtraLineSpacing;
     TCustomSynEdit(Dest).HideSelection := Self.HideSelection;
     TCustomSynEdit(Dest).InsertCaret := Self.InsertCaret;
     TCustomSynEdit(Dest).OverwriteCaret := Self.OverwriteCaret;
     TCustomSynEdit(Dest).MaxScrollWidth := Self.MaxScrollWidth;
     TCustomSynEdit(Dest).MaxUndo := Self.MaxUndo;
     TCustomSynEdit(Dest).RightEdge := Self.RightEdge;
-    TCustomSynEdit(Dest).RightEdgeColor := Self.RightEdgeColor;
     TCustomSynEdit(Dest).TabWidth := Self.TabWidth;
     TCustomSynEdit(Dest).WantTabs := Self.WantTabs;
   end else
@@ -497,8 +491,8 @@ begin
   OverwriteCaret := ctBlock;
   MaxScrollWidth := 1024;
   MaxUndo := 1024;
-  RightEdge := 80;
-  RightEdgeColor := clSilver;
+  RightEdge.Position := 80;
+  RightEdge.Color := clSilver;
   TabWidth := 8;
   WantTabs := True;
 end;
@@ -576,8 +570,8 @@ begin
   lblGutterFont.Font.Assign(FSynEdit.Gutter.Font);
   lblGutterFont.Caption:= lblGutterFont.Font.Name + ' ' + IntToStr(lblGutterFont.Font.Size) + 'pt';  
   //Right Edge
-  eRightEdge.Text:= IntToStr(FSynEdit.RightEdge);
-  pRightEdgeColor.Color:= FSynEdit.RightEdgeColor;
+  eRightEdge.Text:= IntToStr(FSynEdit.RightEdge.Position);
+  pRightEdgeColor.Color:= FSynEdit.RightEdge.Color;
   //Line Spacing
   eLineSpacing.Text:= IntToStr(FSynEdit.ExtraLineSpacing);
   eTabWidth.Text:= IntToStr(FSynEdit.TabWidth);
@@ -654,8 +648,8 @@ begin
   FSynEdit.Gutter.UseFontStyle := cbGutterFont.Checked;
   FSynEdit.Gutter.Font.Assign(lblGutterFont.Font);
   //Right Edge
-  FSynEdit.RightEdge:= StrToIntDef(eRightEdge.Text, 80);
-  FSynEdit.RightEdgeColor:= pRightEdgeColor.Color;
+  FSynEdit.RightEdge.Position := StrToIntDef(eRightEdge.Text, 80);
+  FSynEdit.RightEdge.Color:= pRightEdgeColor.Color;
   //Line Spacing
   FSynEdit.ExtraLineSpacing:= StrToIntDef(eLineSpacing.Text, 0);
   FSynEdit.TabWidth:= StrToIntDef(eTabWidth.Text, 8);

@@ -175,7 +175,11 @@ type
     // TCustomSynEdit properties
     property BookMarkOptions;
     property BorderStyle;
-    property ExtraLineSpacing;
+
+    //### Code Folding ###
+		property CodeFolding;
+    //### End Code Folding ###
+
     property Gutter;
     property HideSelection;
     property Highlighter;
@@ -192,7 +196,6 @@ type
     property OverwriteCaret;
     property ReadOnly;
     property RightEdge;
-    property RightEdgeColor;
     property ScrollBars;
     property SearchEngine;
     property SelectedColor;

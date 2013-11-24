@@ -1366,7 +1366,7 @@ begin
         if lRectClip.Left < lMarginLeft then
           lRectClip.Left := lMarginLeft;
 
-        if Editor.WordWrap then
+        if Editor.WordWrap.Enabled then
           if lRectClip.Right > Editor.ClientRect.Right then
           begin
             lRectClip.Right := Editor.ClientRect.Right;

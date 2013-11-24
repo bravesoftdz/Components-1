@@ -68,6 +68,17 @@ type
   TSynEditStringFlag = (sfHasTabs, sfHasNoTabs, sfExpandedLengthUnknown);
   TSynEditStringFlags = set of TSynEditStringFlag;
 
+  TSynEditLineAttributeMask = set of (amBackground, amForeground);
+  TSynLineState = (lsNone, lsNormal, lsModified);
+  PSynEditLineAttribute = ^TSynEditLineAttribute;
+  TSynEditLineAttribute = record
+    aForeground : TColor;
+    aBackground : TColor;
+    aMask : TSynEditLineAttributeMask;
+    aHide : Boolean;
+    aLineState : TSynLineState;
+  end;
+
   PSynEditStringRec = ^TSynEditStringRec;
   TSynEditStringRec = record
     {$IFDEF OWN_UNICODESTRING_MEMMGR}
@@ -79,6 +90,7 @@ type
     fRange: TSynEditRange;
     fExpandedLength: Integer;
     fFlags: TSynEditStringFlags;
+    fAttribute : TSynEditLineAttribute;
   end;
 
 const
@@ -115,6 +127,9 @@ type
     fOnDeleted: TStringListChangeEvent;
     fOnInserted: TStringListChangeEvent;
     fOnPutted: TStringListChangeEvent;
+    fOnBeforePutted: TStringListChangeEvent;
+    fOnBeforeDeleted: TStringListChangeEvent;
+    fOnBeforeInserted: TStringListChangeEvent;
     function ExpandString(Index: integer): UnicodeString;
     function GetExpandedString(Index: integer): UnicodeString;
     function GetExpandedStringLength(Index: integer): integer;
@@ -127,6 +142,8 @@ type
     {$IFDEF OWN_UNICODESTRING_MEMMGR}
     procedure SetListString(Index: Integer; const S: UnicodeString);
     {$ENDIF OWN_UNICODESTRING_MEMMGR}
+    function GetAttributes(Index: integer): PSynEditLineAttribute;
+    procedure PutAttributes(Index: integer; const Value: PSynEditLineAttribute);
   protected
     FStreaming: Boolean;
     function Get(Index: Integer): UnicodeString; override;
@@ -169,6 +186,8 @@ type
     property ExpandedStringLengths[Index: integer]: integer read GetExpandedStringLength;
     property LengthOfLongestLine: Integer read GetLengthOfLongestLine;
     property Ranges[Index: integer]: TSynEditRange read GetRange write PutRange;
+
+    property Attributes[Index: integer]: PSynEditLineAttribute read GetAttributes write PutAttributes;
     property TabWidth: integer read fTabWidth write SetTabWidth;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
     property OnChanging: TNotifyEvent read fOnChanging write fOnChanging;
@@ -177,6 +196,10 @@ type
     property OnInserted: TStringListChangeEvent read fOnInserted
       write fOnInserted;
     property OnPutted: TStringListChangeEvent read fOnPutted write fOnPutted;
+    property OnBeforeDeleted: TStringListChangeEvent read fOnBeforeDeleted write fOnBeforeDeleted;
+    property OnBeforeInserted: TStringListChangeEvent read fOnBeforeInserted
+      write fOnBeforeInserted;
+    property OnBeforePutted: TStringListChangeEvent read fOnBeforePutted write fOnBeforePutted;
   end;
 
   ESynEditStringList = class(Exception);
@@ -196,7 +219,10 @@ type
     crNothing,
     crGroupBreak,
     crDeleteAll,
-    crWhiteSpaceAdd // for undo/redo of adding a character past EOL and repositioning the caret
+    crWhiteSpaceAdd, // for undo/redo of adding a character past EOL and repositioning the caret
+    //### Code Folding ###
+    crDeleteCollapsedFold
+    //### End Code Folding ###
     );
 
   TSynEditUndoItem = class(TPersistent)
@@ -207,6 +233,10 @@ type
     fChangeEndPos: TBufferCoord;
     fChangeStr: UnicodeString;
     fChangeNumber: integer;
+    //### Code Folding ###
+    fChangeData: Pointer;
+    fChangeIndex: Integer;
+    //### End Code Folding ###
   public
     procedure Assign(Source: TPersistent); override;
     property ChangeReason: TSynChangeReason read fChangeReason;
@@ -215,6 +245,10 @@ type
     property ChangeEndPos: TBufferCoord read fChangeEndPos;
     property ChangeStr: UnicodeString read fChangeStr;
     property ChangeNumber: integer read fChangeNumber;
+    //### Code Folding ###
+    property ChangeData: Pointer read fChangeData;
+    property ChangeIndex: Integer read fChangeIndex;
+    //### End Code Folding ###
   end;
 
   TSynEditUndoList = class(TPersistent)
@@ -240,8 +274,14 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    //### Code Folding ###
     procedure AddChange(AReason: TSynChangeReason; const AStart, AEnd: TBufferCoord;
-      const ChangeText: UnicodeString; SelMode: TSynSelectionMode);
+      const ChangeText: string; SelMode: TSynSelectionMode; Data: Pointer = nil;
+      Index: Integer = 0);
+    //### End Code Folding ###
+
+    //procedure AddChange(AReason: TSynChangeReason; const AStart, AEnd: TBufferCoord;
+    //  const ChangeText: UnicodeString; SelMode: TSynSelectionMode);
     procedure BeginBlock;
     procedure Clear;
     procedure EndBlock;
@@ -345,6 +385,22 @@ begin
           fRange := NullRange;
           fExpandedLength := -1;
           fFlags := [sfExpandedLengthUnknown];
+          if Strings is TSynEditStringList then
+          begin
+            fAttribute.aMask := TSynEditStringList(Strings).Attributes[i].aMask;
+            fAttribute.aForeground := TSynEditStringList(Strings).Attributes[i].aForeground;
+            fAttribute.aBackground := TSynEditStringList(Strings).Attributes[i].aBackground;
+            fAttribute.aHide := TSynEditStringList(Strings).Attributes[i].aHide;
+            fAttribute.aLineState := TSynEditStringList(Strings).Attributes[i].aLineState;
+          end
+          else
+          begin
+            fAttribute.aMask := [];
+            fAttribute.aForeground := clNone;
+            fAttribute.aBackground := clNone;
+            fAttribute.aHide := False;
+            fAttribute.aLineState := lsModified;
+          end;
         end;
         Inc(fCount);
       end;
@@ -406,6 +462,29 @@ begin
   fIndexOfLongestLine := -1;
   if Assigned(fOnDeleted) then
     fOnDeleted( Self, Index, 1 );
+  EndUpdate;
+end;
+
+function TSynEditStringList.GetAttributes(
+  Index: integer): PSynEditLineAttribute;
+begin
+  if (Index >= 0) and (Index < fCount) then
+    Result := @(fList^[Index].fAttribute)
+  else
+    result := nil;
+end;
+
+procedure TSynEditStringList.PutAttributes(Index: integer;
+  const Value: PSynEditLineAttribute);
+begin
+  if (Index < 0) or (Index >= fCount) then
+    ListIndexOutOfBounds(Index);
+  BeginUpdate;
+  fList^[Index].fAttribute.aBackground := Value.aBackground;
+  fList^[Index].fAttribute.aForeground := Value.aForeground;
+  fList^[Index].fAttribute.aHide := Value.aHide;
+  fList^[Index].fAttribute.aMask := Value.aMask;
+  fList^[Index].fAttribute.aLineState := Value.aLineState;
   EndUpdate;
 end;
 
@@ -691,6 +770,11 @@ begin
     fRange := NullRange;
     fExpandedLength := -1;
     fFlags := [sfExpandedLengthUnknown];
+    fAttribute.aHide := false;
+    fAttribute.aForeground := clNone;
+    fAttribute.aBackground := clNone;
+    fAttribute.aMask := [];
+    fAttribute.aLineState := lsModified;
   end;
   Inc(fCount);
   EndUpdate;
@@ -698,6 +782,7 @@ end;
 
 procedure TSynEditStringList.InsertLines(Index, NumLines: Integer);
 var
+  rindex : integer;
   c_Line: Integer;
 begin
   if (Index < 0) or (Index > fCount) then
@@ -706,6 +791,9 @@ begin
   begin
     BeginUpdate;
     try
+      rindex := Index;
+      if Assigned(OnBeforeInserted) then
+        OnBeforeInserted( Self, rIndex, NumLines );
       SetCapacity(fCount + NumLines);
       if Index < fCount then
       begin
@@ -720,10 +808,15 @@ begin
           fRange := NullRange;
           fExpandedLength := -1;
           fFlags := [sfExpandedLengthUnknown];
+          fAttribute.aMask := [];
+          fAttribute.aForeground := clnone;
+          fAttribute.aBackground := clNone;
+          fAttribute.aHide := False;
+          fAttribute.aLineState := lsModified;
         end;
       Inc(fCount, NumLines);
       if Assigned(OnInserted) then
-        OnInserted(Self, Index, NumLines);
+        OnInserted(Self, rIndex, NumLines);
     finally
       EndUpdate;
     end;
@@ -794,6 +887,8 @@ begin
   else begin
     if (Index < 0) or (Index >= fCount) then
       ListIndexOutOfBounds(Index);
+    if Assigned(OnBeforePutted) then
+      OnBeforePutted( Self, Index, 1 );
     BeginUpdate;
     fIndexOfLongestLine := -1;
     with fList^[Index] do begin
@@ -805,6 +900,7 @@ begin
       {$ELSE}
       fString := S;
       {$ENDIF OWN_UNICODESTRING_MEMMGR}
+      fAttribute.aLineState := lsModified;
     end;
     if Assigned(fOnPutted) then
       fOnPutted( Self, Index, 1 );
@@ -1061,8 +1157,13 @@ begin
     inherited Assign(Source);
 end;
 
-procedure TSynEditUndoList.AddChange(AReason: TSynChangeReason; const AStart,
-  AEnd: TBufferCoord; const ChangeText: UnicodeString; SelMode: TSynSelectionMode);
+//### Code Folding ###
+procedure TSynEditUndoList.AddChange(AReason: TSynChangeReason;
+  const AStart, AEnd: TBufferCoord; const ChangeText: string;
+  SelMode: TSynSelectionMode; Data: Pointer = nil; Index: Integer = 0);
+//### End Code Folding ###
+//procedure TSynEditUndoList.AddChange(AReason: TSynChangeReason; const AStart,
+//  AEnd: TBufferCoord; const ChangeText: UnicodeString; SelMode: TSynSelectionMode);
 var
   NewItem: TSynEditUndoItem;
 begin
@@ -1075,6 +1176,10 @@ begin
         fChangeStartPos := AStart;
         fChangeEndPos := AEnd;
         fChangeStr := ChangeText;
+        //### Code Folding ###
+        fChangeData := Data;
+        fChangeIndex := Index;
+        //### End Code Folding ###
         if fBlockChangeNumber <> 0 then
           fChangeNumber := fBlockChangeNumber
         else begin

@@ -49,6 +49,9 @@ uses
   IniFiles,
   SynEditTypes,
   SynEditMiscClasses,
+  //### Code Folding ###
+  SynEditCodeFolding,
+  //### End Code Folding ###
   SynUnicode,
 {$ENDIF}
   SysUtils,
@@ -132,6 +135,9 @@ type
     FAdditionalWordBreakChars: TSysCharSet;
     FAdditionalIdentChars: TSysCharSet;
     FExportName: string;
+    //### Code Folding ###
+    fFoldRegions: TFoldRegions;
+    //### End Code Folding ###
     function GetExportName: string;
     procedure SetEnabled(const Value: Boolean);
     procedure SetAdditionalIdentChars(const Value: TSysCharSet);
@@ -243,6 +249,10 @@ type
     property WhitespaceAttribute: TSynHighlighterAttributes
       index SYN_ATTR_WHITESPACE read GetDefaultAttribute;
     property ExportName: string read GetExportName;
+
+    //### Code Folding ###
+    property FoldRegions: TFoldRegions read fFoldRegions;
+    //### End Code Folding ###
   published
     property DefaultFilter: string read GetDefaultFilter write SetDefaultFilter
       stored IsFilterStored;
@@ -767,6 +777,10 @@ begin
   fAttrChangeHooks := TSynNotifyEventChain.CreateEx(Self);
   fDefaultFilter := '';
   fEnabled := True;
+
+  //### Code Folding ###
+  fFoldRegions := TFoldRegions.Create(TFoldRegionItem);
+  //### End Code Folding ###
 end;
 
 destructor TSynCustomHighlighter.Destroy;
@@ -775,6 +789,10 @@ begin
   FreeHighlighterAttributes;
   fAttributes.Free;
   fAttrChangeHooks.Free;
+
+  //### Code Folding ###
+  fFoldRegions.Free;
+  //### End Code Folding ###
 end;
 
 procedure TSynCustomHighlighter.BeginUpdate;

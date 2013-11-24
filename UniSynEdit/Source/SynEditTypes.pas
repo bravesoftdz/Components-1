@@ -48,6 +48,13 @@ uses
   SysUtils;
 
 const
+  TSynSpecialChars = ['À'..'Ö', 'Ø'..'ö', 'ø'..'ÿ'];
+  TSynValidStringChars = ['_', '0'..'9', 'A'..'Z', 'a'..'z'] + TSynSpecialChars;
+  TSynWordBreakChars = ['.', ',', ';', ':', '"', '''', '!', '?', '[', ']', '(',
+                        ')', '{', '}', '^', '-', '=', '+', '-', '*', '/', '\',
+                        '|', ' '];
+
+  TSynTabChar = #9;
 // These might need to be localized depending on the characterset because they might be
 // interpreted as valid ident characters.
   SynTabGlyph = WideChar($2192);       //'->'
