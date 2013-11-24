@@ -3000,6 +3000,8 @@ end;
 
 procedure TCustomSynEdit.MouseUp(Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
+var
+  Col: Integer;
 begin
   inherited MouseUp(Button, Shift, X, Y);
   fKbdHandler.ExecuteMouseUp(Self, Button, Shift, X, Y);
@@ -3012,11 +3014,12 @@ begin
       DrawRightEdgeMove(-1, fMoveRightEdgePosition);
       with PixelsToRowColumn(X, Y) do
       begin
-        fRightEdge.Position := Column;
-        if Column < fRightEdge.Position then
-          // Column := Column - 1;
-          fRightEdge.Position := fRightEdge.Position - 1;
+        Col := Column;
+        if Col < fRightEdge.Position then
+          Col := Col - 1;
+        fRightEdge.Position := Col;
       end;
+      InvalidateGutterRows(TopLine, FLastRow);
       Exit;
     end;
   end;

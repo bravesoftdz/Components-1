@@ -100,7 +100,7 @@ type
 
   TDisplayCoord = record
     Column: integer;
-    Row: integer;
+    Row: Integer;
   end;
 
 function DisplayCoord(AColumn, ARow: Integer): TDisplayCoord;
