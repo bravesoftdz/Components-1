@@ -2627,6 +2627,8 @@ begin
       fGutter.AutoSizeDigitCount(Lines.Count);
     if not(eoScrollPastEof in Options) then
       TopLine := TopLine;
+    if GetWordWrap then
+      fWordWrapPlugin.Reset;
   end;
 end;
 
@@ -3498,13 +3500,13 @@ begin
         begin
           SetBkMode(dc, TRANSPARENT);
           Windows.ExtTextOut(dc, (fGutterWidth - fGutter.RightOffset - 2) -
-            TextSize.cx, rcLine.Top + ((LineHeight - Integer(TextSize.cy))
+            TextSize.cx, rcLine.Top + ((fTextHeight - Integer(TextSize.cy))
             div 2), 0, @rcLine, PChar(S), Length(S), nil);
           SetBkMode(dc, OPAQUE);
         end
         else
           Windows.ExtTextOut(dc, (fGutterWidth - fGutter.RightOffset - 2) -
-            TextSize.cx, rcLine.Top + ((LineHeight - Integer(TextSize.cy))
+            TextSize.cx, rcLine.Top + ((fTextHeight - Integer(TextSize.cy))
             div 2), ETO_OPAQUE, @rcLine, PChar(S), Length(S), nil);
 {$ENDIF}
       end;
@@ -7163,7 +7165,7 @@ begin
     if HandleAllocated then
     begin
       fCharsInWindow := Max(ClientWidth - fGutterWidth - 2, 0) div fCharWidth;
-      if GetWordWrap then
+      if GetWordWrap and (fWordWrap.Style = wwsclientWidth) then
         fWordWrapPlugin.DisplayChanged;
       UpdateScrollBars;
       Invalidate;
@@ -7177,7 +7179,7 @@ var
   iDelta: Integer;
   iTextArea: TRect;
 begin
-  if GetWordWrap then
+  if GetWordWrap and (GetWrapAtColumn <= CharsInWindow) then
     Value := 1;
 
   if eoScrollPastEol in Options then
@@ -7189,7 +7191,10 @@ begin
   end
   else
   begin
-    MaxVal := TSynEditStringList(Lines).LengthOfLongestLine;
+    if GetWordWrap then
+      MaxVal := GetWrapAtColumn
+    else
+      MaxVal := TSynEditStringList(Lines).LengthOfLongestLine;
     if MaxVal > CharsInWindow then
       MaxVal := MaxVal - CharsInWindow + 1
     else
@@ -7221,6 +7226,7 @@ begin
     else
       UpdateScrollBars;
     StatusChanged([scLeftChar]);
+    InvalidateLines(DisplayY, DisplayY);
   end;
 end;
 
@@ -8539,8 +8545,15 @@ begin
   if GetWordWrap then
     fWordWrapPlugin.LinesDeleted(aIndex, aCount);
 
-  InvalidateLines(aIndex + 1, MaxInt);
-  InvalidateGutterLines(aIndex + 1, MaxInt);
+  if fGutter.ShowLineNumbers and fGutter.AutoSize then
+    fGutter.AutoSizeDigitCount(Lines.Count);
+  if fGutterWidth <> fGutter.RealGutterWidth(fGutterCharWidth) then
+    SetGutterWidth(fGutter.RealGutterWidth(fGutterCharWidth))
+  else
+  begin
+    InvalidateLines(aIndex + 1, MaxInt);
+    InvalidateGutterLines(aIndex + 1, MaxInt);
+  end;
 end;
 
 procedure TCustomSynEdit.ListInserted(Sender: TObject; Index: Integer;
@@ -8561,8 +8574,15 @@ begin
   if GetWordWrap then
     fWordWrapPlugin.LinesInserted(Index, aCount);
 
-  InvalidateLines(Index + 1, MaxInt);
-  InvalidateGutterLines(Index + 1, MaxInt);
+  if fGutter.ShowLineNumbers and fGutter.AutoSize then
+    fGutter.AutoSizeDigitCount(Lines.Count);
+  if fGutterWidth <> fGutter.RealGutterWidth(fGutterCharWidth) then
+    SetGutterWidth(fGutter.RealGutterWidth(fGutterCharWidth))
+  else
+  begin
+    InvalidateLines(Index + 1, MaxInt);
+    InvalidateGutterLines(Index + 1, MaxInt);
+  end;
 
   if (eoAutoSizeMaxScrollWidth in fOptions) then
   begin
@@ -11433,12 +11453,17 @@ begin
       fTextDrawer.SetBaseFont(fGutter.Font);
       nW := fGutter.RealGutterWidth(fTextDrawer.CharWidth);
       fTextDrawer.SetBaseFont(Font);
+      fGutterCharWidth := fTextDrawer.CharWidth;
     end
     else
+    begin
       nW := fGutter.RealGutterWidth(fCharWidth);
+      fGutterCharWidth := CharWidth;
+    end;
     if not fGutter.AutoSize then
       SetGutterWidth(fGutter.Width)
-    else if nW = fGutterWidth then
+    else
+    if nW = fGutterWidth then
       InvalidateGutter
     else
       SetGutterWidth(nW);

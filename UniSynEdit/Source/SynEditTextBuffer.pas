@@ -858,10 +858,14 @@ begin
 end;
 
 procedure TSynEditStringList.LoadFromStream(Stream: TStream);
+var
+  i: Integer;
 begin
   FStreaming := True;
   inherited;
   FStreaming := False;
+  for i := 0 to Count - 1 do
+    Attributes[i].aLineState := lsNone;
 end;
 
 {$IFDEF UNICODE}
