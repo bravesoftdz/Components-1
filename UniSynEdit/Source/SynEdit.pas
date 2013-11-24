@@ -3681,7 +3681,7 @@ begin
   if fGutter.ShowLineModified then
   begin
     rt.Left := fGutterWidth - fGutter.RightOffset;
-    rt.Right := rt.Left + 5;
+    rt.Right := rt.Left + 4;
     for cLine := aFirstRow to aLastRow do
     begin
       r := RowToLine(cLine) - 1;
