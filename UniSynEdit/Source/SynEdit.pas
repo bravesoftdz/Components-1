@@ -3461,33 +3461,28 @@ begin
         if fGutter.Gradient then
           Canvas.Brush.Style := bsSolid;
 {$ELSE}
-        if Gutter.Intens and (cLine <> CaretY) and (S[Length(S)] <> '0') then
+        if Gutter.Intens and (cLine <> CaretY) and (S[Length(S)] <> '0') and
+          (cLine <> Gutter.LineNumberStart) then
         begin
           if fGutter.Gradient then
             SetBkMode(dc, TRANSPARENT)
           else
             Canvas.FillRect(rcLine);
-          r := fGutterWidth - fGutter.RightOffset - 2;
+          r := fGutterWidth - fGutter.RightOffset - 4;
           w := fGutterCharWidth;
           OldColor := Canvas.Pen.Color;
           Canvas.Pen.Color := Gutter.Font.Color;
           if ((cLine mod 5) = 0) then
           begin
-            Canvas.MoveTo(r - w + ((w - 4) div 2),
-              rcLine.Top + ((LineHeight - 1) div 2));
-            Canvas.LineTo(r - ((w - 4) div 2),
-              rcLine.Top + ((LineHeight - 1) div 2));
+            Canvas.MoveTo(r - w + ((w - 8) div 2), rcLine.Top + ((fTextHeight - 1) div 2));
+            Canvas.LineTo(r - ((w - 4) div 2), rcLine.Top + ((fTextHeight - 1) div 2));
           end
           else
           begin
-            Canvas.MoveTo(r - w + ((w - 2) div 2),
-              rcLine.Top + ((LineHeight - 2) div 2));
-            Canvas.LineTo(r - ((w - 2) div 2),
-              rcLine.Top + ((LineHeight - 2) div 2));
-            Canvas.MoveTo(r - w + ((w - 2) div 2),
-              rcLine.Top + ((LineHeight - 2) div 2) + 1);
-            Canvas.LineTo(r - ((w - 2) div 2),
-              rcLine.Top + ((LineHeight - 2) div 2) + 1);
+            Canvas.MoveTo(r - w + ((w - 2) div 2), rcLine.Top + ((fTextHeight - 2) div 2));
+            Canvas.LineTo(r - ((w - 1) div 2), rcLine.Top + ((fTextHeight - 2) div 2));
+            //Canvas.MoveTo(r - w + ((w - 2) div 2), rcLine.Top + ((fTextHeight - 2) div 2) + 1);
+            //Canvas.LineTo(r - ((w - 2) div 2), rcLine.Top + ((fTextHeight - 2) div 2) + 1);
           end;
           Canvas.Pen.Color := OldColor;
           if fGutter.Gradient then
