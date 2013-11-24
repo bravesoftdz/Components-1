@@ -34,7 +34,7 @@ procedure Register;
 implementation
 
 uses
-  SynUnicode, BCControls.StyleHooks, Vcl.Themes, BCCommon.Encoding, SynEditTypes;
+  SynUnicode, BCControls.StyleHooks, Vcl.Themes, BCCommon.Encoding, SynEditTypes, SynEditTextBuffer;
 
 procedure Register;
 begin
@@ -60,6 +60,7 @@ end;
 
 procedure TBCSynEdit.LoadFromFile(const FileName: String);
 var
+  i: Integer;
   LFileStream: TFileStream;
   LBuffer: TBytes;
   WithBom: Boolean;
@@ -86,6 +87,8 @@ begin
     LFileStream.Free;
   end;
   Lines.LoadFromFile(FileName, FEncoding);
+  for i := 0 to ExpandLines.Count - 1 do
+    ExpandLines.Attributes[i].aLineState := lsNone;
 end;
 
 procedure TBCSynEdit.SaveToFile(const FileName: String);

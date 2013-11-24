@@ -1016,88 +1016,53 @@ type
     property UndoList: TSynEditUndoList read fUndoList;
     property RedoList: TSynEditUndoList read fRedoList;
   public
-    property OnProcessCommand: TProcessCommandEvent read fOnProcessCommand
-      write fOnProcessCommand;
+    property OnProcessCommand: TProcessCommandEvent read fOnProcessCommand write fOnProcessCommand;
 
-    property ScrollInfoFmtTop: string read FScrollInfoFmtTop
-      write FScrollInfoFmtTop;
+    property ScrollInfoFmtTop: string read FScrollInfoFmtTop write FScrollInfoFmtTop;
 
-    property BookMarkOptions: TSynBookMarkOpt read fBookMarkOpt
-      write SetBookMarkOpt;
-    property BorderStyle: TSynBorderStyle read fBorderStyle write SetBorderStyle
-      default bsSingle;
-    // property ExtraLineSpacing: Integer
-    // read fExtraLineSpacing write SetExtraLineSpacing default 0;
+    property BookMarkOptions: TSynBookMarkOpt read fBookMarkOpt write SetBookMarkOpt;
+    property BorderStyle: TSynBorderStyle read fBorderStyle write SetBorderStyle default bsSingle;
     property Gutter: TSynGutter read fGutter write SetGutter;
-    property HideSelection: Boolean read fHideSelection write SetHideSelection
-      default False;
-    property InsertCaret: TSynEditCaretType read fInsertCaret
-      write SetInsertCaret default ctVerticalLine;
-    property InsertMode: Boolean read fInserting write SetInsertMode
-      default True;
+    property HideSelection: Boolean read fHideSelection write SetHideSelection default False;
+    property InsertCaret: TSynEditCaretType read fInsertCaret write SetInsertCaret default ctVerticalLine;
+    property InsertMode: Boolean read fInserting write SetInsertMode default True;
     property IsScrolling: Boolean read FIsScrolling;
-    property Keystrokes: TSynEditKeyStrokes read fKeyStrokes write SetKeystrokes
-      stored False;
+    property Keystrokes: TSynEditKeyStrokes read fKeyStrokes write SetKeystrokes stored False;
     property MaxUndo: Integer read GetMaxUndo write SetMaxUndo default 1024;
-    property Options: TSynEditorOptions read GetOptions write SetOptions
-      default SYNEDIT_DEFAULT_OPTIONS;
-    property OverwriteCaret: TSynEditCaretType read fOverwriteCaret
-      write SetOverwriteCaret default ctBlock;
-    // property RightEdge: TSynRightEdge {Integer} read fRightEdge write SetRightEdge {default 80};
-    property ScrollHintColor: TColor read fScrollHintColor
-      write fScrollHintColor default clInfoBk;
-    property ScrollHintFormat: TScrollHintFormat read fScrollHintFormat
-      write fScrollHintFormat default shfTopLineOnly;
-    // property ScrollBars: TSynScrollBars read FScrollBars write SetScrollBars;
-    property SelectedColor: TSynSelectedColor read fSelectedColor
-      write SetSelectedColor;
-    property SelectionMode: TSynSelectionMode read fSelectionMode
-      write SetSelectionMode default smNormal;
-    property ActiveSelectionMode: TSynSelectionMode read fActiveSelectionMode
-      write SetActiveSelectionMode stored False;
+    property Options: TSynEditorOptions read GetOptions write SetOptions default SYNEDIT_DEFAULT_OPTIONS;
+    property OverwriteCaret: TSynEditCaretType read fOverwriteCaret write SetOverwriteCaret default ctBlock;
+    property ScrollHintColor: TColor read fScrollHintColor write fScrollHintColor default clInfoBk;
+    property ScrollHintFormat: TScrollHintFormat read fScrollHintFormat write fScrollHintFormat default shfTopLineOnly;
+    property SelectedColor: TSynSelectedColor read fSelectedColor write SetSelectedColor;
+    property SelectionMode: TSynSelectionMode read fSelectionMode write SetSelectionMode default smNormal;
+    property ActiveSelectionMode: TSynSelectionMode read fActiveSelectionMode write SetActiveSelectionMode stored False;
     property TabWidth: Integer read fTabWidth write SetTabWidth default 8;
-    property WantReturns: Boolean read fWantReturns write SetWantReturns
-      default True;
+    property WantReturns: Boolean read fWantReturns write SetWantReturns default True;
     property WantTabs: Boolean read fWantTabs write SetWantTabs default False;
     property WordWrap: TSynWordWrap read fWordWrap write SetWordWrap;
-    property WordWrapGlyph: TSynGlyph read fWordWrapGlyph
-      write SetWordWrapGlyph;
+    property WordWrapGlyph: TSynGlyph read fWordWrapGlyph write SetWordWrapGlyph;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
-    property OnClearBookmark: TPlaceMarkEvent read fOnClearMark
-      write fOnClearMark;
-    property OnCommandProcessed: TProcessCommandEvent read fOnCommandProcessed
-      write fOnCommandProcessed;
-    property OnContextHelp: TContextHelpEvent read fOnContextHelp
-      write fOnContextHelp;
+    property OnClearBookmark: TPlaceMarkEvent read fOnClearMark write fOnClearMark;
+    property OnCommandProcessed: TProcessCommandEvent read fOnCommandProcessed write fOnCommandProcessed;
+    property OnContextHelp: TContextHelpEvent read fOnContextHelp write fOnContextHelp;
     property OnDropFiles: TDropFilesEvent read fOnDropFiles write fOnDropFiles;
-    property OnGutterClick: TGutterClickEvent read fOnGutterClick
-      write fOnGutterClick;
-    property OnGutterGetText: TGutterGetTextEvent read fOnGutterGetText
-      write fOnGutterGetText;
-    property OnGutterPaint: TGutterPaintEvent read fOnGutterPaint
-      write fOnGutterPaint;
-    property OnMouseCursor: TMouseCursorEvent read fOnMouseCursor
-      write fOnMouseCursor;
+    property OnGutterClick: TGutterClickEvent read fOnGutterClick write fOnGutterClick;
+    property OnGutterGetText: TGutterGetTextEvent read fOnGutterGetText write fOnGutterGetText;
+    property OnGutterPaint: TGutterPaintEvent read fOnGutterPaint write fOnGutterPaint;
+    property OnMouseCursor: TMouseCursorEvent read fOnMouseCursor write fOnMouseCursor;
     property OnKeyPress: TKeyPressWEvent read FOnKeyPressW write FOnKeyPressW;
     property OnPaint: TPaintEvent read fOnPaint write fOnPaint;
-    property OnPlaceBookmark: TPlaceMarkEvent read fOnPlaceMark
-      write fOnPlaceMark;
-    property OnProcessUserCommand: TProcessCommandEvent
-      read fOnProcessUserCommand write fOnProcessUserCommand;
-    property OnReplaceText: TReplaceTextEvent read fOnReplaceText
-      write fOnReplaceText;
-    property OnSpecialLineColors: TSpecialLineColorsEvent
-      read fOnSpecialLineColors write fOnSpecialLineColors;
-    property OnStatusChange: TStatusChangeEvent read fOnStatusChange
-      write fOnStatusChange;
-    property OnPaintTransient: TPaintTransient read fOnPaintTransient
-      write fOnPaintTransient;
+    property OnPlaceBookmark: TPlaceMarkEvent read fOnPlaceMark write fOnPlaceMark;
+    property OnProcessUserCommand: TProcessCommandEvent read fOnProcessUserCommand write fOnProcessUserCommand;
+    property OnReplaceText: TReplaceTextEvent read fOnReplaceText write fOnReplaceText;
+    property OnSpecialLineColors: TSpecialLineColorsEvent read fOnSpecialLineColors write fOnSpecialLineColors;
+    property OnStatusChange: TStatusChangeEvent read fOnStatusChange write fOnStatusChange;
+    property OnPaintTransient: TPaintTransient read fOnPaintTransient write fOnPaintTransient;
     property OnScroll: TScrollEvent read fOnScroll write fOnScroll;
   published
     property Cursor default crIBeam;
 {$IFDEF SYN_COMPILER_6_UP}
-    property OnSearchNotFound: TCustomSynEditSearchNotFoundEvent
-      read fSearchNotFound write fSearchNotFound;
+    property OnSearchNotFound: TCustomSynEditSearchNotFoundEvent read fSearchNotFound write fSearchNotFound;
 {$ENDIF}
   end;
 
@@ -1623,6 +1588,8 @@ begin
   DoubleBuffered := False;
 {$ENDIF}
 {$ENDIF}
+  FLineSpacing := 0;
+  FLineSpacingRule := lsSpecified;
   fActiveLineColor := clNone;
   fSelectedColor := TSynSelectedColor.Create;
   fSelectedColor.OnChange := SelectedColorsChanged;
@@ -2647,10 +2614,6 @@ var
   bStartDrag: Boolean;
   TmpBegin, TmpEnd: TBufferCoord;
 begin
-{$IFDEF SYN_CLX}
-  if not PtInRect(GetClientRect, Point(X, Y)) then
-    Exit;
-{$ENDIF}
   TmpBegin := fBlockBegin;
   TmpEnd := fBlockEnd;
 
@@ -3021,7 +2984,6 @@ begin
           Col := Col - 1;
         fRightEdge.Position := Col;
       end;
-      InvalidateGutterRows(TopLine, FLastRow);
       Exit;
     end;
   end;
@@ -3412,11 +3374,9 @@ begin
       fTextDrawer.SetBaseFont(fGutter.Font)
     else
       fTextDrawer.Style := [];
-{$IFDEF SYN_CLX}
-    fTextDrawer.BeginDrawing(Canvas);
-{$ELSE}
+
     fTextDrawer.BeginDrawing(dc);
-{$ENDIF}
+
     try
       if fGutter.UseFontStyle then
         fTextDrawer.SetForeColor(fGutter.Font.Color)
@@ -3524,7 +3484,8 @@ begin
         fTextDrawer.SetBaseFont(Self.Font);
     end;
   end
-  else if not fGutter.Gradient then
+  else
+  if not fGutter.Gradient then
     Canvas.FillRect(AClip);
 
   if fGutter.LeftOffsetColor <> clNone then
@@ -3810,11 +3771,37 @@ Integer;
 
 { local procedures }
 
+function colEditorFG: TColor;
+var
+  iAttri: TSynHighlighterAttributes;
+begin
+  If fActiveLine.Visible and (fActiveLine.Foreground <> clNone) and
+    (bCurrentLine) then
+    Result := fActiveLine.Foreground
+  else
+  begin
+    Result := Font.Color;
+    if Highlighter <> nil then
+    begin
+      iAttri := Highlighter.WhitespaceAttribute;
+      if (iAttri <> nil) and (iAttri.Foreground <> clWindow) then
+        Result := iAttri.Foreground;
+    end;
+  end;
+  // 修改 增加指定某一行的前景颜色
+  if (CaretY > 0) and (CaretY <= Lines.Count) and
+    (amForeground in ExpandLines.Attributes[CaretY - 1].aMask) and
+    (ExpandLines.Attributes[CaretY - 1].aForeground <> clNone) then
+  begin
+    Result := ExpandLines.Attributes[CaretY - 1].aForeground;
+  end;
+end;
+
 function colEditorBG: TColor;
 var
   iAttri: TSynHighlighterAttributes;
 begin
-  if (ActiveLineColor <> clNone) and (bCurrentLine) then
+  if fActiveLine.Visible and (ActiveLineColor <> clNone) and (bCurrentLine) then
     Result := ActiveLineColor
   else
   begin
@@ -3825,6 +3812,12 @@ begin
       if (iAttri <> nil) and (iAttri.Background <> clNone) then
         Result := iAttri.Background;
     end;
+  end;
+  if (CaretY > 0) and (CaretY <= Lines.Count) and
+    (amBackground in ExpandLines.Attributes[CaretY - 1].aMask) and
+    (ExpandLines.Attributes[CaretY - 1].aBackground <> clNone) then
+  begin
+    Result := ExpandLines.Attributes[CaretY - 1].aBackground;
   end;
 end;
 
@@ -4163,7 +4156,10 @@ begin
   if bFillToEOL and (rcToken.Left < rcLine.Right) then
   begin
     if not bSpecialLine then
+    begin
       colBG := colEditorBG;
+      colFG := colEditorFG;
+    end;
     if bComplexLine then
     begin
       nX1 := ColumnToXValue(nLineSelStart);
