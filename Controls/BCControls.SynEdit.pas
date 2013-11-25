@@ -22,6 +22,7 @@ type
     destructor Destroy; override;
     procedure LoadFromFile(const FileName: String);
     procedure SaveToFile(const FileName: String);
+    procedure ToggleBookMark;
     property DocumentName: string read FDocumentName write FDocumentName;
     property FileDateTime: TDateTime read FFileDateTime write FFileDateTime;
     property HtmlVersion: TSynWebHtmlVersion read FHtmlVersion write FHtmlVersion;
@@ -103,6 +104,27 @@ begin
   if Assigned(FSynMacroRecorder) then
     if FSynMacroRecorder.State = msRecording then
       FSynMacroRecorder.AddEvent(Command, AChar, Data);
+end;
+
+procedure TBCSynEdit.ToggleBookMark;
+var
+  i: Integer;
+  CX, CY: Integer;
+begin
+  for i := 0 to Marks.Count - 1 do
+    if CaretY = Marks[i].Line then
+    begin
+      ClearBookmark(Marks[i].BookmarkNumber);
+      Exit;
+    end;
+  CX := CaretX;
+  CY := CaretY;
+  for i := 1 to 9 do
+    if not GetBookMark(i, CX, CY) then
+    begin
+      SetBookMark(i, CaretX, CaretY);
+      Exit;
+    end;
 end;
 
 end.

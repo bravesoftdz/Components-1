@@ -2773,6 +2773,8 @@ var
 // ### End Code Folding ###
 
 begin
+  if X < Gutter.Width then
+    Exit;
 {$IFDEF SYN_CLX}
   if not InDragDropOperation then
     UpdateMouseCursor;
