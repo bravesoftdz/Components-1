@@ -159,7 +159,8 @@ type
     // Converts a tab character to a specified number of space characters
     eoTrimTrailingSpaces,
     // Spaces at the end of lines will be trimmed and not saved
-    eoTripleClicks);
+    eoTripleClicks,
+    eoNonBlinkingCaret);
 
   TSynEditorOptions = set of TSynEditorOption;
 
@@ -413,6 +414,7 @@ type
     fPaintLock: Integer;
     fReadOnly: Boolean;
     fScrollHintColor: TColor;
+    FNonBlinkingCaretColor: TColor;
     fScrollHintFormat: TScrollHintFormat;
     fTextHeight: Integer;
     fTextOffset: Integer;
@@ -542,6 +544,7 @@ type
     procedure ScrollBarChanged(Sender: TObject);
     procedure SetScrollBars(const Value: TSynScrollBars);
     procedure SetBackground(const Value: TSynEditBackground);
+    procedure DrawCursor(ACanvas:TCanvas);
 
     procedure SetSelectedColor(const Value: TSynSelectedColor);
     procedure SetBookMarkOpt(const Value: TSynBookMarkOpt);
@@ -978,8 +981,8 @@ type
     property CaretX: Integer read fCaretX write SetCaretX;
     property CaretY: Integer read fCaretY write SetCaretY;
     property CaretXY: TBufferCoord read GetCaretXY write SetCaretXY;
-    property ActiveLineColor: TColor read fActiveLineColor
-      write SetActiveLineColor default clNone;
+    property ActiveLineColor: TColor read fActiveLineColor write SetActiveLineColor default clNone;
+    property NonBlinkingCaretColor: TColor read FNonBlinkingCaretColor write FNonBlinkingCaretColor default clBlack;
     property DisplayX: Integer read GetDisplayX;
     property DisplayY: Integer read GetDisplayY;
     property DisplayXY: TDisplayCoord read GetDisplayXY;
@@ -3075,6 +3078,75 @@ begin
   end;
 end;
 
+procedure TCustomSynEdit.DrawCursor(ACanvas:TCanvas);
+var
+  DisplayXY: TDisplayCoord;
+  Point: TPoint;
+  ct: TSynEditCaretType;
+  cw, ch, y: Integer;
+  TempBitmap: Vcl.Graphics.TBitmap;
+begin
+  if SelLength > 0 then
+    Exit;
+
+  DisplayXY := GetDisplayXY;
+  Point := RowColumnToPixels(DisplayXY);
+  y := 0;
+  if InsertMode then
+    ct := fInsertCaret
+  else
+    ct := fOverwriteCaret;
+  case ct of
+    ctHorizontalLine:
+      begin
+        cw := fCharWidth;
+        ch := 2;
+        y := LineHeight - 2;
+        Point.Y := Point.Y + y;
+      end;
+    ctHalfBlock:
+      begin
+        cw := fCharWidth;
+        ch := (LineHeight - 2) div 2;
+        y := (LineHeight - 2) div 2;
+        Point.Y := Point.Y + y;
+      end;
+    ctBlock:
+      begin
+        cw := fCharWidth;
+        ch := LineHeight - 2;
+      end;
+  else
+    begin // ctVerticalLine
+      cw := 2;
+      ch := LineHeight - 2;
+      Point.X := Point.X - 1;
+    end;
+  end;
+
+  TempBitmap := Vcl.Graphics.TBitmap.Create;
+  try
+    TempBitmap.Width := fCharWidth;
+    TempBitmap.Height := LineHeight;
+    { Background }
+    TempBitmap.Canvas.Pen.Color := FNonBlinkingCaretColor;
+    TempBitmap.Canvas.Brush.Color := FNonBlinkingCaretColor;
+    TempBitmap.Canvas.Rectangle(0, 0, TempBitmap.Width, TempBitmap.Height);
+    { Character }
+    TempBitmap.Canvas.Brush.Style := bsClear;
+    TempBitmap.Canvas.Font.Name := Font.Name;
+    TempBitmap.Canvas.Font.Color := Color;
+    TempBitmap.Canvas.Font.Style := Font.Style;
+    TempBitmap.Canvas.Font.Height := Font.Height;
+    TempBitmap.Canvas.Font.Size := Font.Size;
+    TempBitmap.Canvas.TextOut(0, 0, Copy(LineText, CaretX, 1));
+    { Copy rect }
+    ACanvas.CopyRect(Rect(Point.X, Point.Y, Point.X + cw, Point.Y + ch), TempBitmap.Canvas, Rect(0, y, cw, y + ch));
+  finally
+    TempBitmap.Free
+  end;
+end;
+
 procedure TCustomSynEdit.Paint;
 var
   rcClip, rcDraw: TRect;
@@ -3255,6 +3327,8 @@ begin
     if iRestoreViewPort then
       QPainter_setViewport(Canvas.Handle, 0, 0, Width, Height);
 {$ENDIF}
+    if eoNonBlinkingCaret in Options then
+      DrawCursor(Canvas);
     // If there is a custom paint handler call it.
     DoOnPaint;
     DoOnPaintTransient(ttAfter);
@@ -3653,6 +3727,7 @@ begin
       end;
     end;
   end;
+  Canvas.Brush.Color := clRed;
 
   FBufferBmp.Canvas.CopyRect(AClip, Canvas, AClip);
   FBufferBmp.Canvas.Handle := Canvas.Handle;
@@ -6937,16 +7012,15 @@ begin
         end;
 
       end
-      else if (aKey = VK_BACK) and (CaretX = 1) then
+      else
+      if (aKey = VK_BACK) and (CaretX = 1) then
       begin
         if (FoldRange2 = nil) or FoldRange2.Collapsed then
         begin
           Result := True;
-          if (FoldRange1 <> nil) and FoldRange1.Collapsed and not FoldRange1.ParentCollapsed
-          then
+          if (FoldRange1 <> nil) and FoldRange1.Collapsed and not FoldRange1.ParentCollapsed then
             Uncollapse(FoldRange1); // Uncollapse this Block
-          if (FoldRange2 <> nil) and FoldRange2.Collapsed and not FoldRange2.ParentCollapsed
-          then
+          if (FoldRange2 <> nil) and FoldRange2.Collapsed and not FoldRange2.ParentCollapsed then
           begin
             Uncollapse(FoldRange2); // Uncollapse Block above
             CaretY := CaretY + FoldRange2.LinesCollapsed + 1;
@@ -6954,28 +7028,22 @@ begin
           end;
 
         end
-        else if (FoldRange2 <> nil) and not FoldRange2.Collapsed and
-          not FoldRange2.ParentCollapsed then
-        begin
-          Result := True;
-        end
+        else
+        if (FoldRange2 <> nil) and not FoldRange2.Collapsed and not FoldRange2.ParentCollapsed then
+          Result := True
         else
           Result := False;
 
       end
-      else if (aKey = VK_DELETE) and
-        (CaretX >= Length(TrimRight(Lines[CaretY - 1])) + 1) then
+      else
+      if (aKey = VK_DELETE) and (CaretX >= Length(TrimRight(Lines[CaretY - 1])) + 1) then
       begin
         Result := True;
         FoldRange2 := FoldRangeForLine(CaretY + 1);
 
-        if (FoldRange2 <> nil) and FoldRange2.Collapsed and not FoldRange2.ParentCollapsed
-        then
-        begin
+        if (FoldRange2 <> nil) and FoldRange2.Collapsed and not FoldRange2.ParentCollapsed then
           Uncollapse(FoldRange2); // Uncollapse Block below
-        end;
-        if (FoldRange1 <> nil) and FoldRange1.Collapsed and not FoldRange1.ParentCollapsed
-        then
+        if (FoldRange1 <> nil) and FoldRange1.Collapsed and not FoldRange1.ParentCollapsed then
         begin
           Uncollapse(FoldRange1); // Uncollapse this Block
           CaretY := CaretY + FoldRange1.LinesCollapsed + 1;
@@ -6984,7 +7052,8 @@ begin
 
         // Allow only special keys (Cursor-Down, ..)
       end
-      else if (aKey in [VK_SHIFT, VK_CONTROL, VK_MENU { Alt } , VK_ESCAPE,
+      else
+      if (aKey in [VK_SHIFT, VK_CONTROL, VK_MENU { Alt } , VK_ESCAPE,
         VK_F1 .. VK_F12, VK_PRIOR, VK_NEXT, VK_END, VK_HOME, VK_LEFT, VK_UP,
         VK_RIGHT, VK_DOWN, VK_SELECT, VK_PRINT, VK_EXECUTE, VK_SNAPSHOT,
         VK_INSERT]) then
@@ -7798,7 +7867,7 @@ end;
 
 procedure TCustomSynEdit.ShowCaret;
 begin
-  if not(eoNoCaret in Options) and not(sfCaretVisible in fStateFlags) then
+  if not(eoNoCaret in Options) and not(eoNonBlinkingCaret in Options) and not(sfCaretVisible in fStateFlags) then
   begin
 {$IFDEF SYN_CLX}
     kTextDrawer.ShowCaret(Self);
@@ -13628,8 +13697,7 @@ begin
   end;
 end;
 
-function TCustomSynEdit.BufferToDisplayPos(const p: TBufferCoord)
-  : TDisplayCoord;
+function TCustomSynEdit.BufferToDisplayPos(const p: TBufferCoord): TDisplayCoord;
 // BufferToDisplayPos takes a position in the text and transforms it into
 // the row and column it appears to be on the screen
 var
