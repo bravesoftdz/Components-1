@@ -1221,12 +1221,15 @@ var
   Data: PBCFileTreeNodeRec;
 begin
   Result := True;
-  FTree := Tree as TBCFileTreeView; //TVirtualDrawTree;
+  FTree := Tree as TBCFileTreeView;
   FNode := Node;
   FColumn := Column;
 
-  FEdit.Free;
-  FEdit := nil;
+  if Assigned(FEdit) then
+  begin
+    FEdit.Free;
+    FEdit := nil;
+  end;
   Data := FTree.GetNodeData(Node);
 
   FEdit := TBCEdit.Create(nil);
@@ -1236,7 +1239,6 @@ begin
     Parent := Tree;
     FEdit.Font.Name := FTree.Canvas.Font.Name;
     FEdit.Font.Size := FTree.Canvas.Font.Size;
-    //Flat := True;
     Text := Data.FileName;
     OnKeyPress := EditKeyPress;
   end;
