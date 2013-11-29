@@ -1695,14 +1695,14 @@ begin
   SynFontChanged(nil);
 
   // ### Code Folding ###
-  fHint := TSynCompletionProposal.Create(nil);
+  {fHint := TSynCompletionProposal.Create(nil);
 
   with TSynCompletionProposal(fHint) do
   begin
     DisplayType := ctHint;
     TimerInterval := 500;
     ClBackground := clInfoBk;
-  end;
+  end;}
   // ### End Code Folding ###
 end;
 
@@ -2760,13 +2760,13 @@ var
   begin
     if Cursor <> crIBeam then
       Cursor := crIBeam;
-
-    if TSynCompletionProposal(fHint).Tag = 1 then
-    begin
-      TSynCompletionProposal(fHint).Tag := 0;
-      TSynCompletionProposal(fHint).CancelCompletion;
-      // Refresh;
-    end;
+    if CodeFolding.Enabled then
+      if TSynCompletionProposal(fHint).Tag = 1 then
+      begin
+        TSynCompletionProposal(fHint).Tag := 0;
+        TSynCompletionProposal(fHint).CancelCompletion;
+        // Refresh;
+      end;
   end;
 // ### End Code Folding ###
 

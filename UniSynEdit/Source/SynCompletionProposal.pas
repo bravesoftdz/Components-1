@@ -501,6 +501,7 @@ type
   private
     FShortCut: TShortCut;
     fEditor: TCustomSynEdit;
+    fEditors: TList;
     fAutoCompleteList: TUnicodeStrings;
     fNoNextKey : Boolean;
     FEndOfTokenChr: UnicodeString;
@@ -530,6 +531,10 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    //mod Add
+    procedure AddEditor(AEditor: TCustomSynEdit);
+    //mod Add
+    function RemoveEditor(AEditor: TCustomSynEdit): boolean;
     procedure Execute(Token: UnicodeString; Editor: TCustomSynEdit);
     procedure ExecuteEx(Token: UnicodeString; Editor: TCustomSynEdit; LookupIfNotExact: Boolean);
     function GetTokenList: UnicodeString;
@@ -1620,7 +1625,6 @@ end;
 procedure TSynBaseCompletionProposalForm.Resize;
 begin
   inherited;
-
   if FEffectiveItemHeight <> 0 then
     //KV Replaced Height with ClientHeight
     FLinesInWindow := (ClientHeight - FHeightBuffer) div FEffectiveItemHeight;
@@ -3526,6 +3530,7 @@ begin
   FEndOfTokenChr := DefaultEndOfTokenChr;
   fAutoCompleteList := TUnicodeStringList.Create;
   fNoNextKey := false;
+  fEditors := TList.Create;
 {$IFDEF SYN_CLX}
   fShortCut := QMenus.ShortCut(Ord(' '), [ssShift]);
 {$ELSE}
@@ -3546,7 +3551,10 @@ begin
     FInternalCompletion.Free;
     FInternalCompletion := nil;
   end;
+  while fEditors.Count <> 0 do
+    RemoveEditor(TCustomSynEdit(FEditors.Last));
   inherited;
+  fEditors.Free;
   fAutoCompleteList.free;
 end;
 
@@ -3615,7 +3623,7 @@ begin
       fNoNextKey := True;
       for j := 1 to Length(Token) do
         Editor.CommandProcessor(ecDeleteLastChar, ' ', nil);
-      BeginningSpaceCount := Editor.DisplayX - 1;  
+      BeginningSpaceCount := Editor.DisplayX - 1;
       if not(eoTabsToSpaces in Editor.Options) and
         (BeginningSpaceCount >= Editor.TabWidth)
       then
@@ -3726,9 +3734,36 @@ end;
 
 procedure TSynAutoComplete.Notification(AComponent: TComponent; Operation: TOperation);
 begin
-  if (Operation = opRemove) and (Editor = AComponent) then
-    Editor := nil;
+  if (Operation = opRemove) then
+  begin
+    if Editor = AComponent then
+      Editor := nil
+    else if AComponent is TCustomSynEdit then
+      RemoveEditor( TCustomSynEdit(AComponent) );
+  end;
+{  if (Operation = opRemove) and (Editor = AComponent) then
+    Editor := nil;}
   inherited Notification(AComponent, Operation);
+end;
+
+function TSynAutoComplete.RemoveEditor(AEditor: TCustomSynEdit): boolean;
+var
+  i: integer;
+begin
+  result := False;
+  if AEditor = nil then
+    exit;
+  i := fEditors.Remove(AEditor);
+  result := i <> -1;
+  if result then begin
+    AEditor.RemoveKeyDownHandler( EditorKeyDown );
+    AEditor.RemoveKeyPressHandler( EditorKeyPress );
+    {$IFDEF SYN_COMPILER_5_UP}
+    RemoveFreeNotification( AEditor );
+    {$ENDIF}
+    if fEditor = AEditor then
+      fEditor := nil;
+  end;
 end;
 
 procedure TSynAutoComplete.SetAutoCompleteList(List: TUnicodeStrings);
@@ -3742,18 +3777,22 @@ begin
   begin
     if Editor <> nil then
     begin
-      Editor.RemoveKeyDownHandler( EditorKeyDown );
-      Editor.RemoveKeyPressHandler( EditorKeyPress );
+// Modified by Administrator 2006-8-2 ÏÂÎç 09:52:23
+      RemoveEditor(Value);
+//      Editor.RemoveKeyDownHandler( EditorKeyDown );
+//      Editor.RemoveKeyPressHandler( EditorKeyPress );
       {$IFDEF SYN_COMPILER_5_UP}
-      RemoveFreeNotification( Editor );
+//      RemoveFreeNotification( Editor );
       {$ENDIF}
     end;
     fEditor := Value;
     if Editor <> nil then
     begin
-      Editor.AddKeyDownHandler( EditorKeyDown );
-      Editor.AddKeyPressHandler( EditorKeyPress );
-      FreeNotification( Editor );
+// Modified by Administrator 2006-8-2 ÏÂÎç 09:52:23
+      AddEditor(Value);
+//      Editor.AddKeyDownHandler( EditorKeyDown );
+//      Editor.AddKeyPressHandler( EditorKeyPress );
+//      FreeNotification( Editor );
     end;
   end;
 end;
@@ -3834,6 +3873,21 @@ begin
   FOptions := Value;
   if Assigned(FInternalCompletion) then
     FInternalCompletion.Options := FOptions + [scoUsePrettyText] - [scoUseBuiltInTimer];
+end;
+
+procedure TSynAutoComplete.AddEditor(AEditor: TCustomSynEdit);
+var
+  i : integer;
+begin
+  if AEditor = nil then
+    exit;
+  i := fEditors.IndexOf(AEditor);
+  if i = -1 then begin
+    AEditor.FreeNotification(Self);
+    fEditors.Add(AEditor);
+    AEditor.AddKeyDownHandler( EditorKeyDown );
+    AEditor.AddKeyPressHandler( EditorKeyPress );
+  end;
 end;
 
 procedure TSynAutoComplete.CancelCompletion;
