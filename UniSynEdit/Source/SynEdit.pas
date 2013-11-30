@@ -949,6 +949,7 @@ type
     procedure UncollapseLevel(ALevel: Integer; NeedInvalidate: Boolean = True);
     function GetRealLineNumber(aLine: Integer): Integer;
     // ### End Code Folding ###
+    procedure ToggleBookMark;
   public
     // ### Code Folding ###
     property CodeFolding: TSynCodeFolding read fCodeFolding
@@ -14498,6 +14499,27 @@ procedure TCustomSynEdit.WordWrapGlyphChange(Sender: TObject);
 begin
   if not(csLoading in ComponentState) then
     InvalidateGutter;
+end;
+
+procedure TCustomSynEdit.ToggleBookMark;
+var
+  i: Integer;
+  CX, CY: Integer;
+begin
+  for i := 0 to Marks.Count - 1 do
+    if CaretY = Marks[i].Line then
+    begin
+      ClearBookmark(Marks[i].BookmarkNumber);
+      Exit;
+    end;
+  CX := CaretX;
+  CY := CaretY;
+  for i := 1 to 9 do
+    if not GetBookMark(i, CX, CY) then
+    begin
+      SetBookMark(i, CaretX, CaretY);
+      Exit;
+    end;
 end;
 
 { TSynEditMark }
