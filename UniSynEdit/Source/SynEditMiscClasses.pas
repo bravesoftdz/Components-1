@@ -169,36 +169,25 @@ type
     property ShowLineModified : Boolean read fShowLineModified write setShowLineModified;
     property LineModifiedColor : TColor read fLineModifiedColor write setLineModifiedColor;
     property LineNormalColor : TColor read fLineNormalColor write setLineNormalColor;
-    property Intens : boolean read FIntens write SetIntens default False;
-    property AutoSize: boolean read fAutoSize write SetAutoSize default FALSE;
-    property BorderStyle: TSynGutterBorderStyle read fBorderStyle
-      write SetBorderStyle default gbsMiddle;
+    property Intens : boolean read FIntens write SetIntens default True;
+    property AutoSize: boolean read fAutoSize write SetAutoSize default False;
+    property BorderStyle: TSynGutterBorderStyle read fBorderStyle write SetBorderStyle default gbsNone;
     property Color: TColor read fColor write SetColor default clBtnFace;
     property Cursor: TCursor read fCursor write fCursor default crDefault;
-    property DigitCount: integer read fDigitCount write SetDigitCount
-      default 4;
+    property DigitCount: integer read fDigitCount write SetDigitCount default 4;
     property Font: TFont read fFont write SetFont;
-    property LeadingZeros: boolean read fLeadingZeros write SetLeadingZeros
-      default FALSE;
-    property LeftOffset: integer read fLeftOffset write SetLeftOffset
-      default 16;
-    property LeftOffsetColor: TColor read fLeftOffsetColor
-      write SetLeftOffsetColor;
-    property RightOffset: integer read fRightOffset write SetRightOffset
-      default 2;
-    property RightOffsetColor: TColor read fRightOffsetColor
-      write SetRightOffsetColor;
-    property ShowLineNumbers: boolean read fShowLineNumbers
-      write SetShowLineNumbers default FALSE;
-    property UseFontStyle: boolean read fUseFontStyle write SetUseFontStyle
-      default TRUE;
-    property Visible: boolean read fVisible write SetVisible default TRUE;
+    property LeadingZeros: boolean read fLeadingZeros write SetLeadingZeros default False;
+    property LeftOffset: integer read fLeftOffset write SetLeftOffset default 20;
+    property LeftOffsetColor: TColor read fLeftOffsetColor write SetLeftOffsetColor;
+    property RightOffset: integer read fRightOffset write SetRightOffset default 5;
+    property RightOffsetColor: TColor read fRightOffsetColor write SetRightOffsetColor;
+    property ShowLineNumbers: boolean read fShowLineNumbers write SetShowLineNumbers default False;
+    property UseFontStyle: boolean read fUseFontStyle write SetUseFontStyle default True;
+    property Visible: boolean read fVisible write SetVisible default True;
     property Width: integer read fWidth write SetWidth default 30;
-    property ZeroStart: boolean read fZeroStart write SetZeroStart
-      default False;
+    property ZeroStart: boolean read fZeroStart write SetZeroStart default False;
     property BorderColor: TColor read fBorderColor write SetBorderColor default clWindow;
-    property LineNumberStart : Integer read fLineNumberStart
-      write SetLineNumberStart default 1;
+    property LineNumberStart : Integer read fLineNumberStart write SetLineNumberStart default 1;
     property Gradient: Boolean read fGradient write SetGradient default False;
     property GradientStartColor: TColor read fGradientStartColor write SetGradientStartColor default clWindow;
     property GradientEndColor: TColor read fGradientEndColor write SetGradientEndColor default clBtnFace;
@@ -875,8 +864,9 @@ function TSynGutter.RealGutterWidth(CharWidth: integer): integer;
 begin
   if not fVisible then
     Result := 0
-  else if fShowLineNumbers then
-    Result := fLeftOffset + fRightOffset + fAutoSizeDigitCount * CharWidth + 4
+  else
+  if fShowLineNumbers then
+    Result := fLeftOffset + fRightOffset + fAutoSizeDigitCount * CharWidth
   else
     Result := fWidth;
 end;
