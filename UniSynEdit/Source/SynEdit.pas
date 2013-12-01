@@ -11512,8 +11512,8 @@ begin
     begin
       fTextDrawer.SetBaseFont(fGutter.Font);
       nW := fGutter.RealGutterWidth(fTextDrawer.CharWidth);
-      fTextDrawer.SetBaseFont(Font);
       fGutterCharWidth := fTextDrawer.CharWidth;
+      fTextDrawer.SetBaseFont(Font);
     end
     else
     begin

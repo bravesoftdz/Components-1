@@ -761,7 +761,7 @@ begin
   fColor := clBtnFace;
   fVisible := TRUE;
   fWidth := 30;
-  fLeftOffset := 16;
+  fLeftOffset := 20;
   fDigitCount := 4;
   fAutoSizeDigitCount := fDigitCount;
   fRightOffset := 2;
