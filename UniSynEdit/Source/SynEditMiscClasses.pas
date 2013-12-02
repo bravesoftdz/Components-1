@@ -765,7 +765,7 @@ begin
   fDigitCount := 4;
   fAutoSizeDigitCount := fDigitCount;
   fRightOffset := 2;
-  fBorderStyle := gbsMiddle;
+  fBorderStyle := gbsNone;
   fBorderColor := clWindow;
   fShowLineNumbers := False;
   fLineNumberStart := 1;

@@ -841,15 +841,19 @@ begin
         DelName := SelectedPath
       else
         DelName := SelectedFile;
+
+      if DelName = '' then
+        exit;
+      {$WARNINGS OFF} { ExcludeTrailingBackslash is specific to a platform }
+      DelName := ExcludeTrailingBackslash(DelName);
+      {$WARNINGS ON}
+
+      if Data.FileType = ftDirectory then
+        Result := RemoveDirectory(DelName)
+      else
+        Result := System.SysUtils.DeleteFile(DelName);
     end;
-
-    if DelName = '' then
-      exit;
-    {$WARNINGS OFF} { ExcludeTrailingBackslash is specific to a platform }
-    DelName := ExcludeTrailingBackslash(DelName);
-    {$WARNINGS ON}
-
-    if System.SysUtils.DeleteFile(DelName) then
+    if Result then
     begin
       if Assigned(PrevNode) then
         Selected[PrevNode] := True;
