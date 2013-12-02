@@ -866,7 +866,7 @@ begin
     Result := 0
   else
   if fShowLineNumbers then
-    Result := fLeftOffset + fRightOffset + fAutoSizeDigitCount * CharWidth
+    Result := fLeftOffset + fRightOffset + fAutoSizeDigitCount * CharWidth + 4
   else
     Result := fWidth;
 end;
