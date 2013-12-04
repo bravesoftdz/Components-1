@@ -41,13 +41,13 @@ requires
   VirtualTreesR,
   vcldb,
   vclactnband,
-  SynEdit_RXE4,
-  SynWeb_DXE4,
   JvCmp,
   dac180,
   odac180,
   EhLib180,
-  xmlrtl;
+  xmlrtl,
+  SynWeb_DXE4,
+  SynEdit_RXE4;
 
 contains
   HelpSystem in 'HelpSystem\HelpSystem.pas',

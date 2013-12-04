@@ -129,13 +129,13 @@
         <DCCReference Include="VirtualTreesR.dcp"/>
         <DCCReference Include="vcldb.dcp"/>
         <DCCReference Include="vclactnband.dcp"/>
-        <DCCReference Include="SynEdit_RXE4.dcp"/>
-        <DCCReference Include="SynWeb_DXE4.dcp"/>
         <DCCReference Include="JvCmp.dcp"/>
         <DCCReference Include="dac180.dcp"/>
         <DCCReference Include="odac180.dcp"/>
         <DCCReference Include="EhLib180.dcp"/>
         <DCCReference Include="xmlrtl.dcp"/>
+        <DCCReference Include="SynWeb_DXE4.dcp"/>
+        <DCCReference Include="SynEdit_RXE4.dcp"/>
         <DCCReference Include="HelpSystem\HelpSystem.pas"/>
         <DCCReference Include="HelpSystem\hh.pas"/>
         <DCCReference Include="HelpSystem\hh_funcs.pas"/>
@@ -218,7 +218,6 @@
                     <Source Name="MainSource">Standard.dpk</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="D:\Bonecode XE4\Components\release\Standard.bpl">(untitled)</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k180.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp180.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>

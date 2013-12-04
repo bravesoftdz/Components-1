@@ -117,7 +117,7 @@ type
     property CtrlActivatesLinks: Boolean read FCtrlActivatesLinks
       write FCtrlActivatesLinks default True;
     property Editor: TCustomSynEdit read FEditor write SetEditor;
-    property URIHighlighter: TSynURISyn read FURIHighlighter 
+    property URIHighlighter: TSynURISyn read FURIHighlighter
       write SetURIHighlighter;
     {$IFDEF SYN_LINUX}
     // examples how to set WebBrowserCmd; %s is the placeholder for the URI
@@ -275,7 +275,7 @@ begin
     if (eoDragDropEditing in Options) and IsPointInSelection(ptLineCol) then
       exit;
 
-    if X >= fGutterWidth then
+    if X >= Gutter.Width then
     begin
       ptLineCol := DisplayToBufferPos(PixelsToRowColumn(X,Y));
 

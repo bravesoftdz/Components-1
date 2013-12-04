@@ -100,6 +100,26 @@ type
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
   end;
 
+  TSynMinimap = class(TPersistent)
+  private
+    FOnChange: TNotifyEvent;
+    FFont: TFont;
+    FWidth: Integer;
+    FVisible: Boolean;
+    procedure SetFont(Value: TFont);
+    procedure SetWidth(Value: integer);
+    procedure SetVisible(Value: Boolean);
+    procedure OnFontChange(Sender: TObject);
+  public
+    constructor Create;
+    destructor Destroy; override;
+  published
+    property Font: TFont read fFont write SetFont;
+    property Width: integer read fWidth write SetWidth default 200;
+    property Visible: boolean read fVisible write SetVisible default False;
+    property OnChange: TNotifyEvent read fOnChange write fOnChange;
+  end;
+
   TSynGutterBorderStyle = (gbsNone, gbsMiddle, gbsRight);
 
   TSynGutter = class(TPersistent)
@@ -2774,6 +2794,60 @@ begin
   FVisible := Value;
     doChange;
   end;
+end;
+
+{ TSynMinimap }
+
+procedure TSynMinimap.SetFont(Value: TFont);
+begin
+  FFont.Assign(Value);
+end;
+
+procedure TSynMinimap.SetWidth(Value: integer);
+begin
+  Value := Max(0, Value);
+  if FWidth <> Value then
+  begin
+    FWidth := Value;
+    if Assigned(FOnChange) then
+      FOnChange(Self);
+  end;
+end;
+
+procedure TSynMinimap.SetVisible(Value: boolean);
+begin
+  if FVisible <> Value then
+  begin
+    FVisible := Value;
+    if Assigned(FOnChange) then
+      FOnChange(Self);
+  end;
+end;
+
+procedure TSynMinimap.OnFontChange(Sender: TObject);
+begin
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+constructor TSynMinimap.Create;
+begin
+  inherited Create;
+
+  fFont := TFont.Create;
+  fFont.Name := 'Courier New';
+  fFont.Size := 3;
+  fFont.Style := [];
+  fFont.OnChange := OnFontChange;
+
+  FVisible := True;
+  FWidth := 200;
+end;
+
+destructor TSynMinimap.Destroy;
+begin
+  FFont.Free;
+  inherited Destroy;
 end;
 
 begin
