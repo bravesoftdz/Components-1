@@ -1132,6 +1132,7 @@ type
     property Lines;
     property MaxScrollWidth;
     property MaxUndo;
+    property Minimap;
     property Options;
     property OverwriteCaret;
     property ReadOnly;
@@ -1260,8 +1261,7 @@ end;
 
 { TCustomSynEdit }
 
-function TCustomSynEdit.PixelsToNearestRowColumn(aX, aY: Integer)
-  : TDisplayCoord;
+function TCustomSynEdit.PixelsToNearestRowColumn(aX, aY: Integer): TDisplayCoord;
 // Result is in display coordinates
 var
   f: Single;
@@ -1304,6 +1304,7 @@ procedure TCustomSynEdit.ComputeScroll(X, Y: Integer);
 // X,Y are pixel coordinates
 var
   iScrollBounds: TRect; { relative to the client area }
+  MinimapWidth: Integer;
 begin
   { don't scroll if dragging text from other control }
   if (not MouseCapture) and (not Dragging) then
@@ -1311,8 +1312,10 @@ begin
     fScrollTimer.Enabled := False;
     Exit;
   end;
-
-  iScrollBounds := Bounds(fGutter.Width, 0, fCharsInWindow * fCharWidth,
+  MinimapWidth := 0;
+  if Minimap.Visible then
+    MinimapWidth := Minimap.Width;
+  iScrollBounds := Bounds(fGutter.Width, 0, fCharsInWindow * fCharWidth - MinimapWidth,
     fLinesInWindow * LineHeight {fTextHeight});
   if BorderStyle = bsNone then
     InflateRect(iScrollBounds, -2, -2);
@@ -3145,6 +3148,15 @@ begin
       rcDraw.Left := Max(rcDraw.Left, fGutter.Width);
       PaintTextLines(rcDraw, nL1, nL2, nC1, nC2);
     end;
+    // Paint minimap, if visible
+    if FMinimap.Visible then
+    begin
+      rcDraw := rcClip;
+      rcDraw.Left := rcDraw.Right - FMinimap.Width;
+      //PaintMinimapLines(rcDraw
+      Canvas.FillRect(rcDraw);
+    end;
+
     PluginsAfterPaint(Canvas, rcClip, nL1, nL2);
 
     if eoNonBlinkingCaret in Options then
@@ -7042,6 +7054,8 @@ begin
     begin
       iTextArea := ClientRect;
       Inc(iTextArea.Left, fGutter.Width + 2);
+      if FMinimap.Visible then
+        Dec(iTextArea.Right, FMinimap.Width);
       ScrollWindow(Handle, iDelta * CharWidth, 0, @iTextArea, @iTextArea);
     end
     else
@@ -7652,6 +7666,8 @@ begin
     cy := vCaretPix.Y + fCaretOffset.Y;
     iClientRect := GetClientRect;
     Inc(iClientRect.Left, fGutter.Width);
+    if FMinimap.Visible then
+      Dec(iClientRect.Right, FMinimap.Width);
     if (cx >= iClientRect.Left) and (cx < iClientRect.Right) and
       (cy >= iClientRect.Top) and (cy < iClientRect.Bottom) then
     begin
@@ -11486,10 +11502,15 @@ begin
 end;
 
 procedure TCustomSynEdit.SizeOrFontChanged(bFont: Boolean);
+var
+  MinimapWidth: IntegeR;
 begin
   if HandleAllocated and (fCharWidth <> 0) then
   begin
-    fCharsInWindow := Max(ClientWidth - fGutter.Width - 2, 0) div fCharWidth;
+    MinimapWidth := 0;
+    if FMinimap.Visible then
+      MinimapWidth := FMinimap.Width;
+    fCharsInWindow := Max(ClientWidth - fGutter.Width - 2 - MinimapWidth, 0) div fCharWidth;
     fLinesInWindow := ClientHeight div LineHeight {fTextHeight};
     if GetWordWrap then
     begin
@@ -12718,6 +12739,8 @@ begin
     rcInval := Rect(fGutter.Width, LineHeight {fTextHeight} * (Line - TopLine),
       ClientWidth, 0);
     rcInval.Bottom := rcInval.Top + LineHeight {fTextHeight};
+    if FMinimap.Visible then
+      Dec(rcInval.Right, FMinimap.Width);
     if sfLinesChanging in fStateFlags then
       UnionRect(fInvalidateRect, fInvalidateRect, rcInval)
     else
