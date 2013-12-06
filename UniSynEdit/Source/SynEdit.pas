@@ -2506,7 +2506,7 @@ begin
 
   inherited MouseDown(Button, Shift, X, Y);
 
-  if (Button = mbLeft) and (ssDouble in Shift) then
+  if (Button = mbLeft) and (ssDouble in Shift) and (X > fGutter.Width) then
   begin
     FLastDblClick := GetTickCount;
     FLastRow := PixelsToRowColumn(X, Y).Row;
@@ -2605,7 +2605,13 @@ begin
   end;
 
   if X <= fGutter.Width then
+  begin
+    CaretX := 0;
+    CaretY := DisplayToBufferPos(PixelsToRowColumn(X, Y)).Line;
+    if X < Gutter.LeftOffset then
+      ToggleBookMark;
     Include(fStateFlags, sfPossibleGutterClick);
+  end;
 
   if (sfPossibleGutterClick in fStateFlags) and (Button = mbRight) then
     DoOnGutterClick(Button, X, Y);
@@ -3149,13 +3155,14 @@ begin
       PaintTextLines(rcDraw, nL1, nL2, nC1, nC2);
     end;
     // Paint minimap, if visible
-    if FMinimap.Visible then
-    begin
-      rcDraw := rcClip;
-      rcDraw.Left := rcDraw.Right - FMinimap.Width;
-      //PaintMinimapLines(rcDraw
-      Canvas.FillRect(rcDraw);
-    end;
+    if (rcClip.Right > fGutter.Width) then
+      if FMinimap.Visible then
+      begin
+        rcDraw := rcClip;
+        rcDraw.Left := rcDraw.Right - FMinimap.Width;
+        //PaintMinimapLines(rcDraw
+        Canvas.FillRect(rcDraw);
+      end;
 
     PluginsAfterPaint(Canvas, rcClip, nL1, nL2);
 

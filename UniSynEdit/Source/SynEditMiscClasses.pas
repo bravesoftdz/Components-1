@@ -281,6 +281,7 @@ type
 
   TSynBookMarkOpt = class(TPersistent)
   private
+    FEnabled: Boolean;
     fBookmarkImages: TImageList;
     fDrawBookmarksFirst: boolean;
     fEnableKeys: Boolean;
@@ -298,14 +299,11 @@ type
     constructor Create(AOwner: TComponent);
     procedure Assign(Source: TPersistent); override;
   published
-    property BookmarkImages: TImageList
-      read fBookmarkImages write SetBookmarkImages;
-    property DrawBookmarksFirst: boolean read fDrawBookmarksFirst
-      write SetDrawBookmarksFirst default True;
-    property EnableKeys: Boolean
-      read fEnableKeys write fEnableKeys default True;
-    property GlyphsVisible: Boolean
-      read fGlyphsVisible write SetGlyphsVisible default True;
+    property Enabled: Boolean read FEnabled write FEnabled;
+    property BookmarkImages: TImageList read fBookmarkImages write SetBookmarkImages;
+    property DrawBookmarksFirst: boolean read fDrawBookmarksFirst write SetDrawBookmarksFirst default True;
+    property EnableKeys: Boolean read fEnableKeys write fEnableKeys default True;
+    property GlyphsVisible: Boolean read fGlyphsVisible write SetGlyphsVisible default True;
     property LeftMargin: Integer read fLeftMargin write SetLeftMargin default 2;
     property Xoffset: integer read fXoffset write SetXOffset default 12;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
