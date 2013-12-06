@@ -651,6 +651,7 @@ type
     function SearchByFindDialog(FindDialog: TFindDialog): bool;
     procedure FindDialogClose(Sender: TObject);
 {$ENDIF}
+    function IsNotOverMinimap(X: Integer): Boolean;
   protected
     FIgnoreNextChar: Boolean;
     FCharCodeString: string;
@@ -744,6 +745,7 @@ type
       Data: pointer); virtual;
     // no method DoOnDropFiles, intercept the WM_DROPFILES instead
     procedure DoOnGutterClick(Button: TMouseButton; X, Y: Integer); virtual;
+    procedure DoOnMinimapClick(Button: TMouseButton; X, Y: Integer); virtual;
     procedure DoOnPaint; virtual;
     procedure DoOnPaintTransientEx(TransientType: TTransientType;
       Lock: Boolean); virtual;
@@ -1304,7 +1306,6 @@ procedure TCustomSynEdit.ComputeScroll(X, Y: Integer);
 // X,Y are pixel coordinates
 var
   iScrollBounds: TRect; { relative to the client area }
-  MinimapWidth: Integer;
 begin
   { don't scroll if dragging text from other control }
   if (not MouseCapture) and (not Dragging) then
@@ -1312,10 +1313,7 @@ begin
     fScrollTimer.Enabled := False;
     Exit;
   end;
-  MinimapWidth := 0;
-  if Minimap.Visible then
-    MinimapWidth := Minimap.Width;
-  iScrollBounds := Bounds(fGutter.Width, 0, fCharsInWindow * fCharWidth - MinimapWidth,
+  iScrollBounds := Bounds(fGutter.Width, 0, fCharsInWindow * fCharWidth,
     fLinesInWindow * LineHeight {fTextHeight});
   if BorderStyle = bsNone then
     InflateRect(iScrollBounds, -2, -2);
@@ -2483,6 +2481,11 @@ begin
   FLastDblClick := 0;
 end;
 
+function TCustomSynEdit.IsNotOverMinimap(X: Integer): Boolean;
+begin
+  Result := not FMinimap.Visible or FMinimap.Visible and (X < GetClientRect.Right - FMinimap.Width)
+end;
+
 procedure TCustomSynEdit.MouseDown(Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
 var
@@ -2495,7 +2498,7 @@ begin
 
   bWasSel := False;
   bStartDrag := False;
-  if Button = mbLeft then
+  if (Button = mbLeft) and IsNotOverMinimap(X) then
     if SelAvail then
     begin
       // remember selection state, as it will be cleared later
@@ -2506,14 +2509,13 @@ begin
 
   inherited MouseDown(Button, Shift, X, Y);
 
-  if (Button = mbLeft) and (ssDouble in Shift) and (X > fGutter.Width) then
+  if (Button = mbLeft) and (ssDouble in Shift) and (X > fGutter.Width) and IsNotOverMinimap(X) then
   begin
     FLastDblClick := GetTickCount;
     FLastRow := PixelsToRowColumn(X, Y).Row;
     Exit;
   end
-  else if (eoTripleClicks in fOptions) and (Shift = [ssLeft]) and
-    (FLastDblClick > 0) then
+  else if (eoTripleClicks in fOptions) and (Shift = [ssLeft]) and (FLastDblClick > 0) and IsNotOverMinimap(X)then
   begin
     if ((GetTickCount - FLastDblClick) < FDoubleClickTime) and
       (FLastRow = PixelsToRowColumn(X, Y).Row) then
@@ -2534,7 +2536,7 @@ begin
       Exit;
     end;
 
-  if (Button in [mbLeft, mbRight]) and (X > fGutter.Width) then
+  if (Button in [mbLeft, mbRight]) and (X > fGutter.Width) and IsNotOverMinimap(X) then
   begin
     if Button = mbRight then
     begin
@@ -2553,7 +2555,7 @@ begin
       ComputeCaret(X, Y);
   end;
 
-  if Button = mbLeft then
+  if (Button = mbLeft) and IsNotOverMinimap(X) then
   begin
     // I couldn't track down why, but sometimes (and definately not all the time)
     // the block positioning is lost.  This makes sure that the block is
@@ -2565,7 +2567,7 @@ begin
     // if mousedown occurred in selected block begin drag operation
     Exclude(fStateFlags, sfWaitForDragging);
     if bWasSel and (eoDragDropEditing in fOptions) and (X > fGutter.Width) and (SelectionMode = smNormal) and
-      IsPointInSelection(DisplayToBufferPos(PixelsToRowColumn(X, Y))) then
+      IsPointInSelection(DisplayToBufferPos(PixelsToRowColumn(X, Y))) and IsNotOverMinimap(X) then
     begin
       bStartDrag := True
     end;
@@ -2575,7 +2577,7 @@ begin
     Include(fStateFlags, sfWaitForDragging)
   else
   begin
-    if not(sfDblClicked in fStateFlags) then
+    if not(sfDblClicked in fStateFlags) and IsNotOverMinimap(X) then
     begin
       if ssShift in Shift then
         // BlockBegin and BlockEnd are restored to their original position in the
@@ -2616,6 +2618,9 @@ begin
   if (sfPossibleGutterClick in fStateFlags) and (Button = mbRight) then
     DoOnGutterClick(Button, X, Y);
 
+  if FMinimap.Visible and (X > GetClientRect.Right - FMinimap.Width) then
+    DoOnMinimapClick(Button, X, Y);
+
   SetFocus;
   Windows.SetFocus(Handle);
 end;
@@ -2648,12 +2653,15 @@ var
 // ### End Code Folding ###
 
 begin
-  if X < Gutter.LeftOffset then
+  if (X < Gutter.LeftOffset) then
+    Exit;
+
+  if FMinimap.Visible and (X > GetClientRect.Right - FMinimap.Width) then
     Exit;
 
   inherited MouseMove(Shift, X, Y);
 
-  if fRightEdge.MouseMove and fRightEdge.Visible then
+  if fRightEdge.MouseMove and fRightEdge.Visible and IsNotOverMinimap(X) then
   begin
     MouseAtRightEdge :=
       (abs(RowColumnToPixels(DisplayCoord(fRightEdge.Position + 1, 0)).X
@@ -2867,13 +2875,10 @@ begin
   if (Button = mbRight) and (Shift = [ssRight]) and Assigned(PopupMenu) then
     Exit;
   MouseCapture := False;
-  if (sfPossibleGutterClick in fStateFlags) and (X < fGutter.Width) and
-    (Button <> mbRight) then
-  begin
+  if (sfPossibleGutterClick in fStateFlags) and (X < fGutter.Width) and (Button <> mbRight) then
     DoOnGutterClick(Button, X, Y)
-  end
-  else if fStateFlags * [sfDblClicked, sfWaitForDragging] = [sfWaitForDragging]
-  then
+  else
+  if fStateFlags * [sfDblClicked, sfWaitForDragging] = [sfWaitForDragging] then
   begin
     ComputeCaret(X, Y);
     if not(ssShift in Shift) then
@@ -2884,6 +2889,11 @@ begin
   Exclude(fStateFlags, sfDblClicked);
   Exclude(fStateFlags, sfPossibleGutterClick);
   Exclude(fStateFlags, sfGutterDragging);
+end;
+
+procedure TCustomSynEdit.DoOnMinimapClick(Button: TMouseButton; X, Y: Integer);
+begin
+  CaretX := 0;
 end;
 
 procedure TCustomSynEdit.DoOnGutterClick(Button: TMouseButton; X, Y: Integer);
@@ -11055,6 +11065,11 @@ end;
 
 procedure TCustomSynEdit.MinimapChanged(Sender: TObject);
 begin
+  //ComputeScroll(CaretX, CaretY);
+  SizeOrFontChanged(True);
+  //UpdateCaret;
+  Invalidate;
+  //Paint;
   if not (csLoading in ComponentState) then
     InvalidateMinimap;
 end;
@@ -11510,7 +11525,7 @@ end;
 
 procedure TCustomSynEdit.SizeOrFontChanged(bFont: Boolean);
 var
-  MinimapWidth: IntegeR;
+  MinimapWidth: Integer;
 begin
   if HandleAllocated and (fCharWidth <> 0) then
   begin
@@ -12746,8 +12761,8 @@ begin
     rcInval := Rect(fGutter.Width, LineHeight {fTextHeight} * (Line - TopLine),
       ClientWidth, 0);
     rcInval.Bottom := rcInval.Top + LineHeight {fTextHeight};
-    if FMinimap.Visible then
-      Dec(rcInval.Right, FMinimap.Width);
+    //if FMinimap.Visible then
+    //  Dec(rcInval.Right, FMinimap.Width);
     if sfLinesChanging in fStateFlags then
       UnionRect(fInvalidateRect, fInvalidateRect, rcInval)
     else

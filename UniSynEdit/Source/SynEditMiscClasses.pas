@@ -2838,7 +2838,7 @@ begin
   fFont.Style := [];
   fFont.OnChange := OnFontChange;
 
-  FVisible := True;
+  FVisible := False;
   FWidth := 200;
 end;
 
