@@ -106,6 +106,7 @@ type
     FFont: TFont;
     FWidth: Integer;
     FVisible: Boolean;
+    FTopLine: Integer;
     procedure SetFont(Value: TFont);
     procedure SetWidth(Value: integer);
     procedure SetVisible(Value: Boolean);
@@ -115,9 +116,10 @@ type
     destructor Destroy; override;
   published
     property Font: TFont read fFont write SetFont;
-    property Width: integer read fWidth write SetWidth default 200;
+    property Width: integer read fWidth write SetWidth default 160;
     property Visible: boolean read fVisible write SetVisible default False;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
+    property TopLine: Integer read FTopLine write FTopLine;
   end;
 
   TSynGutterBorderStyle = (gbsNone, gbsMiddle, gbsRight);
@@ -150,6 +152,7 @@ type
     fLeftOffsetColor: TColor;
     fRightOffsetColor: TColor;
     fLineModifiedColor: TColor;
+    FShowBookmarks: Boolean;
     fShowLineModified: Boolean;
     fLineNormalColor: TColor;
     procedure SetIntens(const Value: boolean);
@@ -202,6 +205,7 @@ type
     property RightOffset: integer read fRightOffset write SetRightOffset default 5;
     property RightOffsetColor: TColor read fRightOffsetColor write SetRightOffsetColor;
     property ShowLineNumbers: boolean read fShowLineNumbers write SetShowLineNumbers default False;
+    property ShowBookmarks: Boolean read FShowBookmarks write FShowBookmarks default True;
     property UseFontStyle: boolean read fUseFontStyle write SetUseFontStyle default True;
     property Visible: boolean read fVisible write SetVisible default True;
     property Width: integer read fWidth write SetWidth default 30;
@@ -281,7 +285,6 @@ type
 
   TSynBookMarkOpt = class(TPersistent)
   private
-    FEnabled: Boolean;
     fBookmarkImages: TImageList;
     fDrawBookmarksFirst: boolean;
     fEnableKeys: Boolean;
@@ -299,7 +302,6 @@ type
     constructor Create(AOwner: TComponent);
     procedure Assign(Source: TPersistent); override;
   published
-    property Enabled: Boolean read FEnabled write FEnabled;
     property BookmarkImages: TImageList read fBookmarkImages write SetBookmarkImages;
     property DrawBookmarksFirst: boolean read fDrawBookmarksFirst write SetDrawBookmarksFirst default True;
     property EnableKeys: Boolean read fEnableKeys write fEnableKeys default True;
@@ -879,12 +881,17 @@ begin
 end;
 
 function TSynGutter.RealGutterWidth(CharWidth: integer): integer;
+var
+  BookmarkOffset: Integer;
 begin
+  BookmarkOffset := 0;
+  if (fLeftOffset = 0) and ShowBookmarks then
+    BookmarkOffset := 20;
   if not fVisible then
     Result := 0
   else
   if fShowLineNumbers then
-    Result := fLeftOffset + fRightOffset + fAutoSizeDigitCount * CharWidth + 4
+    Result := fLeftOffset + BookmarkOffset + fRightOffset + fAutoSizeDigitCount * CharWidth + 4
   else
     Result := fWidth;
 end;
@@ -2839,7 +2846,9 @@ begin
   fFont.OnChange := OnFontChange;
 
   FVisible := False;
-  FWidth := 200;
+  FWidth := 160;
+
+  fTopLine := 1;
 end;
 
 destructor TSynMinimap.Destroy;

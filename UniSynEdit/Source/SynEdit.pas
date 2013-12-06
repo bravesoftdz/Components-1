@@ -3037,6 +3037,8 @@ var
   Rect: TRect;
   FoldRange: TSynEditFoldRange;
   // ### End Code Folding ###
+  BlendFunc: TBlendFunction;
+  Bmp: Vcl.Graphics.TBitmap;
 begin
   // Get the invalidated rect. Compute the invalid area in lines / columns.
   rcClip := Canvas.ClipRect;
@@ -3170,8 +3172,8 @@ begin
       begin
         rcDraw := rcClip;
         rcDraw.Left := rcDraw.Right - FMinimap.Width;
-        //PaintMinimapLines(rcDraw
         Canvas.FillRect(rcDraw);
+        // TODO: PaintMinimapLines(rcDraw
       end;
 
     PluginsAfterPaint(Canvas, rcClip, nL1, nL2);
@@ -3464,7 +3466,7 @@ begin
     end;
 
   // now the gutter marks
-  if BookMarkOptions.GlyphsVisible and (Marks.Count > 0) and
+  if FGutter.ShowBookmarks and BookMarkOptions.GlyphsVisible and (Marks.Count > 0) and
     (vLastLine >= vFirstLine) then
   begin
     aGutterOffs := AllocMem((aLastRow - aFirstRow + 1) * sizeof(Integer));
