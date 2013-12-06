@@ -134,7 +134,7 @@ type
     fDigitCount: integer;
     fLeadingZeros: boolean;
     fZeroStart: boolean;
-    fLeftOffset: integer;
+    FBookmarkPanelWidth: integer;
     fRightOffset: integer;
     fOnChange: TNotifyEvent;
     fCursor: TCursor;
@@ -149,10 +149,11 @@ type
     fGradientEndColor: TColor;
     fGradientSteps: Integer;
     FIntens: boolean;
-    fLeftOffsetColor: TColor;
+    FBookmarkPanelColor: TColor;
     fRightOffsetColor: TColor;
     fLineModifiedColor: TColor;
     FShowBookmarks: Boolean;
+    FShowBookmarkPanel: Boolean;
     fShowLineModified: Boolean;
     fLineNormalColor: TColor;
     procedure SetIntens(const Value: boolean);
@@ -160,7 +161,7 @@ type
     procedure SetColor(const Value: TColor);
     procedure SetDigitCount(Value: integer);
     procedure SetLeadingZeros(const Value: boolean);
-    procedure SetLeftOffset(Value: integer);
+    procedure SetBookmarkPanelWidth(Value: integer);
     procedure SetRightOffset(Value: integer);
     procedure SetShowLineNumbers(const Value: boolean);
     procedure SetUseFontStyle(Value: boolean);
@@ -176,7 +177,7 @@ type
     procedure SetGradientEndColor(const Value: TColor);
     procedure SetGradientStartColor(const Value: TColor);
     procedure SetGradientSteps(const Value: Integer);
-    procedure SetLeftOffsetColor(const Value: TColor);
+    procedure SetBookmarkPanelColor(const Value: TColor);
     procedure SetRightOffsetColor(const Value: TColor);
     procedure setLineModifiedColor(const Value: TColor);
     procedure setLineNormalColor(const Value: TColor);
@@ -200,12 +201,13 @@ type
     property DigitCount: integer read fDigitCount write SetDigitCount default 4;
     property Font: TFont read fFont write SetFont;
     property LeadingZeros: boolean read fLeadingZeros write SetLeadingZeros default False;
-    property LeftOffset: integer read fLeftOffset write SetLeftOffset default 20;
-    property LeftOffsetColor: TColor read fLeftOffsetColor write SetLeftOffsetColor;
+    property BookmarkPanelWidth: Integer read FBookmarkPanelWidth write SetBookmarkPanelWidth default 20;
+    property BookmarkPanelColor: TColor read FBookmarkPanelColor write SetBookmarkPanelColor;
     property RightOffset: integer read fRightOffset write SetRightOffset default 5;
     property RightOffsetColor: TColor read fRightOffsetColor write SetRightOffsetColor;
     property ShowLineNumbers: boolean read fShowLineNumbers write SetShowLineNumbers default False;
     property ShowBookmarks: Boolean read FShowBookmarks write FShowBookmarks default True;
+    property ShowBookmarkPanel: Boolean read FShowBookmarkPanel write FShowBookmarkPanel default True;
     property UseFontStyle: boolean read fUseFontStyle write SetUseFontStyle default True;
     property Visible: boolean read fVisible write SetVisible default True;
     property Width: integer read fWidth write SetWidth default 30;
@@ -781,7 +783,8 @@ begin
   fColor := clBtnFace;
   fVisible := TRUE;
   fWidth := 30;
-  fLeftOffset := 20;
+  FBookmarkPanelWidth := 20;
+  FShowBookmarkPanel := True;
   fDigitCount := 4;
   fAutoSizeDigitCount := fDigitCount;
   fRightOffset := 2;
@@ -795,7 +798,7 @@ begin
   fGradientEndColor := clBtnFace;
   fGradientSteps := 48;
 
-  fLeftOffsetColor := clNone;
+  FBookmarkPanelColor := clNone;
   fRightOffsetColor := clNone;
 
   fShowLineModified := False;
@@ -824,7 +827,7 @@ begin
     fShowLineNumbers := Src.fShowLineNumbers;
     fLeadingZeros := Src.fLeadingZeros;
     fZeroStart := Src.fZeroStart;
-    fLeftOffset := Src.fLeftOffset;
+    FBookmarkPanelWidth := Src.FBookmarkPanelWidth;
     fDigitCount := Src.fDigitCount;
     fRightOffset := Src.fRightOffset;
     fAutoSize := Src.fAutoSize;
@@ -882,16 +885,17 @@ end;
 
 function TSynGutter.RealGutterWidth(CharWidth: integer): integer;
 var
-  BookmarkOffset: Integer;
+  PanelWidth: Integer;
 begin
-  BookmarkOffset := 0;
-  if (fLeftOffset = 0) and ShowBookmarks then
-    BookmarkOffset := 20;
+  PanelWidth := FBookmarkPanelWidth;
+  if not ShowBookmarkPanel and not ShowBookmarks then
+    PanelWidth := 0;
+
   if not fVisible then
     Result := 0
   else
   if fShowLineNumbers then
-    Result := fLeftOffset + BookmarkOffset + fRightOffset + fAutoSizeDigitCount * CharWidth + 4
+    Result := PanelWidth + fRightOffset + fAutoSizeDigitCount * CharWidth + 4
   else
     Result := fWidth;
 end;
@@ -940,21 +944,24 @@ begin
   end;
 end;
 
-procedure TSynGutter.SetLeftOffset(Value: integer);
+procedure TSynGutter.SetBookmarkPanelWidth(Value: integer);
 begin
   Value := Max(0, Value);
-  if fLeftOffset <> Value then begin
-    fLeftOffset := Value;
-    if Assigned(fOnChange) then fOnChange(Self);
+  if FBookmarkPanelWidth <> Value then
+  begin
+    FBookmarkPanelWidth := Value;
+    if Assigned(FOnChange) then
+      FOnChange(Self);
   end;
 end;
 
-procedure TSynGutter.SetLeftOffsetColor(const Value: TColor);
+procedure TSynGutter.SetBookmarkPanelColor(const Value: TColor);
 begin
-  if Value <> fLeftOffsetColor then
+  if Value <> FBookmarkPanelColor then
   begin
-    fLeftOffsetColor := Value;
-    if Assigned(fOnChange) then fOnChange(Self);
+    FBookmarkPanelColor := Value;
+    if Assigned(FOnChange) then
+      FOnChange(Self);
   end;
 end;
 
