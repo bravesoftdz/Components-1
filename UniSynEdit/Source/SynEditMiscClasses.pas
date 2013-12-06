@@ -106,7 +106,6 @@ type
     FFont: TFont;
     FWidth: Integer;
     FVisible: Boolean;
-    FTopLine: Integer;
     procedure SetFont(Value: TFont);
     procedure SetWidth(Value: integer);
     procedure SetVisible(Value: Boolean);
@@ -119,7 +118,6 @@ type
     property Width: integer read fWidth write SetWidth default 160;
     property Visible: boolean read fVisible write SetVisible default False;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
-    property TopLine: Integer read FTopLine write FTopLine;
   end;
 
   TSynGutterBorderStyle = (gbsNone, gbsMiddle, gbsRight);
@@ -2854,8 +2852,6 @@ begin
 
   FVisible := False;
   FWidth := 160;
-
-  fTopLine := 1;
 end;
 
 destructor TSynMinimap.Destroy;
