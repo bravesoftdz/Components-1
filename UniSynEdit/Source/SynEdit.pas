@@ -336,7 +336,6 @@ type
     FSaveSelectionMode: TSynSelectionMode;
     FAltEnabled: Boolean;
     fGutterCharWidth: Integer;
-
     procedure WMCancelMode(var Message: TMessage); message WM_CANCELMODE;
     procedure WMCaptureChanged(var Msg: TMessage); message WM_CAPTURECHANGED;
     procedure WMChar(var Msg: TWMChar); message WM_CHAR;
@@ -1627,7 +1626,8 @@ begin
       // This may happen in the last row of a line or in rows which length is
       // greater than CharsInWindow (Tabs and Spaces are allowed beyond
       // CharsInWindow while wrapping the lines)
-      if (vAuxPos.Column > CharsInWindow + 1) and (CharsInWindow > 0) then
+      //if (vAuxPos.Column > CharsInWindow + 1) and (CharsInWindow > 0) then
+      if (vAuxPos.Column > GetWrapAtColumn + 1) and (GetWrapAtColumn > 0) then
       begin
         if fCaretAtEOL then
           fCaretAtEOL := False
@@ -1635,7 +1635,7 @@ begin
         begin
           if scCaretY in fStatusChanges then
           begin
-            vAuxPos.Column := CharsInWindow + 1;
+            //vAuxPos.Column := CharsInWindow + 1;
             fCaretX := DisplayToBufferPos(vAuxPos).Char;
             Include(fStatusChanges, scCaretX);
             UpdateLastCaretX;
@@ -3012,12 +3012,12 @@ var
 begin
   // Get the invalidated rect. Compute the invalid area in lines / columns.
   rcClip := Canvas.ClipRect;
+  Canvas.FillRect(rcClip);
   // columns
   nC1 := LeftChar;
   if (rcClip.Left > fGutter.Width + 2) then
     Inc(nC1, (rcClip.Left - fGutter.Width - 2) div CharWidth);
-  nC2 := LeftChar + (rcClip.Right - fGutter.Width - 2 + CharWidth - 1)
-    div CharWidth;
+  nC2 := LeftChar + (rcClip.Right - fGutter.Width - 2 + CharWidth - 1) div CharWidth;
   // lines
   nL1 := TopLine; //Max(TopLine + rcClip.Top div LineHeight, TopLine);
   nL2 := DisplayLineCount; //MinMax(TopLine + (rcClip.Bottom + LineHeight - 1) div LineHeight, 1, DisplayLineCount);
@@ -3148,19 +3148,11 @@ begin
         rcDraw.Left := rcDraw.Right - FMinimap.Width;
         //Canvas.FillRect(rcDraw);
         fTextDrawer.SetBaseFont(FMinimap.Font);
-        //nL1 := nL1 + 5;
         nL2 := RowToLine(nL1 + (rcClip.Height div fTextDrawer.GetCharHeight) - 1);
         nC1 := 1;
         nC2 := FMinimap.Width div fTextDrawer.GetCharWidth;
         PaintMinimapLines(rcDraw, nL1, nL2, nC1, nC2);
-        { Paint visible rows line }
-        {with Canvas do
-        begin
-          Pen.Color := FSelectedColor.Background;
-          Pen.Width := 2;
-          MoveTo(rcDraw.Right - 2, 0);
-          LineTo(rcDraw.Right - 2, fTextDrawer.GetCharHeight * LinesInWindow);
-        end;}
+        fTextDrawer.SetBaseFont(Font);
       end;
 
     PluginsAfterPaint(Canvas, rcClip, nL1, nL2);
@@ -3815,7 +3807,7 @@ var
     DoTabPainting := False;
 
     Counter := Last - CharsBefore;
-    while Counter > First - CharsBefore - 1 do
+    {while Counter > First - CharsBefore - 1 do
     begin
       if Length(Token) >= Counter then
       begin
@@ -3825,6 +3817,35 @@ var
         begin
           Token[Counter] := #32; // Tabs painted differently if necessary
           DoTabPainting := fShowSpecChar;
+        end;
+      end;
+      Dec(Counter);
+    end; }
+    while Counter > First - CharsBefore - 1 do
+    begin
+      if (Length(Token) >= Counter) then
+      begin
+        // 修改 增加对#0字符的显示支持
+        if fShowSpecChar then
+        begin
+          case Token[Counter] of
+            #32:
+              Token[Counter] := SynSpaceGlyph;
+            #0:
+              Token[Counter] := SynNoneGlyph;
+          end;
+        end
+        else
+        begin
+          case Token[Counter] of
+            TSynTabChar:
+              begin
+                Token[Counter] := #32; // Tabs painted differently if necessary
+                DoTabPainting := fShowSpecChar;
+              end;
+            #0:
+              Token[Counter] := #32;
+          end;
         end;
       end;
       Dec(Counter);
@@ -3852,8 +3873,7 @@ var
           Inc(NonFillerPos);
         end;
 
-        CountOfAvgGlyphs := CeilOfIntDiv(fTextDrawer.TextWidth(Token[NonFillerPos]
-          ), fCharWidth);
+        CountOfAvgGlyphs := CeilOfIntDiv(fTextDrawer.TextWidth(Token[NonFillerPos]), fCharWidth);
 
         // first visible part of the glyph (1-based)
         // (the glyph is visually sectioned in parts of size fCharWidth)
@@ -3885,10 +3905,10 @@ var
       begin
         // fix everything before the FirstChar
         for I := 1 to First - 1 do // wipe the text out so we don't
-          if sTabbedToken[I] = #9 then // count it out of the range
+          if sTabbedToken[I] = TSynTabChar then // count it out of the range
             sTabbedToken[I] := #32; // we're looking for
 
-        TabStart := Pos(#9, sTabbedToken);
+        TabStart := Pos(TSynTabChar, sTabbedToken);
         rcTab.Top := rcToken.Top;
         rcTab.Bottom := rcToken.Bottom;
         while (TabStart > 0) and (TabStart >= First) and (TabStart <= Last) do
@@ -3913,9 +3933,12 @@ var
           for I := 0 to TabLen - 1 do // wipe the text out so we don't
             sTabbedToken[TabStart + I] := #32; // count it again
 
-          TabStart := Pos(#9, sTabbedToken);
+          TabStart := Pos(TSynTabChar, sTabbedToken);
         end;
       end;
+      if (Canvas.Brush.Color = Color) and FBackground.Visible and
+        not FBackground.Background.Empty then
+        SetBkMode(dc, OPAQUE);
       rcToken.Left := rcToken.Right;
     end;
   end;
@@ -4082,6 +4105,8 @@ var
       begin
         SetDrawingColors(bLineSelected);
         rcToken.Right := rcLine.Right;
+        if FMinimap.Visible then
+          Dec(rcToken.Right, FMinimap.Width);
         if (TokenAccu.Len > 0) and (TokenAccu.Style <> []) then
           AdjustEndRect;
         Canvas.FillRect(rcToken);
@@ -4120,11 +4145,8 @@ var
     end;
 
   begin
-    if (Background = clNone) or ((ActiveLineColor <> clNone) and (bCurrentLine))
-    then
-    begin
+    if (Background = clNone) or ((ActiveLineColor <> clNone) and (bCurrentLine)) then
       Background := colEditorBG;
-    end;
     if Foreground = clNone then
       Foreground := Font.Color;
     // Do we have to paint the old chars first, or can we just append?
@@ -4133,13 +4155,11 @@ var
     if (TokenAccu.Len > 0) then
     begin
       // font style must be the same or token is only spaces
-      if (TokenAccu.Style = Style) or
-        (not(fsUnderline in Style) and not(fsUnderline in TokenAccu.Style) and
+      if (TokenAccu.Style = Style) or (not(fsUnderline in Style) and not(fsUnderline in TokenAccu.Style) and
         TokenIsSpaces) then
       begin
         // either special colors or same colors
-        if (bSpecialLine and not(eoSpecialLineDefaultFg in fOptions)) or
-          bLineSelected or
+        if (bSpecialLine and not(eoSpecialLineDefaultFg in fOptions)) or bLineSelected or
         // background color must be the same and
           ((TokenAccu.BG = Background) and
           // foreground color must be the same or token is only spaces
@@ -5620,12 +5640,6 @@ begin
   // Do this first to realize the pen when getting the dc variable.
   SynTabGlyphString := SynTabGlyph;
 
-  {Bmp := Vcl.Graphics.TBitmap.Create;
-  Bmp.Width := AClip.Width;
-  Bmp.Height := AClip.Height;
-  Bmp.Canvas.Brush.Color := Color;
-  Bmp.Canvas.FillRect(Bmp.Canvas.ClipRect);  }
-
   // Do everything else with API calls. This (maybe) realizes the new pen color.
   dc := Canvas.Handle;
 
@@ -5640,13 +5654,8 @@ begin
     fTextDrawer.BeginDrawing(dc);
     try
       PaintLines;
-      //Canvas.CopyRect(AClip, Bmp.Canvas, AClip);
     finally
       fTextDrawer.EndDrawing;
-      //Canvas.Draw(AClip.Left, AClip.Top, Bmp);
-      //BitBlt(Bmp.Canvas.Handle, 0, 0, Bmp.Width, Bmp.Height, dc, AClip.Left, AClip.Top, SRCCOPY);
-     // Bmp.Canvas.CopyRect(AClip, Canvas, Bmp.Canvas.ClipRect);
-      //Bmp.Free;
     end;
   end;
 end;
@@ -6171,6 +6180,7 @@ var
   ButtonH: Integer;
   ScrollInfo: TScrollInfo;
 begin
+  Invalidate;
   case ScrollCode of
     // Scrolls to start / end of the text
     scTop:
@@ -8624,7 +8634,13 @@ begin //
 
   procedure TCustomSynEdit.SynSetText(const Value: UnicodeString);
   begin
-    Lines.Text := Value;
+    //Lines.Text := Value;
+    IncPaintLock;
+    BeginUndoBlock;
+    SelectAll;
+    SelText := value;
+    EndUndoBlock;
+    DecPaintLock;
   end;
 
   procedure TCustomSynEdit.SetTopLine(Value: Integer);
@@ -8724,11 +8740,14 @@ begin //
 
         if (fScrollBars.ScrollBars
           in [{$IFDEF SYN_COMPILER_17_UP}TScrollStyle.{$ENDIF}ssBoth,
-{$IFDEF SYN_COMPILER_17_UP}TScrollStyle.{$ENDIF}ssHorizontal]) and not GetWordWrap
-        then
+{$IFDEF SYN_COMPILER_17_UP}TScrollStyle.{$ENDIF}ssHorizontal]) and (not GetWordWrap
+          or (GetWordWrap and
+          (GetWrapAtColumn > CharsInWindow))) then
         begin
           if eoScrollPastEol in Options then
             nMaxScroll := MaxScrollWidth
+          else if GetWordWrap then
+            nMaxScroll := GetWrapAtColumn
           else
             nMaxScroll := Max(TSynEditStringList(Lines).LengthOfLongestLine, 1);
           if nMaxScroll <= MAX_SCROLL then
@@ -8756,9 +8775,7 @@ begin //
           begin
             iRightChar := LeftChar + CharsInWindow - 1;
             if (LeftChar <= 1) and (iRightChar >= nMaxScroll) then
-            begin
-              EnableScrollBar(Handle, SB_HORZ, ESB_DISABLE_BOTH);
-            end
+              EnableScrollBar(Handle, SB_HORZ, ESB_DISABLE_BOTH)
             else
             begin
               EnableScrollBar(Handle, SB_HORZ, ESB_ENABLE_BOTH);
@@ -10553,6 +10570,8 @@ begin //
     VisibleX: Integer;
     vCaretRow: Integer;
   begin
+    if fCharsInWindow <= 0 then
+      Exit;
     HandleNeeded;
     IncPaintLock;
     try
@@ -12432,6 +12451,7 @@ begin //
         TWinControl(fFocusList.Last).SetFocus;
       Exit;
     end;
+    Windows.SetFocus(Handle);
     inherited;
   end;
 
@@ -12731,6 +12751,8 @@ begin //
     else
       SetBlockBegin(ptAfter);
     InternalCaretXY := ptAfter;
+    if GetWrapAtColumn > fCharsInWindow then
+      EnsureCursorPosVisible;
     DecPaintLock;
   end;
 

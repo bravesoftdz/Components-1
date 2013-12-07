@@ -61,6 +61,7 @@ const
   SynSoftBreakGlyph = WideChar($00AC); //'¬'
   SynLineBreakGlyph = WideChar($00B6); //'¶'
   SynSpaceGlyph = WideChar($2219);     //'·'
+  SynNoneGlyph = WideChar($0032);      //' '
 
 type
   ESynError = class(Exception);
