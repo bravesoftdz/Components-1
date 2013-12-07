@@ -2851,7 +2851,7 @@ begin
   fFont.OnChange := OnFontChange;
 
   FVisible := False;
-  FWidth := 160;
+  FWidth := 100;
 end;
 
 destructor TSynMinimap.Destroy;

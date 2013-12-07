@@ -3019,9 +3019,8 @@ begin
   nC2 := LeftChar + (rcClip.Right - fGutter.Width - 2 + CharWidth - 1)
     div CharWidth;
   // lines
-  nL1 := Max(TopLine + rcClip.Top div LineHeight, TopLine);
-  nL2 := MinMax(TopLine + (rcClip.Bottom + LineHeight - 1)
-    div LineHeight, 1, DisplayLineCount);
+  nL1 := TopLine; //Max(TopLine + rcClip.Top div LineHeight, TopLine);
+  nL2 := DisplayLineCount; //MinMax(TopLine + (rcClip.Bottom + LineHeight - 1) div LineHeight, 1, DisplayLineCount);
   // Now paint everything while the caret is hidden.
   HideCaret;
   try
@@ -3039,6 +3038,15 @@ begin
       rcDraw.Left := Max(rcDraw.Left, fGutter.Width);
       PaintTextLines(rcDraw, nL1, nL2, nC1, nC2);
     end;}
+
+    // Then paint the text area if it was (partly) invalidated.
+    if (rcClip.Right > fGutter.Width) then
+    begin
+      rcDraw := rcClip;
+      rcDraw.Left := Max(rcDraw.Left, fGutter.Width);
+      fTextDrawer.SetBaseFont(Font);
+      PaintTextLines(rcDraw, nL1, nL2, nC1, nC2);
+    end;
 
     // ### Code Folding ###
     if (CodeFolding.Enabled) and (Gutter.Visible) and (Lines.Count > 0) then
@@ -3131,23 +3139,28 @@ begin
         end;
       end;
     // ### End Code Folding ###
-    // Then paint the text area if it was (partly) invalidated.
-    if (rcClip.Right > fGutter.Width) then
-    begin
-      rcDraw := rcClip;
-      rcDraw.Left := Max(rcDraw.Left, fGutter.Width);
-      PaintTextLines(rcDraw, nL1, nL2, nC1, nC2);
-    end;
+
     // Paint minimap, if visible
     if (rcClip.Right > fGutter.Width) then
       if FMinimap.Visible then
       begin
         rcDraw := rcClip;
         rcDraw.Left := rcDraw.Right - FMinimap.Width;
-        Canvas.FillRect(rcDraw);
+        //Canvas.FillRect(rcDraw);
         fTextDrawer.SetBaseFont(FMinimap.Font);
-        nL2 := RowToLine(nL1 + (GetClientRect.Height div fTextDrawer.GetCharHeight) - 1);
+        //nL1 := nL1 + 5;
+        nL2 := RowToLine(nL1 + (rcClip.Height div fTextDrawer.GetCharHeight) - 1);
+        nC1 := 1;
+        nC2 := FMinimap.Width div fTextDrawer.GetCharWidth;
         PaintMinimapLines(rcDraw, nL1, nL2, nC1, nC2);
+        { Paint visible rows line }
+        {with Canvas do
+        begin
+          Pen.Color := FSelectedColor.Background;
+          Pen.Width := 2;
+          MoveTo(rcDraw.Right - 2, 0);
+          LineTo(rcDraw.Right - 2, fTextDrawer.GetCharHeight * LinesInWindow);
+        end;}
       end;
 
     PluginsAfterPaint(Canvas, rcClip, nL1, nL2);
@@ -3319,19 +3332,15 @@ begin
           w := fGutterCharWidth;
           OldColor := Canvas.Pen.Color;
           Canvas.Pen.Color := Gutter.Font.Color;
-          if ((cLine mod 5) = 0) then
+          if (cLine mod 5) = 0 then
           begin
-            Canvas.MoveTo(r - w + ((w - 9) div 2),
-              1 + rcLine.Top + ((LineHeight - 1) div 2));
-            Canvas.LineTo(r - ((w - 1) div 2),
-              1 + rcLine.Top + ((LineHeight - 1) div 2));
+            Canvas.MoveTo(r - w + ((w - 9) div 2), 1 + rcLine.Top + ((LineHeight - 1) div 2));
+            Canvas.LineTo(r - ((w - 1) div 2), 1 + rcLine.Top + ((LineHeight - 1) div 2));
           end
           else
           begin
-            Canvas.MoveTo(r - w + ((w - 2) div 2),
-              1 + rcLine.Top + ((LineHeight - 1) div 2));
-            Canvas.LineTo(r - ((w - 1) div 2),
-              1 + rcLine.Top + ((LineHeight - 1) div 2));
+            Canvas.MoveTo(r - w + ((w - 2) div 2), 1 + rcLine.Top + ((LineHeight - 1) div 2));
+            Canvas.LineTo(r - ((w - 1) div 2), 1 + rcLine.Top + ((LineHeight - 1) div 2));
           end;
           Canvas.Pen.Color := OldColor;
           if fGutter.Gradient then
@@ -3633,7 +3642,7 @@ var
     // Note: s is not managed as a string, it will only grow!!!
     // Never use AppendStr or "+", use Len and MaxLen instead and
     // copy the string chars directly. This is for efficiency.
-      Len, MaxLen, CharsBefore: Integer;
+    Len, MaxLen, CharsBefore: Integer;
     S: UnicodeString;
     TabString: UnicodeString;
     FG, BG: TColor;
@@ -3647,8 +3656,7 @@ var
 
   // ### Code Folding ###
   OldColor, tmpColor: TColor;
-  l:
-  Integer;
+  l: Integer;
   // ### End Code Folding ###
 
   { local procedures }
@@ -4645,9 +4653,10 @@ end;
 procedure TCustomSynEdit.PaintMinimapLines(AClip: TRect;
   const aFirstRow, aLastRow, FirstCol, LastCol: Integer);
 var
-  bDoRightEdge: Boolean; // right edge
-  nRightEdge: Integer;
+//  bDoRightEdge: Boolean; // right edge
+//  nRightEdge: Integer;
   // selection info
+  CurrentLine: Integer;
   bAnySelection: Boolean; // any selection visible?
   vSelStart: TDisplayCoord; // start of selected area
   vSelEnd: TDisplayCoord; // end of selected area
@@ -4678,8 +4687,7 @@ var
 
   // ### Code Folding ###
   OldColor, tmpColor: TColor;
-  l:
-  Integer;
+  l: Integer;
   // ### End Code Folding ###
 
   { local procedures }
@@ -4807,7 +4815,10 @@ var
       begin
         SetBackColor(colBG);
         SetForeColor(colFG);
-        Canvas.Brush.Color := colBG;
+        if (CurrentLine >= TopLine) and (CurrentLine <= TopLine + LinesInWindow) then
+          Canvas.Brush.Color := FActiveLineColor
+        else
+          Canvas.Brush.Color := colBG;
       end;
   end;
 
@@ -5025,6 +5036,9 @@ var
       if bSpecialLine and (eoSpecialLineDefaultFg in fOptions) then
         colFG := TokenAccu.FG;
 
+      if (CurrentLine >= TopLine) and (CurrentLine <= TopLine + LinesInWindow) then
+        colBG := FActiveLineColor;
+        
       fTextDrawer.SetStyle(TokenAccu.Style);
       // Paint the chars
       if bComplexToken then
@@ -5251,6 +5265,7 @@ var
     // Now loop through all the lines. The indices are valid for Lines.
     for nLine := vFirstLine to vLastLine do
     begin
+      CurrentLine := nLine;
       // ### Code Folding ###
       if CodeFolding.Enabled then
         FoldRange := CollapsableFoldRangeForLine(nLine, @FoldCount);
@@ -5595,8 +5610,7 @@ var
   end;
 
 { end local procedures }
-//var
-//  Bmp: Vcl.Graphics.TBitmap;
+
 begin
   vFirstLine := RowToLine(aFirstRow);
   vLastLine := RowToLine(aLastRow);
@@ -5606,10 +5620,13 @@ begin
   // Do this first to realize the pen when getting the dc variable.
   SynTabGlyphString := SynTabGlyph;
 
+  {Bmp := Vcl.Graphics.TBitmap.Create;
+  Bmp.Width := AClip.Width;
+  Bmp.Height := AClip.Height;
+  Bmp.Canvas.Brush.Color := Color;
+  Bmp.Canvas.FillRect(Bmp.Canvas.ClipRect);  }
+
   // Do everything else with API calls. This (maybe) realizes the new pen color.
-  //Bmp := Vcl.Graphics.TBitmap.Create;
-  //Bmp.Width := FMinimap.Width;
-  //Bmp.Height := GetClientRect.Height;
   dc := Canvas.Handle;
 
   // Paint the visible text lines. To make this easier, compute first the
@@ -5623,9 +5640,12 @@ begin
     fTextDrawer.BeginDrawing(dc);
     try
       PaintLines;
-      //Canvas.CopyRect(AClip, Bmp.Canvas, Bmp.Canvas.ClipRect);
+      //Canvas.CopyRect(AClip, Bmp.Canvas, AClip);
     finally
       fTextDrawer.EndDrawing;
+      //Canvas.Draw(AClip.Left, AClip.Top, Bmp);
+      //BitBlt(Bmp.Canvas.Handle, 0, 0, Bmp.Width, Bmp.Height, dc, AClip.Left, AClip.Top, SRCCOPY);
+     // Bmp.Canvas.CopyRect(AClip, Canvas, Bmp.Canvas.ClipRect);
       //Bmp.Free;
     end;
   end;
