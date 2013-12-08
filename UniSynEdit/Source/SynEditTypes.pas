@@ -54,7 +54,9 @@ const
                         ')', '{', '}', '^', '-', '=', '+', '-', '*', '/', '\',
                         '|', ' '];
 
+  TSynNoneChar = #0;
   TSynTabChar = #9;
+  TSynSpaceChar = #32;
 // These might need to be localized depending on the characterset because they might be
 // interpreted as valid ident characters.
   SynTabGlyph = WideChar($2192);       //'->'
