@@ -704,8 +704,7 @@ type
     procedure NotifyHookedCommandHandlers(AfterProcessing: Boolean; var Command: TSynEditorCommand; var AChar: WideChar; Data: pointer); virtual;
     procedure Paint; override;
     procedure PaintGutter(const AClip: TRect; const aFirstRow, aLastRow: Integer); virtual;
-    procedure PaintTextLines(AClip: TRect; const aFirstRow, aLastRow, FirstCol, LastCol: Integer); virtual;
-    procedure PaintMinimapLines(AClip: TRect; const aFirstRow, aLastRow, FirstCol, LastCol: Integer); virtual;
+    procedure PaintTextLines(AClip: TRect; const aFirstRow, aLastRow, FirstCol, LastCol: Integer; Minimap: Boolean); virtual;
     procedure RecalcCharExtent;
     procedure RedoItem;
     procedure InternalSetCaretXY(const Value: TBufferCoord); virtual;
@@ -849,6 +848,7 @@ type
     function PrevWordPosEx(const XY: TBufferCoord): TBufferCoord; virtual;
 
     function PixelsToRowColumn(aX, aY: Integer): TDisplayCoord;
+    function PixelsToMinimapRowColumn(aX, aY: Integer): TDisplayCoord;
     function PixelsToNearestRowColumn(aX, aY: Integer): TDisplayCoord;
     procedure Redo;
     procedure RegisterCommandHandler(const AHandlerProc: THookedCommandEvent; AHandlerData: pointer);
@@ -1270,6 +1270,7 @@ begin
   end;
   iScrollBounds := Bounds(fGutter.Width, 0, fCharsInWindow * fCharWidth,
     fLinesInWindow * LineHeight);
+
   if BorderStyle = bsNone then
     InflateRect(iScrollBounds, -2, -2);
 
@@ -2140,6 +2141,8 @@ begin
     begin
       rcInval := ClientRect;
       Inc(rcInval.Left, fGutter.Width);
+      if FMinimap.Visible then
+        Dec(rcInval.Right, FMinimap.Width);
       if sfLinesChanging in fStateFlags then
         UnionRect(fInvalidateRect, fInvalidateRect, rcInval)
       else
@@ -2173,10 +2176,9 @@ begin
       { any line visible? }
       if (LastLine >= FirstLine) then
       begin
-        rcInval := Rect(fGutter.Width, LineHeight *
-          (FirstLine - TopLine), ClientWidth, LineHeight *
-          (LastLine - TopLine + 1));
-
+        rcInval := Rect(fGutter.Width, LineHeight * (FirstLine - TopLine), ClientWidth, LineHeight * (LastLine - TopLine + 1));
+        if FMinimap.Visible then
+          Dec(rcInval.Right, FMinimap.Width);
         if sfLinesChanging in fStateFlags then
           UnionRect(fInvalidateRect, fInvalidateRect, rcInval)
         else
@@ -2443,8 +2445,7 @@ end;
 
 function TCustomSynEdit.IsNotOverMinimap(X: Integer): Boolean;
 begin
-  Result := not FMinimap.Visible or FMinimap.Visible and
-    (X < GetClientRect.Right - FMinimap.Width)
+  Result := not FMinimap.Visible or FMinimap.Visible and (X < GetClientRect.Right - FMinimap.Width)
 end;
 
 procedure TCustomSynEdit.MouseDown(Button: TMouseButton; Shift: TShiftState;
@@ -2860,9 +2861,16 @@ begin
   Exclude(fStateFlags, sfGutterDragging);
 end;
 
+function TCustomSynEdit.PixelsToMinimapRowColumn(aX, aY: Integer): TDisplayCoord;
+begin
+  Result.Column := Max(1, LeftChar + ((aX - fGutter.Width - 2) div FMinimap.CharWidth));
+  Result.Row := Max(1, TopLine + (aY div FMinimap.CharHeight));
+end;
+
 procedure TCustomSynEdit.DoOnMinimapClick(Button: TMouseButton; X, Y: Integer);
 begin
-  CaretX := 0;
+  CaretX := 1; //PixelsToMinimapRowColumn(X, Y).Column;
+  TopLine := PixelsToMinimapRowColumn(X, Y).Row;
 end;
 
 procedure TCustomSynEdit.DoOnGutterClick(Button: TMouseButton; X, Y: Integer);
@@ -2886,8 +2894,7 @@ begin
 
   if CodeFolding.Enabled and CodeFoldingRegion and (Lines.Count > 0) then
   begin
-    FoldRange := CollapsableFoldRangeForLine
-      (RowToLine(PixelsToRowColumn(X, Y).Row));
+    FoldRange := CollapsableFoldRangeForLine(RowToLine(PixelsToRowColumn(X, Y).Row));
 
     if FoldRange <> nil then
     begin
@@ -3012,6 +3019,7 @@ var
 begin
   // Get the invalidated rect. Compute the invalid area in lines / columns.
   rcClip := Canvas.ClipRect;
+  Canvas.Brush.Color := Color;
   Canvas.FillRect(rcClip);
   // columns
   nC1 := LeftChar;
@@ -3031,13 +3039,6 @@ begin
       rcDraw.Right := fGutter.Width;
       PaintGutter(rcDraw, nL1, nL2);
     end;
-    // Then paint the text area if it was (partly) invalidated.
-    {if (rcClip.Right > fGutter.Width) then
-    begin
-      rcDraw := rcClip;
-      rcDraw.Left := Max(rcDraw.Left, fGutter.Width);
-      PaintTextLines(rcDraw, nL1, nL2, nC1, nC2);
-    end;}
 
     // Then paint the text area if it was (partly) invalidated.
     if (rcClip.Right > fGutter.Width) then
@@ -3045,7 +3046,8 @@ begin
       rcDraw := rcClip;
       rcDraw.Left := Max(rcDraw.Left, fGutter.Width);
       fTextDrawer.SetBaseFont(Font);
-      PaintTextLines(rcDraw, nL1, nL2, nC1, nC2);
+      fTextDrawer.Style := Font.Style;
+      PaintTextLines(rcDraw, nL1, nL2, nC1, nC2, False);
     end;
 
     // ### Code Folding ###
@@ -3140,18 +3142,21 @@ begin
       end;
     // ### End Code Folding ###
 
-    // Paint minimap, if visible
-    if (rcClip.Right > fGutter.Width) then
-      if FMinimap.Visible then
+    // Paint minimap text lines
+    if FMinimap.Visible then
+      if (rcClip.Right > fGutter.Width) then
       begin
         rcDraw := rcClip;
         rcDraw.Left := rcDraw.Right - FMinimap.Width;
         //Canvas.FillRect(rcDraw);
         fTextDrawer.SetBaseFont(FMinimap.Font);
+        fTextDrawer.Style := FMinimap.Font.Style;
+        FMinimap.CharWidth := fTextDrawer.CharWidth;
+        FMinimap.CharHeight := fTextDrawer.CharHeight;
         nL2 := RowToLine(nL1 + (rcClip.Height div fTextDrawer.GetCharHeight) - 1);
         nC1 := 1;
         nC2 := FMinimap.Width div fTextDrawer.GetCharWidth;
-        PaintMinimapLines(rcDraw, nL1, nL2, nC1, nC2);
+        PaintTextLines(rcDraw, nL1, nL2, nC1, nC2, True);
         fTextDrawer.SetBaseFont(Font);
       end;
 
@@ -3612,12 +3617,13 @@ begin
   CharCount := j;
 end;
 
-procedure TCustomSynEdit.PaintTextLines(AClip: TRect;
-  const aFirstRow, aLastRow, FirstCol, LastCol: Integer);
+procedure TCustomSynEdit.PaintTextLines(AClip: TRect; const aFirstRow, aLastRow, FirstCol, LastCol: Integer;
+  Minimap: Boolean);
 var
   bDoRightEdge: Boolean; // right edge
   nRightEdge: Integer;
   // selection info
+  CurrentLine: Integer;
   bAnySelection: Boolean; // any selection visible?
   vSelStart: TDisplayCoord; // start of selected area
   vSelEnd: TDisplayCoord; // end of selected area
@@ -3777,12 +3783,20 @@ var
         SetBackColor(colBG);
         SetForeColor(colFG);
         Canvas.Brush.Color := colBG;
+        if Minimap then
+          if (CurrentLine >= TopLine) and (CurrentLine <= TopLine + LinesInWindow) then
+            Canvas.Brush.Color := FActiveLineColor
       end;
   end;
 
   function ColumnToXValue(Col: Integer): Integer;
   begin
-    Result := fTextOffset + Pred(Col) * fCharWidth;
+    if Minimap then
+      Result := GetClientRect.Width - FMinimap.Width
+    else
+      Result := fTextOffset;
+
+    Result := Result + Pred(Col) * fTextDrawer.CharWidth;
   end;
 
   // todo: Review SpecialChars and HardTabs painting. Token parameter of PaintToken procedure could very probably be passed by reference.
@@ -3873,20 +3887,20 @@ var
           Inc(NonFillerPos);
         end;
 
-        CountOfAvgGlyphs := CeilOfIntDiv(fTextDrawer.TextWidth(Token[NonFillerPos]), fCharWidth);
+        CountOfAvgGlyphs := CeilOfIntDiv(fTextDrawer.TextWidth(Token[NonFillerPos]), FTextDrawer.CharWidth);
 
         // first visible part of the glyph (1-based)
         // (the glyph is visually sectioned in parts of size fCharWidth)
         VisibleGlyphPart := CountOfAvgGlyphs - FillerCount;
 
         // clip off invisible parts
-        nX := nX - fCharWidth * (VisibleGlyphPart - 1);
+        nX := nX - FTextDrawer.CharWidth * (VisibleGlyphPart - 1);
 
         nCharsToPaint := Min(Last - First + 1, TokenLen - First + 1);
 
         // clip off partially visible glyphs at line end
         if GetWordWrap then
-          while nX + fCharWidth * nCharsToPaint > ClientWidth do
+          while nX + FTextDrawer.CharWidth * nCharsToPaint > ClientWidth do
           begin
             Dec(nCharsToPaint);
             while (nCharsToPaint > 0) and
@@ -3920,9 +3934,9 @@ var
 
           nX := ColumnToXValue(CharsBefore + TabStart + (TabLen div 2) - 1);
           if TabLen mod 2 = 0 then
-            nX := nX + (fCharWidth div 2)
+            nX := nX + (FTextDrawer.CharWidth div 2)
           else
-            nX := nX + fCharWidth;
+            nX := nX + FTextDrawer.CharWidth;
 
           rcTab.Left := nX;
           rcTab.Right := nX + fTextDrawer.GetCharWidth;
@@ -4025,6 +4039,10 @@ var
       if bSpecialLine and (eoSpecialLineDefaultFg in fOptions) then
         colFG := TokenAccu.FG;
 
+      if Minimap then
+        if (CurrentLine >= TopLine) and (CurrentLine <= TopLine + LinesInWindow) then
+          colBG := FActiveLineColor;
+
       fTextDrawer.SetStyle(TokenAccu.Style);
       // Paint the chars
       if bComplexToken then
@@ -4105,8 +4123,6 @@ var
       begin
         SetDrawingColors(bLineSelected);
         rcToken.Right := rcLine.Right;
-        if FMinimap.Visible then
-          Dec(rcToken.Right, FMinimap.Width);
         if (TokenAccu.Len > 0) and (TokenAccu.Style <> []) then
           AdjustEndRect;
         Canvas.FillRect(rcToken);
@@ -4225,8 +4241,14 @@ var
     // Initialize rcLine for drawing. Note that Top and Bottom are updated
     // inside the loop. Get only the starting point for this.
     rcLine := AClip;
-    rcLine.Left := fGutter.Width { + 2 };
-    rcLine.Bottom := (aFirstRow - TopLine) * LineHeight;
+
+    if Minimap then
+      rcLine.Bottom := (aFirstRow - TopLine) * FTextDrawer.CharHeight
+    else
+    begin
+      rcLine.Left := fGutter.Width { + 2 };
+      rcLine.Bottom := (aFirstRow - TopLine) * LineHeight;
+    end;
 
     // ### Code Folding ###
     // if fCodeFolding.Enabled then
@@ -4242,1044 +4264,7 @@ var
 
     // ### Code Folding ###
     // Calculate indent guides positions
-    ScrolledXBy := (LeftChar - 1) * CharWidth;
-    // ### End Code Folding ###
-
-    // Now loop through all the lines. The indices are valid for Lines.
-    for nLine := vFirstLine to vLastLine do
-    begin
-      // ### Code Folding ###
-      if CodeFolding.Enabled then
-        FoldRange := CollapsableFoldRangeForLine(nLine, @FoldCount);
-      // ### End Code Folding ###
-
-      sLine := TSynEditStringList(Lines).ExpandedStrings[nLine - 1];
-      sLineExpandedAtWideGlyphs := ExpandAtWideGlyphs(sLine);
-      // determine whether will be painted with ActiveLineColor
-      bCurrentLine := CaretY = nLine;
-      // Initialize the text and background colors, maybe the line should
-      // use special values for them.
-      colFG := Font.Color;
-      colBG := colEditorBG;
-      bSpecialLine := DoOnSpecialLineColors(nLine, colFG, colBG);
-      if bSpecialLine then
-      begin
-        // The selection colors are just swapped, like seen in Delphi.
-        colSelFG := colBG;
-        colSelBG := colFG;
-      end
-      else
-      begin
-        colSelFG := fSelectedColor.Foreground;
-        colSelBG := fSelectedColor.Background;
-      end;
-
-      vStartRow := Max(LineToRow(nLine), aFirstRow);
-      vEndRow := Min(LineToRow(nLine + 1) - 1, aLastRow);
-      for cRow := vStartRow to vEndRow do
-      begin
-        if GetWordWrap then
-        begin
-          vAuxPos.Row := cRow;
-          if Assigned(fHighlighter) then
-            vAuxPos.Column := FirstCol
-          else
-            // When no highlighter is assigned, we must always start from the
-            // first char in a row and PaintToken will do the actual clipping
-            vAuxPos.Column := 1;
-          vFirstChar := fWordWrapPlugin.DisplayToBufferPos(vAuxPos).Char;
-          vAuxPos.Column := LastCol;
-          vLastChar := fWordWrapPlugin.DisplayToBufferPos(vAuxPos).Char;
-        end
-        else
-        begin
-          vFirstChar := FirstCol;
-          vLastChar := LastCol;
-        end;
-        // Get the information about the line selection. Three different parts
-        // are possible (unselected before, selected, unselected after), only
-        // unselected or only selected means bComplexLine will be False. Start
-        // with no selection, compute based on the visible columns.
-        bComplexLine := False;
-        nLineSelStart := 0;
-        nLineSelEnd := 0;
-        // Does the selection intersect the visible area?
-        if bAnySelection and (cRow >= vSelStart.Row) and (cRow <= vSelEnd.Row)
-        then
-        begin
-          // Default to a fully selected line. This is correct for the smLine
-          // selection mode and a good start for the smNormal mode.
-          nLineSelStart := FirstCol;
-          nLineSelEnd := LastCol + 1;
-          if (fActiveSelectionMode = smColumn) or
-            ((fActiveSelectionMode = smNormal) and (cRow = vSelStart.Row)) then
-          begin
-            if (vSelStart.Column > LastCol) then
-            begin
-              nLineSelStart := 0;
-              nLineSelEnd := 0;
-            end
-            else if (vSelStart.Column > FirstCol) then
-            begin
-              nLineSelStart := vSelStart.Column;
-              bComplexLine := True;
-            end;
-          end;
-          if (fActiveSelectionMode = smColumn) or
-            ((fActiveSelectionMode = smNormal) and (cRow = vSelEnd.Row)) then
-          begin
-            if (vSelEnd.Column < FirstCol) then
-            begin
-              nLineSelStart := 0;
-              nLineSelEnd := 0;
-            end
-            else if (vSelEnd.Column < LastCol) then
-            begin
-              nLineSelEnd := vSelEnd.Column;
-              bComplexLine := True;
-            end;
-          end;
-        end; // endif bAnySelection
-
-        // Update the rcLine rect to this line.
-        rcLine.Top := rcLine.Bottom;
-        Inc(rcLine.Bottom, LineHeight);
-
-        bLineSelected := not bComplexLine and (nLineSelStart > 0);
-        rcToken := rcLine;
-
-        if not Assigned(fHighlighter) or not fHighlighter.Enabled then
-        begin
-          // Remove text already displayed (in previous rows)
-          if (vFirstChar <> FirstCol) or (vLastChar <> LastCol) then
-            sToken := Copy(sLineExpandedAtWideGlyphs, vFirstChar,
-              vLastChar - vFirstChar)
-          else
-            sToken := Copy(sLineExpandedAtWideGlyphs, 1, vLastChar);
-          if fShowSpecChar and (Length(sLineExpandedAtWideGlyphs) < vLastChar)
-          then
-            sToken := sToken + SynLineBreakGlyph;
-          nTokenLen := Length(sToken);
-          if bComplexLine then
-          begin
-            SetDrawingColors(False);
-            rcToken.Left := Max(rcLine.Left, ColumnToXValue(FirstCol));
-            rcToken.Right := Min(rcLine.Right, ColumnToXValue(nLineSelStart));
-            PaintToken(sToken, nTokenLen, 0, FirstCol, nLineSelStart);
-            rcToken.Left := Max(rcLine.Left, ColumnToXValue(nLineSelEnd));
-            rcToken.Right := Min(rcLine.Right, ColumnToXValue(LastCol));
-            PaintToken(sToken, nTokenLen, 0, nLineSelEnd, LastCol);
-            SetDrawingColors(True);
-            rcToken.Left := Max(rcLine.Left, ColumnToXValue(nLineSelStart));
-            rcToken.Right := Min(rcLine.Right, ColumnToXValue(nLineSelEnd));
-            PaintToken(sToken, nTokenLen, 0, nLineSelStart, nLineSelEnd - 1);
-          end
-          else
-          begin
-            SetDrawingColors(bLineSelected);
-            PaintToken(sToken, nTokenLen, 0, FirstCol, LastCol);
-          end;
-        end
-        else
-        begin
-          // Initialize highlighter with line text and range info. It is
-          // necessary because we probably did not scan to the end of the last
-          // line - the internal highlighter range might be wrong.
-          if nLine = 1 then
-            fHighlighter.ResetRange
-          else
-            fHighlighter.SetRange(TSynEditStringList(Lines).Ranges[nLine - 2]);
-          fHighlighter.SetLineExpandedAtWideGlyphs(sLine,
-            sLineExpandedAtWideGlyphs, nLine - 1);
-          // Try to concatenate as many tokens as possible to minimize the count
-          // of ExtTextOutW calls necessary. This depends on the selection state
-          // or the line having special colors. For spaces the foreground color
-          // is ignored as well.
-          TokenAccu.Len := 0;
-          nTokenPos := 0;
-          nTokenLen := 0;
-          attr := nil;
-          // Test first whether anything of this token is visible.
-          while not fHighlighter.GetEol do
-          begin
-            nTokenPos := fHighlighter.GetExpandedTokenPos;
-            sToken := fHighlighter.GetExpandedToken;
-            nTokenLen := Length(sToken);
-            if nTokenPos + nTokenLen >= vFirstChar then
-            begin
-              if nTokenPos + nTokenLen > vLastChar then
-              begin
-                if nTokenPos > vLastChar then
-                  break;
-                if GetWordWrap then
-                  nTokenLen := vLastChar - nTokenPos - 1
-                else
-                  nTokenLen := vLastChar - nTokenPos;
-              end;
-              // Remove offset generated by tokens already displayed (in previous rows)
-              Dec(nTokenPos, vFirstChar - FirstCol);
-              // It's at least partially visible. Get the token attributes now.
-              attr := fHighlighter.GetTokenAttribute;
-              if Assigned(attr) then
-                AddHighlightToken(sToken, nTokenPos, nTokenLen, attr.Foreground,
-                  attr.Background, attr.Style)
-              else
-                AddHighlightToken(sToken, nTokenPos, nTokenLen, colFG, colBG,
-                  Font.Style);
-            end;
-            // Let the highlighter scan the next token.
-            fHighlighter.Next;
-          end;
-          // Draw anything that's left in the TokenAccu record. Fill to the end
-          // of the invalid area with the correct colors.
-          if fShowSpecChar and fHighlighter.GetEol then
-          begin
-            if (attr = nil) or (attr <> fHighlighter.CommentAttribute) then
-              attr := fHighlighter.WhitespaceAttribute;
-            AddHighlightToken(SynLineBreakGlyph, nTokenPos + nTokenLen, 1,
-              attr.Foreground, attr.Background, []);
-          end;
-          PaintHighlightToken(True);
-
-          // ### Code Folding ###
-          // Collapse mark painting
-          if (CodeFolding.Enabled) and (CodeFolding.CollapsedCodeHint) and
-            (FoldRange <> nil) and (FoldRange.Collapsed) and
-            (not FoldRange.ParentCollapsed) then
-          begin
-
-            if (Canvas.Brush.Color = Color) and FBackground.Visible and
-              not FBackground.Background.Empty then
-            begin
-              SetBkMode(dc, TRANSPARENT);
-            end
-            else
-              Canvas.FillRect(rcToken);
-
-            OldColor := Canvas.Brush.Color;
-            Canvas.Brush.Color := clSilver;
-
-            // if Gutter.ShowLineNumbers then
-            // FoldRange.HintMarkLeft := ((nTokenPos + nTokenLen) * CharWidth)
-            // FoldRange.HintMarkLeft := ((nTokenPos {+ nTokenLen} - 5) * fGutterCharWidth)   //###mod pos of [...] to left
-            // + Gutter.LeftOffset + (GetAutoSizeDigitCount * fGutterCharWidth)
-            // + Gutter.RightOffset
-            // else
-            // FoldRange.HintMarkLeft := ((nTokenPos + nTokenLen) * CharWidth)
-            FoldRange.HintMarkLeft :=
-              ((nTokenPos { + nTokenLen } - 5) * fCharWidth)
-            // ###mod pos of [...] to left
-            // + Gutter.LeftOffset + Gutter.RightOffset;
-              + fGutter.Width + 2;
-
-            rcCollapseMark := GetCollapseMarkRect(FoldRange, cRow);
-
-            // Begin Fix
-            // http://mystix.projects.waterproof.fr/IssueView.php?Id=38
-            if rcCollapseMark.Right - ScrolledXBy > 0 then
-            begin
-              OffsetRect(rcCollapseMark, -ScrolledXBy, 0);
-              // End Fix
-              Canvas.Brush.Color := clBlack; // ###mod black frame around [...]
-              Canvas.FrameRect(rcCollapseMark);
-              Y := rcCollapseMark.Top +
-                (((rcCollapseMark.Bottom - rcCollapseMark.Top) div 5) * 3);
-              X := rcCollapseMark.Left + fCharWidth - 2;
-              Canvas.Rectangle(X, Y, X + 2, Y + 2);
-              X := rcCollapseMark.Left + ((fCharWidth * 3) div 2) - 1;
-              Canvas.Rectangle(X, Y, X + 2, Y + 2);
-              X := rcCollapseMark.Right - fCharWidth;
-              Canvas.Rectangle(X, Y, X + 2, Y + 2);
-            end;
-
-            Canvas.Brush.Color := OldColor;
-
-            if (Canvas.Brush.Color = Color) and FBackground.Visible and
-              not FBackground.Background.Empty then
-              SetBkMode(dc, OPAQUE);
-          end;
-          // ### End Code Folding ###
-        end;
-
-        // ### Code Folding ###
-        // Indent guides painting
-        if (CodeFolding.Enabled) and (CodeFolding.IndentGuides) and
-          ((cRow = 1) or (RowToLine(cRow) <> RowToLine(cRow - 1))) then
-        begin
-          l := 0;
-          OldColor := Canvas.Pen.Color;
-          // search deepest foldrange
-          for I := fAllFoldRanges.AllCount - 1 downto 0 do
-            if (fAllFoldRanges[I].Level > l) and
-              (CaretY >= fAllFoldRanges[I].FromLine) and
-              (CaretY <= fAllFoldRanges[I].ToLine) then
-              l := fAllFoldRanges[I].Level;
-
-          // paint loop
-          for I := 0 to fAllFoldRanges.AllCount - 1 do
-            with fAllFoldRanges[I] do
-              if (not Collapsed) and (not ParentCollapsed) and (FromLine < nLine)
-                and (ToLine > nLine) then
-              begin
-                Y := rcLine.Top;
-                X := GetLineIndentChars(Lines, FromLine - 1) * fCharWidth;
-                // Level * CharWidth * TabWidth;  //###mod IndentGuides calculation fix
-
-                // if fHighlightedFoldRange <> fAllFoldRanges[i] then
-                // ###mod highlight current IndentGuide
-                if (l = Level) and (CaretY >= FromLine) and (CaretY <= ToLine)
-                then
-                  Canvas.Pen.Color := clBlack // higlighted dots
-                else
-                  Canvas.Pen.Color := clGray;
-                // ###mod highlight current IndentGuide
-
-                if X - ScrolledXBy > 0 then
-                begin
-                  X := Gutter.RealGutterWidth(fGutterCharWidth) + X - ScrolledXBy;
-
-                  tmpColor := Canvas.Pen.Color;
-                  if Canvas.Pen.Color = clGray then
-                    Canvas.Pen.Color := clWindow
-                  else
-                    Canvas.Pen.Color := rgb(160, 160, 255); // highlighted BG
-                  Canvas.MoveTo(X, Y);
-                  Canvas.LineTo(X, rcLine.Bottom);
-                  Canvas.Pen.Color := tmpColor;
-
-                  if LineHeight mod 2 = 0 then
-                    while Y < rcLine.Bottom do
-                    begin
-                      Canvas.MoveTo(X, Y);
-                      Inc(Y);
-                      Canvas.LineTo(X, Y);
-                      Inc(Y);
-                    end
-                  else
-                  begin
-                    if nLine mod 2 = 1 then
-                      Inc(Y);
-
-                    while Y < rcLine.Bottom do
-                    begin
-                      Canvas.MoveTo(X, Y);
-                      Inc(Y);
-                      Canvas.LineTo(X, Y);
-                      Inc(Y);
-                    end;
-                  end;
-                end;
-
-              end; // paint loop
-          Canvas.Pen.Color := OldColor;
-        end; // if codefolding
-
-        if (CodeFolding.Enabled) and (CodeFolding.ShowCollapsedLine) and
-          (FoldRange <> nil) and (FoldRange.Collapsed) and
-          (not FoldRange.ParentCollapsed) then
-        begin
-          OldColor := Canvas.Pen.Color;
-          Canvas.Pen.Color := CodeFolding.CollapsedLineColor;
-          Canvas.MoveTo(rcLine.Left, rcLine.Bottom - 1);
-          Canvas.LineTo(Width, rcLine.Bottom - 1);
-          Canvas.Pen.Color := OldColor;
-        end;
-        // ### End Code Folding ###
-        // Now paint the right edge if necessary. We do it line by line to reduce
-        // the flicker. Should not cost very much anyway, compared to the many
-        // calls to ExtTextOutW.
-        if bDoRightEdge then
-        begin
-          Canvas.MoveTo(nRightEdge, rcLine.Top);
-          Canvas.LineTo(nRightEdge, rcLine.Bottom + 1);
-        end;
-      end; // endfor cRow
-      bCurrentLine := False;
-    end; // endfor cLine
-  end;
-
-{ end local procedures }
-
-begin
-  vFirstLine := RowToLine(aFirstRow);
-  vLastLine := RowToLine(aLastRow);
-
-  bCurrentLine := False;
-  // If the right edge is visible and in the invalid area, prepare to paint it.
-  // Do this first to realize the pen when getting the dc variable.
-  SynTabGlyphString := SynTabGlyph;
-  bDoRightEdge := False;
-  if fRightEdge.Visible and (fRightEdge.Position > 0) then
-  begin // column value
-    nRightEdge := fTextOffset + fRightEdge.Position * fCharWidth; // pixel value
-    if (nRightEdge >= AClip.Left) and (nRightEdge <= AClip.Right) then
-    begin
-      bDoRightEdge := True;
-      Canvas.Pen.Color := fRightEdge.Color;
-      Canvas.Pen.Width := 1;
-    end;
-  end;
-  // Do everything else with API calls. This (maybe) realizes the new pen color.
-  dc := Canvas.Handle;
-  // If anything of the two pixel space before the text area is visible, then
-  // fill it with the component background color.
-  if (AClip.Left < fGutter.Width + 2) then
-  begin
-    rcToken := AClip;
-    rcToken.Left := Max(AClip.Left, fGutter.Width);
-    rcToken.Right := fGutter.Width + 2;
-    // Paint whole left edge of the text with same color.
-    // (value of WhiteAttribute can vary in e.g. MultiSyn)
-    if Highlighter <> nil then
-      Highlighter.ResetRange;
-    Canvas.Brush.Color := colEditorBG;
-    Canvas.FillRect(rcToken);
-    // Adjust the invalid area to not include this area.
-    AClip.Left := rcToken.Right;
-  end;
-  // Paint the visible text lines. To make this easier, compute first the
-  // necessary information about the selected area: is there any visible
-  // selected area, and what are its lines / columns?
-  if (vLastLine >= vFirstLine) then
-  begin
-    ComputeSelectionInfo;
-    fTextDrawer.Style := Font.Style;
-
-    fTextDrawer.BeginDrawing(dc);
-    try
-      PaintLines;
-    finally
-      fTextDrawer.EndDrawing;
-    end;
-  end;
-  // If there is anything visible below the last line, then fill this as well.
-  rcToken := AClip;
-  rcToken.Top := (aLastRow - TopLine + 1) * LineHeight;
-  if (rcToken.Top < rcToken.Bottom) then
-  begin
-    if Highlighter <> nil then
-      Highlighter.ResetRange;
-    Canvas.Brush.Color := colEditorBG;
-    Canvas.FillRect(rcToken);
-    // Draw the right edge if necessary.
-    if bDoRightEdge then
-    begin
-      Canvas.MoveTo(nRightEdge, rcToken.Top);
-      Canvas.LineTo(nRightEdge, rcToken.Bottom + 1);
-    end;
-  end;
-end;
-
-procedure TCustomSynEdit.PaintMinimapLines(AClip: TRect;
-  const aFirstRow, aLastRow, FirstCol, LastCol: Integer);
-var
-//  bDoRightEdge: Boolean; // right edge
-//  nRightEdge: Integer;
-  // selection info
-  CurrentLine: Integer;
-  bAnySelection: Boolean; // any selection visible?
-  vSelStart: TDisplayCoord; // start of selected area
-  vSelEnd: TDisplayCoord; // end of selected area
-  // info about normal and selected text and background colors
-  bSpecialLine, bLineSelected, bCurrentLine: Boolean;
-  colFG, colBG: TColor;
-  colSelFG, colSelBG: TColor;
-  // info about selection of the current line
-  nLineSelStart, nLineSelEnd: Integer;
-  bComplexLine: Boolean;
-  // painting the background and the text
-  rcLine, rcToken: TRect;
-  TokenAccu: record
-    // Note: s is not managed as a string, it will only grow!!!
-    // Never use AppendStr or "+", use Len and MaxLen instead and
-    // copy the string chars directly. This is for efficiency.
-      Len, MaxLen, CharsBefore: Integer;
-    S: UnicodeString;
-    TabString: UnicodeString;
-    FG, BG: TColor;
-    Style: TFontStyles;
-  end;
-  dc: HDC;
-  SynTabGlyphString: UnicodeString;
-
-  vFirstLine: Integer;
-  vLastLine: Integer;
-
-  // ### Code Folding ###
-  OldColor, tmpColor: TColor;
-  l: Integer;
-  // ### End Code Folding ###
-
-  { local procedures }
-
-  function colEditorFG: TColor;
-  var
-    iAttri: TSynHighlighterAttributes;
-  begin
-    If fActiveLine.Visible and (fActiveLine.Foreground <> clNone) and
-      (bCurrentLine) then
-      Result := fActiveLine.Foreground
-    else
-    begin
-      Result := Font.Color;
-      if Highlighter <> nil then
-      begin
-        iAttri := Highlighter.WhitespaceAttribute;
-        if (iAttri <> nil) and (iAttri.Foreground <> clWindow) then
-          Result := iAttri.Foreground;
-      end;
-    end;
-    // 修改 增加指定某一行的前景颜色
-    if (CaretY > 0) and (CaretY <= Lines.Count) and
-      (amForeground in ExpandLines.Attributes[CaretY - 1].aMask) and
-      (ExpandLines.Attributes[CaretY - 1].aForeground <> clNone) then
-    begin
-      Result := ExpandLines.Attributes[CaretY - 1].aForeground;
-    end;
-  end;
-
-  function colEditorBG: TColor;
-  var
-    iAttri: TSynHighlighterAttributes;
-  begin
-    if fActiveLine.Visible and (ActiveLineColor <> clNone) and (bCurrentLine) then
-      Result := ActiveLineColor
-    else
-    begin
-      Result := Color;
-      if Highlighter <> nil then
-      begin
-        iAttri := Highlighter.WhitespaceAttribute;
-        if (iAttri <> nil) and (iAttri.Background <> clNone) then
-          Result := iAttri.Background;
-      end;
-    end;
-    if (CaretY > 0) and (CaretY <= Lines.Count) and
-      (amBackground in ExpandLines.Attributes[CaretY - 1].aMask) and
-      (ExpandLines.Attributes[CaretY - 1].aBackground <> clNone) then
-    begin
-      Result := ExpandLines.Attributes[CaretY - 1].aBackground;
-    end;
-  end;
-
-  procedure ComputeSelectionInfo;
-  var
-    vStart: TBufferCoord;
-    vEnd: TBufferCoord;
-  begin
-    bAnySelection := False;
-    // Only if selection is visible anyway.
-    if not HideSelection or Self.Focused then
-    begin
-      bAnySelection := True;
-      // Get the *real* start of the selected area.
-      if fBlockBegin.Line < fBlockEnd.Line then
-      begin
-        vStart := fBlockBegin;
-        vEnd := fBlockEnd;
-      end
-      else if fBlockBegin.Line > fBlockEnd.Line then
-      begin
-        vEnd := fBlockBegin;
-        vStart := fBlockEnd;
-      end
-      else if fBlockBegin.Char <> fBlockEnd.Char then
-      begin
-        // No selection at all, or it is only on this line.
-        vStart.Line := fBlockBegin.Line;
-        vEnd.Line := vStart.Line;
-        if fBlockBegin.Char < fBlockEnd.Char then
-        begin
-          vStart.Char := fBlockBegin.Char;
-          vEnd.Char := fBlockEnd.Char;
-        end
-        else
-        begin
-          vStart.Char := fBlockEnd.Char;
-          vEnd.Char := fBlockBegin.Char;
-        end;
-      end
-      else
-        bAnySelection := False;
-      // If there is any visible selection so far, then test if there is an
-      // intersection with the area to be painted.
-      if bAnySelection then
-      begin
-        // Don't care if the selection is not visible.
-        bAnySelection := (vEnd.Line >= vFirstLine) and (vStart.Line <= vLastLine);
-        if bAnySelection then
-        begin
-          // Transform the selection from text space into screen space
-          vSelStart := BufferToDisplayPos(vStart);
-          vSelEnd := BufferToDisplayPos(vEnd);
-          // In the column selection mode sort the begin and end of the selection,
-          // this makes the painting code simpler.
-          if (fActiveSelectionMode = smColumn) and
-            (vSelStart.Column > vSelEnd.Column) then
-            SwapInt(vSelStart.Column, vSelEnd.Column);
-        end;
-      end;
-    end;
-  end;
-
-  procedure SetDrawingColors(Selected: Boolean);
-  begin
-    with fTextDrawer do
-      if Selected then
-      begin
-        SetBackColor(colSelBG);
-        SetForeColor(colSelFG);
-        Canvas.Brush.Color := colSelBG;
-      end
-      else
-      begin
-        SetBackColor(colBG);
-        SetForeColor(colFG);
-        if (CurrentLine >= TopLine) and (CurrentLine <= TopLine + LinesInWindow) then
-          Canvas.Brush.Color := FActiveLineColor
-        else
-          Canvas.Brush.Color := colBG;
-      end;
-  end;
-
-  function ColumnToXValue(Col: Integer): Integer;
-  begin
-    Result := GetClientRect.Width - FMinimap.Width + Pred(Col) * fTextDrawer.CharWidth;
-  end;
-
-  // todo: Review SpecialChars and HardTabs painting. Token parameter of PaintToken procedure could very probably be passed by reference.
-
-  // Note: The PaintToken procedure will take care of invalid parameters
-  // like empty token rect or invalid indices into TokenLen.
-  // CharsBefore tells if Token starts at column one or not
-  procedure PaintToken(Token: UnicodeString; TokenLen, CharsBefore, First,
-    Last: Integer);
-  var
-    Text: UnicodeString;
-    Counter, nX, nCharsToPaint: Integer;
-    sTabbedToken: UnicodeString;
-    DoTabPainting: Boolean;
-    I, TabStart, TabLen, CountOfAvgGlyphs, VisibleGlyphPart, FillerCount,
-      NonFillerPos: Integer;
-    rcTab: TRect;
-  const
-    ETOOptions = [tooOpaque, tooClipped];
-  begin
-    sTabbedToken := Token;
-    DoTabPainting := False;
-
-    Counter := Last - CharsBefore;
-    while Counter > First - CharsBefore - 1 do
-    begin
-      if Length(Token) >= Counter then
-      begin
-        if fShowSpecChar and (Token[Counter] = #32) then
-          Token[Counter] := SynSpaceGlyph
-        else if Token[Counter] = #9 then
-        begin
-          Token[Counter] := #32; // Tabs painted differently if necessary
-          DoTabPainting := fShowSpecChar;
-        end;
-      end;
-      Dec(Counter);
-    end;
-
-    if (Last >= First) and (rcToken.Right > rcToken.Left) then
-    begin
-      nX := ColumnToXValue(First);
-
-      Dec(First, CharsBefore);
-      Dec(Last, CharsBefore);
-
-      if (First > TokenLen) then
-      begin
-        nCharsToPaint := 0;
-        Text := '';
-      end
-      else
-      begin
-        FillerCount := 0;
-        NonFillerPos := First;
-        while Token[NonFillerPos] = FillerChar do
-        begin
-          Inc(FillerCount);
-          Inc(NonFillerPos);
-        end;
-
-        CountOfAvgGlyphs := CeilOfIntDiv(fTextDrawer.TextWidth(Token[NonFillerPos]
-          ), fTextDrawer.CharWidth);
-
-        // first visible part of the glyph (1-based)
-        // (the glyph is visually sectioned in parts of size fCharWidth)
-        VisibleGlyphPart := CountOfAvgGlyphs - FillerCount;
-
-        // clip off invisible parts
-        nX := nX - fTextDrawer.CharWidth * (VisibleGlyphPart - 1);
-
-        nCharsToPaint := Min(Last - First + 1, TokenLen - First + 1);
-
-        // clip off partially visible glyphs at line end
-        if GetWordWrap then
-          while nX + fTextDrawer.CharWidth * nCharsToPaint > ClientWidth do
-          begin
-            Dec(nCharsToPaint);
-            while (nCharsToPaint > 0) and
-              (Token[First + nCharsToPaint - 1] = FillerChar) do
-              Dec(nCharsToPaint);
-          end;
-
-        // same as copy(Token, First, nCharsToPaint) and remove filler chars
-        Text := ShrinkAtWideGlyphs(Token, First, nCharsToPaint);
-      end;
-
-      fTextDrawer.ExtTextOut(nX, rcToken.Top, ETOOptions, rcToken,
-        PWideChar(Text), nCharsToPaint);
-
-      if DoTabPainting then
-      begin
-        // fix everything before the FirstChar
-        for I := 1 to First - 1 do // wipe the text out so we don't
-          if sTabbedToken[I] = #9 then // count it out of the range
-            sTabbedToken[I] := #32; // we're looking for
-
-        TabStart := Pos(#9, sTabbedToken);
-        rcTab.Top := rcToken.Top;
-        rcTab.Bottom := rcToken.Bottom;
-        while (TabStart > 0) and (TabStart >= First) and (TabStart <= Last) do
-        begin
-          TabLen := 1;
-          while (TabStart + CharsBefore + TabLen - 1) mod fTabWidth <> 0 do
-            Inc(TabLen);
-          Text := SynTabGlyphString;
-
-          nX := ColumnToXValue(CharsBefore + TabStart + (TabLen div 2) - 1);
-          if TabLen mod 2 = 0 then
-            nX := nX + (fTextDrawer.CharWidth div 2)
-          else
-            nX := nX + fTextDrawer.CharWidth;
-
-          rcTab.Left := nX;
-          rcTab.Right := nX + fTextDrawer.GetCharWidth;
-
-          fTextDrawer.ExtTextOut(nX, rcTab.Top, ETOOptions, rcTab,
-            PWideChar(Text), 1);
-
-          for I := 0 to TabLen - 1 do // wipe the text out so we don't
-            sTabbedToken[TabStart + I] := #32; // count it again
-
-          TabStart := Pos(#9, sTabbedToken);
-        end;
-      end;
-      rcToken.Left := rcToken.Right;
-    end;
-  end;
-
-  procedure AdjustEndRect;
-  // trick to avoid clipping the last pixels of text in italic,
-  // see also AdjustLastCharWidth() in TheTextDrawer.ExtTextOut()
-  var
-    LastChar: Cardinal;
-    NormalCharWidth, RealCharWidth: Integer;
-    CharInfo: TABC;
-    tm: TTextMetricA;
-  begin
-    LastChar := Ord(TokenAccu.S[TokenAccu.Len]);
-    NormalCharWidth := fTextDrawer.TextWidth(WideChar(LastChar));
-    RealCharWidth := NormalCharWidth;
-    if Win32PlatformIsUnicode then
-    begin
-      if GetCharABCWidthsW(Canvas.Handle, LastChar, LastChar, CharInfo) then
-      begin
-        RealCharWidth := CharInfo.abcA + Integer(CharInfo.abcB);
-        if CharInfo.abcC >= 0 then
-          Inc(RealCharWidth, CharInfo.abcC);
-      end
-      else if LastChar < Ord(High(AnsiChar)) then
-      begin
-        GetTextMetricsA(Canvas.Handle, tm);
-        RealCharWidth := tm.tmAveCharWidth + tm.tmOverhang;
-      end;
-    end
-    else if WideChar(LastChar) <= High(AnsiChar) then
-    begin
-      if GetCharABCWidths(Canvas.Handle, LastChar, LastChar, CharInfo) then
-      begin
-        RealCharWidth := CharInfo.abcA + Integer(CharInfo.abcB);
-        if CharInfo.abcC >= 0 then
-          Inc(RealCharWidth, CharInfo.abcC);
-      end
-      else if LastChar < Ord(High(AnsiChar)) then
-      begin
-        GetTextMetricsA(Canvas.Handle, tm);
-        RealCharWidth := tm.tmAveCharWidth + tm.tmOverhang;
-      end;
-    end;
-
-    if RealCharWidth > NormalCharWidth then
-      Inc(rcToken.Left, RealCharWidth - NormalCharWidth);
-  end;
-
-  procedure PaintHighlightToken(bFillToEOL: Boolean);
-  var
-    bComplexToken: Boolean;
-    nC1, nC2, nC1Sel, nC2Sel: Integer;
-    bU1, bSel, bU2: Boolean;
-    nX1, nX2: Integer;
-  begin
-    // Compute some helper variables.
-    nC1 := Max(FirstCol, TokenAccu.CharsBefore + 1);
-    nC2 := Min(LastCol, TokenAccu.CharsBefore + TokenAccu.Len + 1);
-    if bComplexLine then
-    begin
-      bU1 := (nC1 < nLineSelStart);
-      bSel := (nC1 < nLineSelEnd) and (nC2 >= nLineSelStart);
-      bU2 := (nC2 >= nLineSelEnd);
-      bComplexToken := bSel and (bU1 or bU2);
-    end
-    else
-    begin
-      bU1 := False; // to shut up Compiler warning Delphi 2
-      bSel := bLineSelected;
-      bU2 := False; // to shut up Compiler warning Delphi 2
-      bComplexToken := False;
-    end;
-    // Any token chars accumulated?
-    if (TokenAccu.Len > 0) then
-    begin
-      // Initialize the colors and the font style.
-      if not bSpecialLine then
-      begin
-        colBG := TokenAccu.BG;
-        colFG := TokenAccu.FG;
-      end;
-
-      if bSpecialLine and (eoSpecialLineDefaultFg in fOptions) then
-        colFG := TokenAccu.FG;
-
-      if (CurrentLine >= TopLine) and (CurrentLine <= TopLine + LinesInWindow) then
-        colBG := FActiveLineColor;
-        
-      fTextDrawer.SetStyle(TokenAccu.Style);
-      // Paint the chars
-      if bComplexToken then
-      begin
-        // first unselected part of the token
-        if bU1 then
-        begin
-          SetDrawingColors(False);
-          rcToken.Right := ColumnToXValue(nLineSelStart);
-          with TokenAccu do
-            PaintToken(S, Len, CharsBefore, nC1, nLineSelStart);
-        end;
-        // selected part of the token
-        SetDrawingColors(True);
-        nC1Sel := Max(nLineSelStart, nC1);
-        nC2Sel := Min(nLineSelEnd, nC2);
-        rcToken.Right := ColumnToXValue(nC2Sel);
-        with TokenAccu do
-          PaintToken(S, Len, CharsBefore, nC1Sel, nC2Sel);
-        // second unselected part of the token
-        if bU2 then
-        begin
-          SetDrawingColors(False);
-          rcToken.Right := ColumnToXValue(nC2);
-          with TokenAccu do
-            PaintToken(S, Len, CharsBefore, nLineSelEnd, nC2);
-        end;
-      end
-      else
-      begin
-        SetDrawingColors(bSel);
-        rcToken.Right := ColumnToXValue(nC2);
-        with TokenAccu do
-          PaintToken(S, Len, CharsBefore, nC1, nC2);
-      end;
-    end;
-
-    // Fill the background to the end of this line if necessary.
-    if bFillToEOL and (rcToken.Left < rcLine.Right) then
-    begin
-      if not bSpecialLine then
-      begin
-        colBG := colEditorBG;
-        colFG := colEditorFG;
-      end;
-      if bComplexLine then
-      begin
-        nX1 := ColumnToXValue(nLineSelStart);
-        nX2 := ColumnToXValue(nLineSelEnd);
-        if (rcToken.Left < nX1) then
-        begin
-          SetDrawingColors(False);
-          rcToken.Right := nX1;
-          if (TokenAccu.Len > 0) and (TokenAccu.Style <> []) then
-            AdjustEndRect;
-          Canvas.FillRect(rcToken);
-          rcToken.Left := nX1;
-        end;
-        if (rcToken.Left < nX2) then
-        begin
-          SetDrawingColors(True);
-          rcToken.Right := nX2;
-          if (TokenAccu.Len > 0) and (TokenAccu.Style <> []) then
-            AdjustEndRect;
-          Canvas.FillRect(rcToken);
-          rcToken.Left := nX2;
-        end;
-        if (rcToken.Left < rcLine.Right) then
-        begin
-          SetDrawingColors(False);
-          rcToken.Right := rcLine.Right;
-          if (TokenAccu.Len > 0) and (TokenAccu.Style <> []) then
-            AdjustEndRect;
-          Canvas.FillRect(rcToken);
-        end;
-      end
-      else
-      begin
-        SetDrawingColors(bLineSelected);
-        rcToken.Right := rcLine.Right;
-        if (TokenAccu.Len > 0) and (TokenAccu.Style <> []) then
-          AdjustEndRect;
-        Canvas.FillRect(rcToken);
-      end;
-    end;
-  end;
-
-  // Store the token chars with the attributes in the TokenAccu
-  // record. This will paint any chars already stored if there is
-  // a (visible) change in the attributes.
-  procedure AddHighlightToken(const Token: UnicodeString;
-    CharsBefore, TokenLen: Integer; Foreground, Background: TColor;
-    Style: TFontStyles);
-  var
-    bCanAppend: Boolean;
-    bSpacesTest, bIsSpaces: Boolean;
-    I: Integer;
-
-    function TokenIsSpaces: Boolean;
-    var
-      pTok: PWideChar;
-    begin
-      if not bSpacesTest then
-      begin
-        bSpacesTest := True;
-        pTok := PWideChar(Token);
-        while pTok^ <> #0 do
-        begin
-          if pTok^ <> #32 then
-            break;
-          Inc(pTok);
-        end;
-        bIsSpaces := pTok^ = #0;
-      end;
-      Result := bIsSpaces;
-    end;
-
-  begin
-    if (Background = clNone) or ((ActiveLineColor <> clNone) and (bCurrentLine))
-    then
-    begin
-      Background := colEditorBG;
-    end;
-    if Foreground = clNone then
-      Foreground := Font.Color;
-    // Do we have to paint the old chars first, or can we just append?
-    bCanAppend := False;
-    bSpacesTest := False;
-    if (TokenAccu.Len > 0) then
-    begin
-      // font style must be the same or token is only spaces
-      if (TokenAccu.Style = Style) or
-        (not(fsUnderline in Style) and not(fsUnderline in TokenAccu.Style) and
-        TokenIsSpaces) then
-      begin
-        // either special colors or same colors
-        if (bSpecialLine and not(eoSpecialLineDefaultFg in fOptions)) or
-          bLineSelected or
-        // background color must be the same and
-          ((TokenAccu.BG = Background) and
-          // foreground color must be the same or token is only spaces
-          ((TokenAccu.FG = Foreground) or TokenIsSpaces)) then
-        begin
-          bCanAppend := True;
-        end;
-      end;
-      // If we can't append it, then we have to paint the old token chars first.
-      if not bCanAppend then
-        PaintHighlightToken(False);
-    end;
-    // Don't use AppendStr because it's more expensive.
-    if bCanAppend then
-    begin
-      if (TokenAccu.Len + TokenLen > TokenAccu.MaxLen) then
-      begin
-        TokenAccu.MaxLen := TokenAccu.Len + TokenLen + 32;
-        SetLength(TokenAccu.S, TokenAccu.MaxLen);
-      end;
-      for I := 1 to TokenLen do
-        TokenAccu.S[TokenAccu.Len + I] := Token[I];
-      Inc(TokenAccu.Len, TokenLen);
-    end
-    else
-    begin
-      TokenAccu.Len := TokenLen;
-      if (TokenAccu.Len > TokenAccu.MaxLen) then
-      begin
-        TokenAccu.MaxLen := TokenAccu.Len + 32;
-        SetLength(TokenAccu.S, TokenAccu.MaxLen);
-      end;
-      for I := 1 to TokenLen do
-        TokenAccu.S[I] := Token[I];
-      TokenAccu.CharsBefore := CharsBefore;
-      TokenAccu.FG := Foreground;
-      TokenAccu.BG := Background;
-      TokenAccu.Style := Style;
-    end;
-  end;
-
-  procedure PaintLines;
-  var
-    nLine: Integer; // line index for the loop
-    cRow: Integer;
-    sLine: UnicodeString; // the current line (tab expanded)
-    sLineExpandedAtWideGlyphs: UnicodeString;
-    sToken: UnicodeString; // highlighter token info
-    nTokenPos, nTokenLen: Integer;
-    attr: TSynHighlighterAttributes;
-    vAuxPos: TDisplayCoord;
-    vFirstChar: Integer;
-    vLastChar: Integer;
-    vStartRow: Integer;
-    vEndRow: Integer;
-
-    // ### Code Folding ###
-    I, FoldCount, X, Y, ScrolledXBy: Integer;
-    FoldRange: TSynEditFoldRange;
-    rcCollapseMark: TRect;
-    // ### End Code Folding ###
-  begin
-    // Initialize rcLine for drawing. Note that Top and Bottom are updated
-    // inside the loop. Get only the starting point for this.
-    rcLine := AClip;
-    //rcLine.Left := Width - FMinimap.Width;
-    rcLine.Bottom := (aFirstRow - TopLine) * fTextDrawer.CharHeight;
-
-    // ### Code Folding ###
-    // if fCodeFolding.Enabled then
-    FoldRange := nil;
-    // ### End Code Folding ###
-
-    // Make sure the token accumulator string doesn't get reassigned to often.
-    if Assigned(fHighlighter) then
-    begin
-      TokenAccu.MaxLen := Max(128, fCharsInWindow);
-      SetLength(TokenAccu.S, TokenAccu.MaxLen);
-    end;
-
-    // ### Code Folding ###
-    // Calculate indent guides positions
-    ScrolledXBy := (LeftChar - 1) * fTextDrawer.CharWidth;
+    ScrolledXBy := (LeftChar - 1) * FTextDrawer.CharWidth;
     // ### End Code Folding ###
 
     // Now loop through all the lines. The indices are valid for Lines.
@@ -5381,7 +4366,10 @@ var
 
         // Update the rcLine rect to this line.
         rcLine.Top := rcLine.Bottom;
-        Inc(rcLine.Bottom, fTextDrawer.CharHeight);
+        if Minimap then
+          Inc(rcLine.Bottom, FTextDrawer.CharHeight)
+        else
+          Inc(rcLine.Bottom, LineHeight);
 
         bLineSelected := not bComplexLine and (nLineSelStart > 0);
         rcToken := rcLine;
@@ -5505,7 +4493,7 @@ var
             // else
             // FoldRange.HintMarkLeft := ((nTokenPos + nTokenLen) * CharWidth)
             FoldRange.HintMarkLeft :=
-              ((nTokenPos { + nTokenLen } - 5) * fTextDrawer.CharWidth)
+              ((nTokenPos { + nTokenLen } - 5) * FTextDrawer.CharWidth)
             // ###mod pos of [...] to left
             // + Gutter.LeftOffset + Gutter.RightOffset;
               + fGutter.Width + 2;
@@ -5522,11 +4510,11 @@ var
               Canvas.FrameRect(rcCollapseMark);
               Y := rcCollapseMark.Top +
                 (((rcCollapseMark.Bottom - rcCollapseMark.Top) div 5) * 3);
-              X := rcCollapseMark.Left + fTextDrawer.CharWidth - 2;
+              X := rcCollapseMark.Left + FTextDrawer.CharWidth - 2;
               Canvas.Rectangle(X, Y, X + 2, Y + 2);
-              X := rcCollapseMark.Left + ((fCharWidth * 3) div 2) - 1;
+              X := rcCollapseMark.Left + ((FTextDrawer.CharWidth * 3) div 2) - 1;
               Canvas.Rectangle(X, Y, X + 2, Y + 2);
-              X := rcCollapseMark.Right - fTextDrawer.CharWidth;
+              X := rcCollapseMark.Right - FTextDrawer.CharWidth;
               Canvas.Rectangle(X, Y, X + 2, Y + 2);
             end;
 
@@ -5560,7 +4548,7 @@ var
                 and (ToLine > nLine) then
               begin
                 Y := rcLine.Top;
-                X := GetLineIndentChars(Lines, FromLine - 1) * fTextDrawer.CharWidth;
+                X := GetLineIndentChars(Lines, FromLine - 1) * FTextDrawer.CharWidth;
                 // Level * CharWidth * TabWidth;  //###mod IndentGuides calculation fix
 
                 // if fHighlightedFoldRange <> fAllFoldRanges[i] then
@@ -5585,7 +4573,8 @@ var
                   Canvas.LineTo(X, rcLine.Bottom);
                   Canvas.Pen.Color := tmpColor;
 
-                  if fTextDrawer.CharHeight mod 2 = 0 then
+                  if (not Minimap) and (LineHeight mod 2 = 0) or
+                     Minimap and (FTextDrawer.CharHeight mod 2 = 0) then
                     while Y < rcLine.Bottom do
                     begin
                       Canvas.MoveTo(X, Y);
@@ -5623,7 +4612,14 @@ var
           Canvas.Pen.Color := OldColor;
         end;
         // ### End Code Folding ###
-        
+        // Now paint the right edge if necessary. We do it line by line to reduce
+        // the flicker. Should not cost very much anyway, compared to the many
+        // calls to ExtTextOutW.
+        if bDoRightEdge then
+        begin
+          Canvas.MoveTo(nRightEdge, rcLine.Top);
+          Canvas.LineTo(nRightEdge, rcLine.Bottom + 1);
+        end;
       end; // endfor cRow
       bCurrentLine := False;
     end; // endfor cLine
@@ -5639,17 +4635,41 @@ begin
   // If the right edge is visible and in the invalid area, prepare to paint it.
   // Do this first to realize the pen when getting the dc variable.
   SynTabGlyphString := SynTabGlyph;
-
+  bDoRightEdge := False;
+  if fRightEdge.Visible and (fRightEdge.Position > 0) then
+  begin // column value
+    nRightEdge := fTextOffset + fRightEdge.Position * FTextDrawer.CharWidth; // pixel value
+    if (nRightEdge >= AClip.Left) and (nRightEdge <= AClip.Right) then
+    begin
+      bDoRightEdge := True;
+      Canvas.Pen.Color := fRightEdge.Color;
+      Canvas.Pen.Width := 1;
+    end;
+  end;
   // Do everything else with API calls. This (maybe) realizes the new pen color.
   dc := Canvas.Handle;
-
+  // If anything of the two pixel space before the text area is visible, then
+  // fill it with the component background color.
+{  if (AClip.Left < fGutter.Width + 2) then
+  begin
+    rcToken := AClip;
+    rcToken.Left := Max(AClip.Left, fGutter.Width);
+    rcToken.Right := fGutter.Width + 2;
+    // Paint whole left edge of the text with same color.
+    // (value of WhiteAttribute can vary in e.g. MultiSyn)
+    if Highlighter <> nil then
+      Highlighter.ResetRange;
+    Canvas.Brush.Color := colEditorBG;
+    Canvas.FillRect(rcToken);
+    // Adjust the invalid area to not include this area.
+    AClip.Left := rcToken.Right;
+  end;  }
   // Paint the visible text lines. To make this easier, compute first the
   // necessary information about the selected area: is there any visible
   // selected area, and what are its lines / columns?
   if (vLastLine >= vFirstLine) then
   begin
     ComputeSelectionInfo;
-    fTextDrawer.Style := FMinimap.Font.Style;
 
     fTextDrawer.BeginDrawing(dc);
     try
@@ -5658,8 +4678,23 @@ begin
       fTextDrawer.EndDrawing;
     end;
   end;
+  // If there is anything visible below the last line, then fill this as well.
+  rcToken := AClip;
+  rcToken.Top := (aLastRow - TopLine + 1) * LineHeight;
+  if (rcToken.Top < rcToken.Bottom) then
+  begin
+    if Highlighter <> nil then
+      Highlighter.ResetRange;
+    Canvas.Brush.Color := colEditorBG;
+    Canvas.FillRect(rcToken);
+    // Draw the right edge if necessary.
+    if bDoRightEdge then
+    begin
+      Canvas.MoveTo(nRightEdge, rcToken.Top);
+      Canvas.LineTo(nRightEdge, rcToken.Bottom + 1);
+    end;
+  end;
 end;
-
 
 procedure TCustomSynEdit.PasteFromClipboard;
 var
@@ -6070,15 +5105,17 @@ begin
       begin
         r := Rect(0, LineHeight * (fLastDisplayY - TopLine), ClientWidth,
           LineHeight * (fLastDisplayY - TopLine + 1));
-        if fActiveLine.Indicator.Glyph.Empty or not fActiveLine.Indicator.Visible
-        then
+        if fActiveLine.Indicator.Glyph.Empty or not fActiveLine.Indicator.Visible then
           r.Left := fGutter.Width;
+        if FMinimap.Visible then
+          Dec(r.Right, FMinimap.Width);
         InvalidateRect(r, False);
         r := Rect(0, LineHeight * (DisplayY - TopLine), ClientWidth,
           LineHeight * (DisplayY - TopLine + 1));
-        if fActiveLine.Indicator.Glyph.Empty or not fActiveLine.Indicator.Visible
-        then
+        if fActiveLine.Indicator.Glyph.Empty or not fActiveLine.Indicator.Visible then
           r.Left := fGutter.Width;
+        if FMinimap.Visible then
+          Dec(r.Right, FMinimap.Width);
         InvalidateRect(r, False);
       end;
       // Call UpdateLastCaretX before DecPaintLock because the event handler it
@@ -12548,9 +11585,9 @@ begin //
       MinimapWidth := 0;
       if FMinimap.Visible then
         MinimapWidth := FMinimap.Width;
-      fCharsInWindow := Max(ClientWidth - fGutter.Width - 2 - MinimapWidth, 0)
-        div fCharWidth;
+      fCharsInWindow := Max(ClientWidth - fGutter.Width - 2 - MinimapWidth, 0) div fCharWidth;
       fLinesInWindow := ClientHeight div LineHeight;
+      FMinimap.LinesInWindow := ClientHeight div FMinimap.CharHeight;
       if GetWordWrap then
       begin
         fWordWrapPlugin.DisplayChanged;
@@ -12819,6 +11856,10 @@ begin //
         fCharWidth := Max(fCharWidth, fTextDrawer.CharWidth);
       end;
     Inc(fTextHeight, ExtraLineSpacing);
+    fTextDrawer.BaseFont := FMinimap.Font;
+    fTextDrawer.BaseStyle := FMinimap.Font.Style;
+    FMinimap.CharHeight := fTextDrawer.CharHeight;
+    FMinimap.CharWidth := fTextDrawer.CharWidth;
   end;
 
   procedure TCustomSynEdit.HighlighterAttrChanged(Sender: TObject);
@@ -13764,8 +12805,7 @@ begin //
   var
     rcInval: TRect;
   begin
-    if (not HandleAllocated) or (Line < 1) or (Line > Lines.Count) or
-      (not Visible) then
+    if (not HandleAllocated) or (Line < 1) or (Line > Lines.Count) or (not Visible) then
       Exit;
 
     if GetWordWrap then
@@ -13777,9 +12817,10 @@ begin //
     if (Line >= TopLine) and (Line <= TopLine + LinesInWindow) then
     begin
       // invalidate text area of this line
-      rcInval := Rect(fGutter.Width, LineHeight *
-        (Line - TopLine), ClientWidth, 0);
+      rcInval := Rect(fGutter.Width, LineHeight * (Line - TopLine), ClientWidth, 0);
       rcInval.Bottom := rcInval.Top + LineHeight;
+      if FMinimap.Visible then
+        Dec(rcInval.Right, FMinimap.Width);
       if sfLinesChanging in fStateFlags then
         UnionRect(fInvalidateRect, fInvalidateRect, rcInval)
       else

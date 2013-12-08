@@ -106,6 +106,10 @@ type
     FFont: TFont;
     FWidth: Integer;
     FVisible: Boolean;
+    FCharWidth: Integer;
+    FCharHeight: Integer;
+    FLinesInWindow: Integer;
+    FTopLine: Integer;
     procedure SetFont(Value: TFont);
     procedure SetWidth(Value: integer);
     procedure SetVisible(Value: Boolean);
@@ -114,10 +118,14 @@ type
     constructor Create;
     destructor Destroy; override;
   published
-    property Font: TFont read fFont write SetFont;
-    property Width: integer read fWidth write SetWidth default 160;
-    property Visible: boolean read fVisible write SetVisible default False;
-    property OnChange: TNotifyEvent read fOnChange write fOnChange;
+    property Font: TFont read FFont write SetFont;
+    property Width: Integer read FWidth write SetWidth default 160;
+    property Visible: Boolean read FVisible write SetVisible default False;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+    property CharWidth: Integer read FCharWidth write FCharWidth;
+    property CharHeight: Integer read FCharHeight write FCharHeight;
+    property LinesInWindow: Integer read FLinesInWindow write FLinesInWindow;
+    property TopLine: Integer read FTopLine write FTopLine default 1;
   end;
 
   TSynGutterBorderStyle = (gbsNone, gbsMiddle, gbsRight);
@@ -2852,6 +2860,8 @@ begin
 
   FVisible := False;
   FWidth := 100;
+
+  FTopLine := 1;
 end;
 
 destructor TSynMinimap.Destroy;
