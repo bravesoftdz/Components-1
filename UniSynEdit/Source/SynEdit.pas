@@ -513,7 +513,7 @@ type
 {$ENDIF}
     FWindowProducedMessage: Boolean;
 
-    procedure CheckRect(var Rect: TRect);
+    procedure DeflateMinimapRect(var Rect: TRect);
     function ExtraLineSpacing: Integer;
     procedure SetLineSpacing(const Value: Integer);
     procedure SetLineSpacingRule(const Value: TLineSpacingRule);
@@ -1269,7 +1269,7 @@ begin
     Exit;
   end;
   iScrollBounds := Bounds(0, 0, fCharsInWindow * fCharWidth, fLinesInWindow * LineHeight);
-  CheckRect(iScrollBounds);
+  DeflateMinimapRect(iScrollBounds);
 
   if BorderStyle = bsNone then
     InflateRect(iScrollBounds, -2, -2);
@@ -2131,10 +2131,10 @@ begin
     end;
 end;
 
-procedure TCustomSynEdit.CheckRect(var Rect: TRect);
+procedure TCustomSynEdit.DeflateMinimapRect(var Rect: TRect);
 begin
-  if FGutter.Visible then
-    Rect.Left := FGutter.Width;
+  // FGutter.Visible then
+  //  Rect.Left := FGutter.Width;
   if FMinimap.Visible then
     Rect.Right := ClientRect.Width - FMinimap.Width;
 end;
@@ -2148,7 +2148,7 @@ begin
     if (FirstLine = -1) and (LastLine = -1) then
     begin
       rcInval := ClientRect;
-      CheckRect(rcInval);
+      DeflateMinimapRect(rcInval);
       if sfLinesChanging in fStateFlags then
         UnionRect(fInvalidateRect, fInvalidateRect, rcInval)
       else
@@ -2183,7 +2183,7 @@ begin
       if (LastLine >= FirstLine) then
       begin
         rcInval := Rect(0, LineHeight * (FirstLine - TopLine), ClientWidth, LineHeight * (LastLine - TopLine + 1));
-        CheckRect(rcInval);
+        DeflateMinimapRect(rcInval);
         if sfLinesChanging in fStateFlags then
           UnionRect(fInvalidateRect, fInvalidateRect, rcInval)
         else
@@ -3027,7 +3027,7 @@ begin
   HideCaret;
   try
     // First paint the gutter area if it was (partly) invalidated.
-    if (rcClip.Left < fGutter.Width) then
+    if (rcClip.Left <= fGutter.Width) then
     if FGutter.Visible then
     begin
       rcDraw := rcClip;
@@ -3036,10 +3036,10 @@ begin
     end;
 
     // Then paint the text area if it was (partly) invalidated.
-    if (rcClip.Right > fGutter.Width) then
+    if (rcClip.Right >= fGutter.Width) then
     begin
       rcDraw := rcClip;
-      CheckRect(rcDraw);
+      DeflateMinimapRect(rcDraw);
       fTextDrawer.SetBaseFont(Font);
       fTextDrawer.Style := Font.Style;
       PaintTextLines(rcDraw, nL1, nL2, nC1, nC2, False);
@@ -3141,7 +3141,7 @@ begin
 
     // Paint minimap text lines
     if FMinimap.Visible then
-      if (rcClip.Right > ClientRect.Width - FMinimap.Width) then
+      if (rcClip.Right >= ClientRect.Width - FMinimap.Width) then
       begin
         rcDraw := rcClip;
         rcDraw.Left := ClientRect.Width - FMinimap.Width;
@@ -3767,21 +3767,21 @@ var
   procedure SetDrawingColors(Selected: Boolean);
   begin
     with fTextDrawer do
-      if Selected then
-      begin
-        SetBackColor(colSelBG);
-        SetForeColor(colSelFG);
-        Canvas.Brush.Color := colSelBG;
-      end
-      else
-      begin
-        SetBackColor(colBG);
-        SetForeColor(colFG);
-        Canvas.Brush.Color := colBG;
-        if Minimap then
-          if (CurrentLine >= TopLine) and (CurrentLine <= TopLine + LinesInWindow) then
-            Canvas.Brush.Color := FActiveLineColor
-      end;
+    if Selected then
+    begin
+      SetBackColor(colSelBG);
+      SetForeColor(colSelFG);
+      Canvas.Brush.Color := colSelBG;
+    end
+    else
+    begin
+      SetBackColor(colBG);
+      SetForeColor(colFG);
+      Canvas.Brush.Color := colBG;
+    end;
+    if Minimap then
+      if (CurrentLine >= TopLine) and (CurrentLine < TopLine + LinesInWindow) then
+        Canvas.Brush.Color := FActiveLineColor
   end;
 
   function ColumnToXValue(Col: Integer): Integer;
@@ -4034,7 +4034,7 @@ var
         colFG := TokenAccu.FG;
 
       if Minimap then
-        if (CurrentLine >= TopLine) and (CurrentLine <= TopLine + LinesInWindow) then
+        if (CurrentLine >= TopLine) and (CurrentLine < TopLine + LinesInWindow) then
           colBG := FActiveLineColor;
 
       fTextDrawer.SetStyle(TokenAccu.Style);
@@ -4082,6 +4082,9 @@ var
         colBG := colEditorBG;
         colFG := colEditorFG;
       end;
+      if Minimap then
+        if (CurrentLine >= TopLine) and (CurrentLine < TopLine + LinesInWindow) then
+          colBG := FActiveLineColor;
       if bComplexLine then
       begin
         nX1 := ColumnToXValue(nLineSelStart);
@@ -4159,6 +4162,7 @@ var
       Background := colEditorBG;
     if Foreground = clNone then
       Foreground := Font.Color;
+
     // Do we have to paint the old chars first, or can we just append?
     bCanAppend := False;
     bSpacesTest := False;
@@ -4278,6 +4282,7 @@ var
       // use special values for them.
       colFG := Font.Color;
       colBG := colEditorBG;
+
       bSpecialLine := DoOnSpecialLineColors(nLine, colFG, colBG);
       if bSpecialLine then
       begin
@@ -4606,7 +4611,7 @@ var
         // Now paint the right edge if necessary. We do it line by line to reduce
         // the flicker. Should not cost very much anyway, compared to the many
         // calls to ExtTextOutW.
-        if bDoRightEdge then
+        if not Minimap and bDoRightEdge then
         begin
           Canvas.MoveTo(nRightEdge, rcLine.Top);
           Canvas.LineTo(nRightEdge, rcLine.Bottom + 1);
@@ -4627,16 +4632,17 @@ begin
   // Do this first to realize the pen when getting the dc variable.
   SynTabGlyphString := SynTabGlyph;
   bDoRightEdge := False;
-  if fRightEdge.Visible and (fRightEdge.Position > 0) then
-  begin // column value
-    nRightEdge := fTextOffset + fRightEdge.Position * FTextDrawer.CharWidth; // pixel value
-    if (nRightEdge >= AClip.Left) and (nRightEdge <= AClip.Right) then
-    begin
-      bDoRightEdge := True;
-      Canvas.Pen.Color := fRightEdge.Color;
-      Canvas.Pen.Width := 1;
+  if not Minimap then
+    if fRightEdge.Visible and (fRightEdge.Position > 0) then
+    begin // column value
+      nRightEdge := fTextOffset + fRightEdge.Position * FTextDrawer.CharWidth; // pixel value
+      if (nRightEdge >= AClip.Left) and (nRightEdge <= AClip.Right) then
+      begin
+        bDoRightEdge := True;
+        Canvas.Pen.Color := fRightEdge.Color;
+        Canvas.Pen.Width := 1;
+      end;
     end;
-  end;
   // Do everything else with API calls. This (maybe) realizes the new pen color.
   dc := Canvas.Handle;
   // If anything of the two pixel space before the text area is visible, then
@@ -4671,6 +4677,7 @@ begin
   end;
   // If there is anything visible below the last line, then fill this as well.
   rcToken := AClip;
+
   if Minimap then
     rcToken.Top := (aLastRow - FMinimap.TopLine + 1) * FTextDrawer.CharHeight
   else
@@ -4682,7 +4689,7 @@ begin
     Canvas.Brush.Color := colEditorBG;
     Canvas.FillRect(rcToken);
     // Draw the right edge if necessary.
-    if bDoRightEdge then
+    if not Minimap and bDoRightEdge then
     begin
       Canvas.MoveTo(nRightEdge, rcToken.Top);
       Canvas.LineTo(nRightEdge, rcToken.Bottom + 1);
@@ -5095,20 +5102,22 @@ begin
       end;
       {if (fLastDisplayY <> DisplayY) and fActiveLine.Visible then
       begin
-        r := Rect(0, LineHeight * (DisplayY - TopLine), ClientWidth, LineHeight * (DisplayY - TopLine + 1));
-        if fActiveLine.Indicator.Glyph.Empty or not fActiveLine.Indicator.Visible then
-          r.Left := fGutter.Width;
-        if FMinimap.Visible then
-          Dec(r.Right, FMinimap.Width);
-        InvalidateRect(r, False);
+        rcInval := Rect(0, LineHeight * (DisplayY - TopLine), ClientWidth, LineHeight * (DisplayY - TopLine + 1));
+        //if fActiveLine.Indicator.Glyph.Empty or not fActiveLine.Indicator.Visible then
+        //  r.Left := fGutter.Width;
+        //if FMinimap.Visible then
+        //  Dec(r.Right, FMinimap.Width);
+        DeflateMinimapRect(rcInval);
+        InvalidateRect(rcInval, False);
 
-        r := Rect(0, LineHeight * (fLastDisplayY - TopLine), ClientWidth, LineHeight * (fLastDisplayY - TopLine + 1));
-        if fActiveLine.Indicator.Glyph.Empty or not fActiveLine.Indicator.Visible then
-          r.Left := fGutter.Width;
-        if FMinimap.Visible then
-          Dec(r.Right, FMinimap.Width);
-        InvalidateRect(r, False);
-      end; }
+        rcInval := Rect(0, LineHeight * (fLastDisplayY - TopLine), ClientWidth, LineHeight * (fLastDisplayY - TopLine + 1));
+        //if fActiveLine.Indicator.Glyph.Empty or not fActiveLine.Indicator.Visible then
+        //  r.Left := fGutter.Width;
+        //if FMinimap.Visible then
+        //  Dec(r.Right, FMinimap.Width);
+        DeflateMinimapRect(rcInval);
+        InvalidateRect(rcInval, False);
+      end;}
       // Call UpdateLastCaretX before DecPaintLock because the event handler it
       // calls could raise an exception, and we don't want fLastCaretX to be
       // left in an undefined state if that happens.
@@ -5209,7 +5218,7 @@ var
   ButtonH: Integer;
   ScrollInfo: TScrollInfo;
 begin
-  //Invalidate;
+  Invalidate;
   case ScrollCode of
     // Scrolls to start / end of the text
     scTop:
@@ -5233,10 +5242,12 @@ begin
       begin
         FIsScrolling := True;
         if DisplayLineCount > MAX_SCROLL then
-          TopLine := MulDiv(LinesInWindow + DisplayLineCount - 1, Pos,
-            MAX_SCROLL)
+          TopLine := MulDiv(LinesInWindow + DisplayLineCount - 1, Pos, MAX_SCROLL)
         else
           TopLine := Pos;
+
+        if FMinimap.Visible then
+          FMinimap.TopLine := Pos - Trunc((FMinimap.LinesInWindow - LinesInWindow) * (Pos / DisplayLineCount));
 
         if eoShowScrollHint in fOptions then
         begin
@@ -7104,7 +7115,7 @@ begin //
       if Abs(iDelta) < CharsInWindow then
       begin
         iTextArea := ClientRect;
-        CheckRect(iTextArea);
+        DeflateMinimapRect(iTextArea);
         ScrollWindow(Handle, iDelta * CharWidth, 0, @iTextArea, @iTextArea);
       end
       else
@@ -7676,7 +7687,7 @@ begin //
       Delta := TopLine - Value;
       fTopLine := Value;
       iClientRect := ClientRect;
-      CheckRect(iClientRect);
+      DeflateMinimapRect(iClientRect);
       if Abs(Delta) < fLinesInWindow then
         ScrollWindow(Handle, 0, LineHeight * Delta, @iClientRect, @iClientRect)
       else
@@ -7716,7 +7727,7 @@ begin //
       cx := vCaretPix.X + fCaretOffset.X;
       cy := vCaretPix.Y + fCaretOffset.Y;
       iClientRect := ClientRect;
-      CheckRect(iClientRect);
+      DeflateMinimapRect(iClientRect);
 
       if (cx >= iClientRect.Left) and (cx < iClientRect.Right) and
         (cy >= iClientRect.Top) and (cy < iClientRect.Bottom) then
@@ -11620,11 +11631,11 @@ begin //
           if (fLastDisplayY <> DisplayY) and fActiveLine.Visible then
           begin
             rcInval := Rect(0, LineHeight * (fLastDisplayY - TopLine), ClientWidth, LineHeight * (fLastDisplayY - TopLine + 1));
-            CheckRect(rcInval);
+            DeflateMinimapRect(rcInval);
             InvalidateRect(rcInval, False);
 
             rcInval := Rect(0, LineHeight * (DisplayY - TopLine), ClientWidth, LineHeight * (DisplayY - TopLine + 1));
-            CheckRect(rcInval);
+            DeflateMinimapRect(rcInval);
             InvalidateRect(rcInval, False);
           end;
           if GetWrapAtColumn > fCharsInWindow then
@@ -11652,11 +11663,11 @@ begin //
           if (fLastDisplayY <> DisplayY) and fActiveLine.Visible then
           begin
             rcInval := Rect(0, LineHeight * (fLastDisplayY - TopLine), ClientWidth, LineHeight * (fLastDisplayY - TopLine + 1));
-            CheckRect(rcInval);
+            DeflateMinimapRect(rcInval);
             InvalidateRect(rcInval, False);
 
             rcInval := Rect(0, LineHeight * (DisplayY - TopLine), ClientWidth, LineHeight * (DisplayY - TopLine + 1));
-            CheckRect(rcInval);
+            DeflateMinimapRect(rcInval);
             InvalidateRect(rcInval, False);
           end;
           if (InsertMode and (fInsertCaret <> ctVerticalLine)) or
@@ -12807,8 +12818,8 @@ begin //
       // invalidate text area of this line
       rcInval := Rect(0, LineHeight * (Line - TopLine), ClientWidth, 0);
       rcInval.Bottom := rcInval.Top + LineHeight;
-      CheckRect(rcInval);
-      rcInval.Left := 0;
+      DeflateMinimapRect(rcInval);
+      //rcInval.Left := 0;
       if sfLinesChanging in fStateFlags then
         UnionRect(fInvalidateRect, fInvalidateRect, rcInval)
       else
