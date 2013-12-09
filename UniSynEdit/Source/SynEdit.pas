@@ -2864,9 +2864,37 @@ begin
 end;
 
 procedure TCustomSynEdit.DoOnMinimapClick(Button: TMouseButton; X, Y: Integer);
+var
+  NewLine, PreviousLine: Integer;
 begin
-  CaretX := 1; //PixelsToMinimapRowColumn(X, Y).Column;
-  TopLine := PixelsToMinimapRowColumn(X, Y).Row;
+  PreviousLine := -1;
+  NewLine := PixelsToMinimapRowColumn(X, Y).Row;
+
+  if (NewLine < TopLine) or (NewLine > TopLine + LinesInWindow) then
+  begin
+    NewLine := NewLine - LinesInWindow div 2;
+    if NewLine < TopLine then
+      while NewLine < TopLine do
+      begin
+        TopLine := TopLine - 1;
+        if TopLine <> PreviousLine then
+          PreviousLine := TopLine
+        else
+          Break;
+      end
+    else
+      while NewLine > TopLine do
+      begin
+        TopLine := TopLine + 1;
+        if TopLine <> PreviousLine then
+          PreviousLine := TopLine
+        else
+          Break;
+      end;
+    CaretY := NewLine + LinesInWindow div 2;
+  end
+  else
+    CaretY := NewLine;
 end;
 
 procedure TCustomSynEdit.DoOnGutterClick(Button: TMouseButton; X, Y: Integer);
