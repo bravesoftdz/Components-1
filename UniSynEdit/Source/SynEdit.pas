@@ -513,6 +513,7 @@ type
 {$ENDIF}
     FWindowProducedMessage: Boolean;
 
+    procedure CheckRect(var Rect: TRect);
     function ExtraLineSpacing: Integer;
     procedure SetLineSpacing(const Value: Integer);
     procedure SetLineSpacingRule(const Value: TLineSpacingRule);
@@ -1267,13 +1268,8 @@ begin
     fScrollTimer.Enabled := False;
     Exit;
   end;
-  iScrollBounds := Bounds(0, 0, fCharsInWindow * fCharWidth,
-    fLinesInWindow * LineHeight);
-
-  if FGutter.Visible then
-    Inc(iScrollBounds.Left, FGutter.Width);
-  if FMinimap.Visible then
-    Dec(iScrollBounds.Right, FMinimap.Width);
+  iScrollBounds := Bounds(0, 0, fCharsInWindow * fCharWidth, fLinesInWindow * LineHeight);
+  CheckRect(iScrollBounds);
 
   if BorderStyle = bsNone then
     InflateRect(iScrollBounds, -2, -2);
@@ -2135,6 +2131,14 @@ begin
     end;
 end;
 
+procedure TCustomSynEdit.CheckRect(var Rect: TRect);
+begin
+  if FGutter.Visible then
+    Rect.Left := FGutter.Width;
+  if FMinimap.Visible then
+    Rect.Right := ClientRect.Width - FMinimap.Width;
+end;
+
 procedure TCustomSynEdit.InvalidateLines(FirstLine, LastLine: Integer);
 // note: FirstLine and LastLine don't need to be in correct order
 var
@@ -2144,10 +2148,7 @@ begin
     if (FirstLine = -1) and (LastLine = -1) then
     begin
       rcInval := ClientRect;
-      if FGutter.Visible then
-        Inc(rcInval.Left, fGutter.Width);
-      if FMinimap.Visible then
-        Dec(rcInval.Right, FMinimap.Width);
+      CheckRect(rcInval);
       if sfLinesChanging in fStateFlags then
         UnionRect(fInvalidateRect, fInvalidateRect, rcInval)
       else
@@ -2182,10 +2183,7 @@ begin
       if (LastLine >= FirstLine) then
       begin
         rcInval := Rect(0, LineHeight * (FirstLine - TopLine), ClientWidth, LineHeight * (LastLine - TopLine + 1));
-        if FGutter.Visible then
-          Inc(rcInval.Left, fGutter.Width);
-        if FMinimap.Visible then
-          Dec(rcInval.Right, FMinimap.Width);
+        CheckRect(rcInval);
         if sfLinesChanging in fStateFlags then
           UnionRect(fInvalidateRect, fInvalidateRect, rcInval)
         else
@@ -2450,7 +2448,7 @@ end;
 
 function TCustomSynEdit.IsNotOverMinimap(X: Integer): Boolean;
 begin
-  Result := not FMinimap.Visible or FMinimap.Visible and (X < GetClientRect.Right - FMinimap.Width)
+  Result := not FMinimap.Visible or FMinimap.Visible and (X < ClientRect.Width - FMinimap.Width)
 end;
 
 procedure TCustomSynEdit.MouseDown(Button: TMouseButton; Shift: TShiftState;
@@ -2584,7 +2582,7 @@ begin
   if (sfPossibleGutterClick in fStateFlags) and (Button = mbRight) then
     DoOnGutterClick(Button, X, Y);
 
-  if FMinimap.Visible and (X > GetClientRect.Right - FMinimap.Width) then
+  if FMinimap.Visible and (X > ClientRect.Width - FMinimap.Width) then
     DoOnMinimapClick(Button, X, Y);
 
   SetFocus;
@@ -2622,7 +2620,7 @@ begin
   if Gutter.ShowBookmarks and (X < Gutter.BookmarkPanelWidth) then
     Exit;
 
-  if FMinimap.Visible and (X > GetClientRect.Right - FMinimap.Width) then
+  if FMinimap.Visible and (X > ClientRect.Width - FMinimap.Width) then
     Exit;
 
   inherited MouseMove(Shift, X, Y);
@@ -3011,8 +3009,7 @@ var
   Rect: TRect;
   FoldRange: TSynEditFoldRange;
   // ### End Code Folding ###
-//  BlendFunc: TBlendFunction;
-//  Bmp: Vcl.Graphics.TBitmap;
+
 begin
   // Get the invalidated rect. Compute the invalid area in lines / columns.
   rcClip := Canvas.ClipRect;
@@ -3025,12 +3022,13 @@ begin
   nC2 := LeftChar + (rcClip.Right - fGutter.Width - 2 + CharWidth - 1) div CharWidth;
   // lines
   nL1 := TopLine; //Max(TopLine + rcClip.Top div LineHeight, TopLine);
-  nL2 := TopLine + DisplayLineCount; //MinMax(TopLine + (rcClip.Bottom + LineHeight - 1) div LineHeight, 1, DisplayLineCount);
+  nL2 := TopLine + LinesInWindow; //MinMax(TopLine + (rcClip.Bottom + LineHeight - 1) div LineHeight, 1, DisplayLineCount);
   // Now paint everything while the caret is hidden.
   HideCaret;
   try
     // First paint the gutter area if it was (partly) invalidated.
     if (rcClip.Left < fGutter.Width) then
+    if FGutter.Visible then
     begin
       rcDraw := rcClip;
       rcDraw.Right := fGutter.Width;
@@ -3041,17 +3039,14 @@ begin
     if (rcClip.Right > fGutter.Width) then
     begin
       rcDraw := rcClip;
-      if FGutter.Visible then
-        Inc(rcDraw.Left, FGutter.Width);
-      if FMinimap.Visible then
-        Dec(rcDraw.Right, FMinimap.Width);
+      CheckRect(rcDraw);
       fTextDrawer.SetBaseFont(Font);
       fTextDrawer.Style := Font.Style;
       PaintTextLines(rcDraw, nL1, nL2, nC1, nC2, False);
     end;
 
     // ### Code Folding ###
-    if (CodeFolding.Enabled) and (Gutter.Visible) and (Lines.Count > 0) then
+    if (FCodeFolding.Enabled) and (FGutter.Visible) and (Lines.Count > 0) then
       for cLine := fTopLine to (fTopLine + fLinesInWindow) do
       begin
         // ### Change in 0.1.5 ###
@@ -3146,11 +3141,11 @@ begin
 
     // Paint minimap text lines
     if FMinimap.Visible then
-      if (rcClip.Right > fGutter.Width) then
+      if (rcClip.Right > ClientRect.Width - FMinimap.Width) then
       begin
         rcDraw := rcClip;
-        rcDraw.Left := rcDraw.Right - FMinimap.Width;
-        //Canvas.FillRect(rcDraw);
+        rcDraw.Left := ClientRect.Width - FMinimap.Width;
+
         fTextDrawer.SetBaseFont(FMinimap.Font);
         fTextDrawer.Style := FMinimap.Font.Style;
         FMinimap.CharWidth := fTextDrawer.CharWidth;
@@ -3792,7 +3787,7 @@ var
   function ColumnToXValue(Col: Integer): Integer;
   begin
     if Minimap then
-      Result := GetClientRect.Width - FMinimap.Width
+      Result := ClientRect.Width - FMinimap.Width
     else
       Result := fTextOffset;
 
@@ -5048,7 +5043,7 @@ procedure TCustomSynEdit.SetCaretXYEx(CallEnsureCursorPos: Boolean;
 var
   nMaxX: Integer;
   vTriggerPaint: Boolean;
-//  r: TRect;
+//  rcInval: TRect;
 begin
   fCaretAtEOL := False;
   vTriggerPaint := HandleAllocated;
@@ -5090,39 +5085,30 @@ begin
       end;
       if fCaretY <> Value.Line then
       begin
-        {if ActiveLineColor <> clNone then
+        if ActiveLineColor <> clNone then
         begin
-          InvalidateLine(Value.Line);
           InvalidateLine(fCaretY);
-        end; }
+          InvalidateLine(Value.Line);
+        end;
         fCaretY := Value.Line;
         Include(fStatusChanges, scCaretY);
-        {if ActiveLineColor <> clNone then
-        begin
-          //InvalidateLine(Value.Line);
-          //InvalidateLine(fCaretY);
-        end; }
       end;
       {if (fLastDisplayY <> DisplayY) and fActiveLine.Visible then
       begin
-        r := Rect(0, LineHeight * (DisplayY - TopLine), ClientWidth,
-          LineHeight * (DisplayY - TopLine + 1));
+        r := Rect(0, LineHeight * (DisplayY - TopLine), ClientWidth, LineHeight * (DisplayY - TopLine + 1));
         if fActiveLine.Indicator.Glyph.Empty or not fActiveLine.Indicator.Visible then
           r.Left := fGutter.Width;
         if FMinimap.Visible then
           Dec(r.Right, FMinimap.Width);
         InvalidateRect(r, False);
 
-        r := Rect(0, LineHeight * (fLastDisplayY - TopLine), ClientWidth,
-          LineHeight * (fLastDisplayY - TopLine + 1));
+        r := Rect(0, LineHeight * (fLastDisplayY - TopLine), ClientWidth, LineHeight * (fLastDisplayY - TopLine + 1));
         if fActiveLine.Indicator.Glyph.Empty or not fActiveLine.Indicator.Visible then
           r.Left := fGutter.Width;
         if FMinimap.Visible then
           Dec(r.Right, FMinimap.Width);
         InvalidateRect(r, False);
-
-
-      end;  }
+      end; }
       // Call UpdateLastCaretX before DecPaintLock because the event handler it
       // calls could raise an exception, and we don't want fLastCaretX to be
       // left in an undefined state if that happens.
@@ -7118,10 +7104,7 @@ begin //
       if Abs(iDelta) < CharsInWindow then
       begin
         iTextArea := ClientRect;
-        if FGutter.Visible then
-          Inc(iTextArea.Left, fGutter.Width);
-        if FMinimap.Visible then
-          Dec(iTextArea.Right, FMinimap.Width);
+        CheckRect(iTextArea);
         ScrollWindow(Handle, iDelta * CharWidth, 0, @iTextArea, @iTextArea);
       end
       else
@@ -7692,11 +7675,8 @@ begin //
     begin
       Delta := TopLine - Value;
       fTopLine := Value;
-      iClientRect := GetClientRect;
-      if FGutter.Visible then
-        Inc(iClientRect.Left, FGutter.Width);
-      if FMinimap.Visible then
-        Dec(iClientRect.Right, FMinimap.Width);
+      iClientRect := ClientRect;
+      CheckRect(iClientRect);
       if Abs(Delta) < fLinesInWindow then
         ScrollWindow(Handle, 0, LineHeight * Delta, @iClientRect, @iClientRect)
       else
@@ -7735,11 +7715,9 @@ begin //
       vCaretPix := RowColumnToPixels(vCaretDisplay);
       cx := vCaretPix.X + fCaretOffset.X;
       cy := vCaretPix.Y + fCaretOffset.Y;
-      iClientRect := GetClientRect;
-      if FGutter.Visible then
-        Inc(iClientRect.Left, FGutter.Width);
-      if FMinimap.Visible then
-        Dec(iClientRect.Right, FMinimap.Width);
+      iClientRect := ClientRect;
+      CheckRect(iClientRect);
+
       if (cx >= iClientRect.Left) and (cx < iClientRect.Right) and
         (cy >= iClientRect.Top) and (cy < iClientRect.Bottom) then
       begin
@@ -11579,14 +11557,17 @@ begin //
 
   procedure TCustomSynEdit.SizeOrFontChanged(bFont: Boolean);
   var
-    MinimapWidth: Integer;
+    MinimapWidth, GutterWidth: Integer;
   begin
     if HandleAllocated and (fCharWidth <> 0) then
     begin
       MinimapWidth := 0;
+      GutterWidth := 0;
       if FMinimap.Visible then
         MinimapWidth := FMinimap.Width;
-      fCharsInWindow := Max(ClientWidth - fGutter.Width - 2 - MinimapWidth, 0) div fCharWidth;
+      if FGutter.Visible then
+        GutterWidth := FGutter.Width;
+      fCharsInWindow := Max(ClientWidth - GutterWidth - 1 - MinimapWidth, 0) div fCharWidth;
       fLinesInWindow := ClientHeight div LineHeight;
       FMinimap.LinesInWindow := ClientHeight div FMinimap.CharHeight;
       if GetWordWrap then
@@ -11639,17 +11620,11 @@ begin //
           if (fLastDisplayY <> DisplayY) and fActiveLine.Visible then
           begin
             rcInval := Rect(0, LineHeight * (fLastDisplayY - TopLine), ClientWidth, LineHeight * (fLastDisplayY - TopLine + 1));
-            if FGutter.Visible then
-              Inc(rcInval.Left, fGutter.Width);
-            if FMinimap.Visible then
-              Dec(rcInval.Right, FMinimap.Width);
+            CheckRect(rcInval);
             InvalidateRect(rcInval, False);
 
             rcInval := Rect(0, LineHeight * (DisplayY - TopLine), ClientWidth, LineHeight * (DisplayY - TopLine + 1));
-            if FGutter.Visible then
-              Inc(rcInval.Left, fGutter.Width);
-            if FMinimap.Visible then
-              Dec(rcInval.Right, FMinimap.Width);
+            CheckRect(rcInval);
             InvalidateRect(rcInval, False);
           end;
           if GetWrapAtColumn > fCharsInWindow then
@@ -11677,17 +11652,11 @@ begin //
           if (fLastDisplayY <> DisplayY) and fActiveLine.Visible then
           begin
             rcInval := Rect(0, LineHeight * (fLastDisplayY - TopLine), ClientWidth, LineHeight * (fLastDisplayY - TopLine + 1));
-            if FGutter.Visible then
-              Inc(rcInval.Left, fGutter.Width);
-            if FMinimap.Visible then
-              Dec(rcInval.Right, FMinimap.Width);
+            CheckRect(rcInval);
             InvalidateRect(rcInval, False);
 
             rcInval := Rect(0, LineHeight * (DisplayY - TopLine), ClientWidth, LineHeight * (DisplayY - TopLine + 1));
-            if FGutter.Visible then
-              Inc(rcInval.Left, fGutter.Width);
-            if FMinimap.Visible then
-              Dec(rcInval.Right, FMinimap.Width);
+            CheckRect(rcInval);
             InvalidateRect(rcInval, False);
           end;
           if (InsertMode and (fInsertCaret <> ctVerticalLine)) or
@@ -12836,12 +12805,10 @@ begin //
     if (Line >= TopLine) and (Line <= TopLine + LinesInWindow) then
     begin
       // invalidate text area of this line
-      rcInval := Rect(fGutter.Width, LineHeight * (Line - TopLine), ClientWidth, 0);
+      rcInval := Rect(0, LineHeight * (Line - TopLine), ClientWidth, 0);
       rcInval.Bottom := rcInval.Top + LineHeight;
-      if FGutter.Visible then
-        Inc(rcInval.Left, FGutter.Width);
-      if FMinimap.Visible then
-        Dec(rcInval.Right, FMinimap.Width);
+      CheckRect(rcInval);
+      rcInval.Left := 0;
       if sfLinesChanging in fStateFlags then
         UnionRect(fInvalidateRect, fInvalidateRect, rcInval)
       else

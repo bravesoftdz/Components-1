@@ -1283,17 +1283,7 @@ begin
     rcSrc := Rect(0, aY, vGlyph.Width, aY + aLineHeight);
   end;
 
-{$IFDEF SYN_CLX}
-  if vMaskColor = clNone then
-    vGlyph.Transparent := False
-  else begin
-    vGlyph.TransparentColor := vMaskColor;
-    vGlyph.Transparent := True;
-  end;
-  aCanvas.CopyRect(rcDest, vGlyph.Canvas, rcSrc);
-{$ELSE}
   aCanvas.BrushCopy(rcDest, vGlyph, rcSrc, vMaskColor);
-{$ENDIF}
 end;
 
 procedure TSynGlyph.SetGlyph(Value: TBitmap);
@@ -1819,11 +1809,6 @@ var
   r: TRect;
 begin
   r := ClientRect;
-
-  {$IFDEF SYN_CLX}
-  QClxDrawUtil_DrawWinPanel(Canvas.Handle, @r, Palette.ColorGroup(cgActive), True,
-    QBrushH(0));
-  {$ENDIF}
 
   Canvas.Brush.Style := bsSolid;
   Canvas.Brush.Color := Color;
@@ -2662,7 +2647,7 @@ begin
   if Assigned(FOnChange) then OnChange(Self);
 end;
 
-procedure TSynEditBackground.Draw(Canvas : TCanvas; AbsRect, DestRect : TRect;
+procedure TSynEditBackground.Draw(Canvas: TCanvas; AbsRect, DestRect : TRect;
   Back: TColor);
 var
   A : TBitmap;
