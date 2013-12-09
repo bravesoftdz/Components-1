@@ -512,6 +512,7 @@ type
     SelLengthBeforeSearch: Integer;
 {$ENDIF}
     FWindowProducedMessage: Boolean;
+    FMinimapClicked: Boolean;
 
     procedure DeflateMinimapRect(var Rect: TRect);
     function ExtraLineSpacing: Integer;
@@ -2621,7 +2622,13 @@ begin
     Exit;
 
   if FMinimap.Visible and (X > ClientRect.Width - FMinimap.Width) then
+  begin
+    Cursor := crArrow;
+    if FMinimapClicked then
+      if (ssLeft in Shift) and MouseCapture then
+        TopLine := PixelsToMinimapRowColumn(X, Y).Row - LinesInWindow div 2;
     Exit;
+  end;
 
   inherited MouseMove(Shift, X, Y);
 
@@ -2630,7 +2637,7 @@ begin
     MouseAtRightEdge :=
       (Abs(RowColumnToPixels(DisplayCoord(fRightEdge.Position + 1, 0)).X
       - X) < 3);
-    If fRightEdgeMoving or MouseAtRightEdge then
+    if fRightEdgeMoving or MouseAtRightEdge then
       Cursor := crHSplit
     else
       Cursor := crIBeam;
@@ -2808,6 +2815,7 @@ procedure TCustomSynEdit.MouseUp(Button: TMouseButton; Shift: TShiftState;
 var
   Col: Integer;
 begin
+  FMinimapClicked := False;
   inherited MouseUp(Button, Shift, X, Y);
   fKbdHandler.ExecuteMouseUp(Self, Button, Shift, X, Y);
 
@@ -2870,13 +2878,15 @@ begin
   PreviousLine := -1;
   NewLine := PixelsToMinimapRowColumn(X, Y).Row;
 
-  if (NewLine < TopLine) or (NewLine > TopLine + LinesInWindow) then
+  if (NewLine > TopLine) and (NewLine < TopLine + LinesInWindow) then
+    FMinimapClicked := True
+  else
   begin
     NewLine := NewLine - LinesInWindow div 2;
     if NewLine < TopLine then
       while NewLine < TopLine do
       begin
-        TopLine := TopLine - 1;
+        TopLine := TopLine - 2;
         if TopLine <> PreviousLine then
           PreviousLine := TopLine
         else
@@ -2885,16 +2895,13 @@ begin
     else
       while NewLine > TopLine do
       begin
-        TopLine := TopLine + 1;
+        TopLine := TopLine + 2;
         if TopLine <> PreviousLine then
           PreviousLine := TopLine
         else
           Break;
       end;
-    CaretY := NewLine + LinesInWindow div 2;
-  end
-  else
-    CaretY := NewLine;
+  end;
 end;
 
 procedure TCustomSynEdit.DoOnGutterClick(Button: TMouseButton; X, Y: Integer);
@@ -3042,8 +3049,6 @@ var
 begin
   // Get the invalidated rect. Compute the invalid area in lines / columns.
   rcClip := Canvas.ClipRect;
-//  Canvas.Brush.Color := Color;
-//  Canvas.FillRect(rcClip);
   // columns
   nC1 := LeftChar;
   if (rcClip.Left > fGutter.Width + 2) then
@@ -11135,6 +11140,8 @@ begin //
 
   procedure TCustomSynEdit.MinimapChanged(Sender: TObject);
   begin
+    if DisplayLineCount > 0 then
+      FMinimap.TopLine := fTopLine - Trunc((FMinimap.LinesInWindow - LinesInWindow) * (fTopLine / DisplayLineCount));
     // ComputeScroll(CaretX, CaretY);
     SizeOrFontChanged(True);
     // UpdateCaret;
