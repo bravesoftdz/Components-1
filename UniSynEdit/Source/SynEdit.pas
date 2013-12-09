@@ -3185,7 +3185,7 @@ begin
         FMinimap.CharWidth := fTextDrawer.CharWidth;
         FMinimap.CharHeight := fTextDrawer.CharHeight;
 
-        nL1 := FMinimap.TopLine;
+        nL1 := Max(FMinimap.TopLine, 1);
         nL2 := RowToLine(nL1 + (rcClip.Height div fTextDrawer.CharHeight) - 1);
         nC1 := 1;
         nC2 := FMinimap.Width div fTextDrawer.CharWidth;
@@ -7718,7 +7718,7 @@ begin //
       Delta := TopLine - Value;
       fTopLine := Value;
       if FMinimap.Visible then
-         FMinimap.TopLine := fTopLine - Trunc((FMinimap.LinesInWindow - LinesInWindow) * (fTopLine / DisplayLineCount));
+         FMinimap.TopLine := Max(fTopLine - Trunc((FMinimap.LinesInWindow - LinesInWindow) * (fTopLine / DisplayLineCount)), 1);
       iClientRect := ClientRect;
       DeflateMinimapRect(iClientRect);
       if Abs(Delta) < fLinesInWindow then
@@ -11141,7 +11141,7 @@ begin //
   procedure TCustomSynEdit.MinimapChanged(Sender: TObject);
   begin
     if DisplayLineCount > 0 then
-      FMinimap.TopLine := fTopLine - Trunc((FMinimap.LinesInWindow - LinesInWindow) * (fTopLine / DisplayLineCount));
+      FMinimap.TopLine := Max(fTopLine - Trunc((FMinimap.LinesInWindow - LinesInWindow) * (fTopLine / DisplayLineCount)), 1);
     // ComputeScroll(CaretX, CaretY);
     SizeOrFontChanged(True);
     // UpdateCaret;
