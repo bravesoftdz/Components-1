@@ -2799,6 +2799,7 @@ begin
       DecPaintLock;
     end;
   end;
+
   ComputeScroll(iMousePos.X, iMousePos.Y);
 end;
 
@@ -5246,9 +5247,6 @@ begin
         else
           TopLine := Pos;
 
-        if FMinimap.Visible then
-          FMinimap.TopLine := Pos - Trunc((FMinimap.LinesInWindow - LinesInWindow) * (Pos / DisplayLineCount));
-
         if eoShowScrollHint in fOptions then
         begin
           ScrollHint := GetScrollHint;
@@ -7686,6 +7684,8 @@ begin //
     begin
       Delta := TopLine - Value;
       fTopLine := Value;
+      if FMinimap.Visible then
+         FMinimap.TopLine := fTopLine - Trunc((FMinimap.LinesInWindow - LinesInWindow) * (fTopLine / DisplayLineCount));
       iClientRect := ClientRect;
       DeflateMinimapRect(iClientRect);
       if Abs(Delta) < fLinesInWindow then
