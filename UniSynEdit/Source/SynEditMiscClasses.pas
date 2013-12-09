@@ -113,7 +113,6 @@ type
     procedure SetFont(Value: TFont);
     procedure SetWidth(Value: integer);
     procedure SetVisible(Value: Boolean);
-    procedure OnFontChange(Sender: TObject);
   public
     constructor Create;
     destructor Destroy; override;
@@ -2804,6 +2803,8 @@ end;
 procedure TSynMinimap.SetFont(Value: TFont);
 begin
   FFont.Assign(Value);
+  if Assigned(FOnChange) then
+    FOnChange(Self);
 end;
 
 procedure TSynMinimap.SetWidth(Value: integer);
@@ -2827,12 +2828,6 @@ begin
   end;
 end;
 
-procedure TSynMinimap.OnFontChange(Sender: TObject);
-begin
-  if Assigned(FOnChange) then
-    FOnChange(Self);
-end;
-
 constructor TSynMinimap.Create;
 begin
   inherited Create;
@@ -2841,7 +2836,6 @@ begin
   fFont.Name := 'Courier New';
   fFont.Size := 3;
   fFont.Style := [];
-  fFont.OnChange := OnFontChange;
 
   FVisible := False;
   FWidth := 100;
