@@ -111,14 +111,15 @@ type
     FLinesInWindow: Integer;
     FTopLine: Integer;
     procedure SetFont(Value: TFont);
-    procedure SetWidth(Value: integer);
+    procedure SetWidth(Value: Integer);
     procedure SetVisible(Value: Boolean);
+    function GetWidth: Integer;
   public
     constructor Create;
     destructor Destroy; override;
   published
     property Font: TFont read FFont write SetFont;
-    property Width: Integer read FWidth write SetWidth default 160;
+    property Width: Integer read GetWidth write SetWidth default 160;
     property Visible: Boolean read FVisible write SetVisible default False;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property CharWidth: Integer read FCharWidth write FCharWidth;
@@ -161,6 +162,7 @@ type
     FShowBookmarkPanel: Boolean;
     fShowLineModified: Boolean;
     fLineNormalColor: TColor;
+    function GetWidth: Integer;
     procedure SetIntens(const Value: boolean);
     procedure SetAutoSize(const Value: boolean);
     procedure SetColor(const Value: TColor);
@@ -215,7 +217,7 @@ type
     property ShowBookmarkPanel: Boolean read FShowBookmarkPanel write FShowBookmarkPanel default True;
     property UseFontStyle: boolean read fUseFontStyle write SetUseFontStyle default True;
     property Visible: boolean read fVisible write SetVisible default True;
-    property Width: integer read fWidth write SetWidth default 30;
+    property Width: integer read GetWidth write SetWidth default 30;
     property ZeroStart: boolean read fZeroStart write SetZeroStart default False;
     property BorderColor: TColor read fBorderColor write SetBorderColor default clWindow;
     property LineNumberStart : Integer read fLineNumberStart write SetLineNumberStart default 1;
@@ -1019,6 +1021,14 @@ begin
     fWidth := Value;
     if Assigned(fOnChange) then fOnChange(Self);
   end;
+end;
+
+function TSynGutter.GetWidth: Integer;
+begin
+  if FVisible then
+    Result := FWidth
+  else
+    Result := 0;
 end;
 
 procedure TSynGutter.SetZeroStart(const Value: boolean);
@@ -2816,6 +2826,14 @@ begin
     if Assigned(FOnChange) then
       FOnChange(Self);
   end;
+end;
+
+function TSynMinimap.GetWidth: Integer;
+begin
+  if FVisible then
+    Result := FWidth
+  else
+    Result := 0;
 end;
 
 procedure TSynMinimap.SetVisible(Value: boolean);

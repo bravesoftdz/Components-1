@@ -1270,6 +1270,7 @@ begin
     Exit;
   end;
   iScrollBounds := Bounds(0, 0, fCharsInWindow * fCharWidth, fLinesInWindow * LineHeight);
+
   DeflateMinimapRect(iScrollBounds);
 
   if BorderStyle = bsNone then
@@ -1504,7 +1505,6 @@ begin
   fGutter.OnChange := GutterChanged;
   FMinimap := TSynMinimap.Create;
   FMinimap.OnChange := MinimapChanged;
-  // fGutterWidth := fGutter.Width;
   fWordWrapGlyph := TSynGlyph.Create(HINSTANCE, 'SynEditWrapped', clLime);
   fWordWrapGlyph.OnChange := WordWrapGlyphChange;
   fTextOffset := fGutter.Width + 2;
@@ -4670,7 +4670,7 @@ begin
     if fRightEdge.Visible and (fRightEdge.Position > 0) then
     begin // column value
       nRightEdge := fTextOffset + fRightEdge.Position * FTextDrawer.CharWidth; // pixel value
-      if (nRightEdge >= AClip.Left) and (nRightEdge <= AClip.Right) then
+      if (nRightEdge >= AClip.Left + FGutter.Width) and (nRightEdge <= AClip.Right) then
       begin
         bDoRightEdge := True;
         Canvas.Pen.Color := fRightEdge.Color;
@@ -7146,6 +7146,8 @@ begin //
       if Abs(iDelta) < CharsInWindow then
       begin
         iTextArea := ClientRect;
+        if FGutter.Visible then
+          iTextArea.Left := iTextArea.Left + FGutter.Width;
         DeflateMinimapRect(iTextArea);
         ScrollWindow(Handle, iDelta * CharWidth, 0, @iTextArea, @iTextArea);
       end
@@ -11602,18 +11604,10 @@ begin //
   end;
 
   procedure TCustomSynEdit.SizeOrFontChanged(bFont: Boolean);
-  var
-    MinimapWidth, GutterWidth: Integer;
   begin
     if HandleAllocated and (fCharWidth <> 0) then
     begin
-      MinimapWidth := 0;
-      GutterWidth := 0;
-      if FMinimap.Visible then
-        MinimapWidth := FMinimap.Width;
-      if FGutter.Visible then
-        GutterWidth := FGutter.Width;
-      fCharsInWindow := Max(ClientWidth - GutterWidth - 1 - MinimapWidth, 0) div fCharWidth;
+      fCharsInWindow := Max(ClientWidth - FGutter.Width - 1 - FMinimap.Width, 0) div fCharWidth;
       fLinesInWindow := ClientHeight div LineHeight;
       FMinimap.LinesInWindow := ClientHeight div FMinimap.CharHeight;
       if GetWordWrap then
