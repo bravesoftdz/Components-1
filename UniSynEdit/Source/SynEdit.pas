@@ -3184,6 +3184,7 @@ begin
         fTextDrawer.Style := FMinimap.Font.Style;
         FMinimap.CharWidth := fTextDrawer.CharWidth;
         FMinimap.CharHeight := fTextDrawer.CharHeight;
+        FMinimap.LinesInWindow := ClientHeight div FMinimap.CharHeight;
 
         nL1 := Max(FMinimap.TopLine, 1);
         nL2 := RowToLine(nL1 + (rcClip.Height div fTextDrawer.CharHeight) - 1);
@@ -11609,7 +11610,7 @@ begin //
     begin
       fCharsInWindow := Max(ClientWidth - FGutter.Width - 1 - FMinimap.Width, 0) div fCharWidth;
       fLinesInWindow := ClientHeight div LineHeight;
-      FMinimap.LinesInWindow := ClientHeight div FMinimap.CharHeight;
+
       if GetWordWrap then
       begin
         fWordWrapPlugin.DisplayChanged;

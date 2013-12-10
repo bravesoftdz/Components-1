@@ -547,7 +547,7 @@ begin
 
   TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoChangeScale, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes];
   TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick];
-  TreeOptions.PaintOptions := [toShowBackground, toShowButtons, toShowDropmark, toShowRoot, toUseBlendedSelection, {toUseBlendedImages,} toThemeAware , toUseExplorerTheme];
+  TreeOptions.PaintOptions := [toShowBackground, toShowButtons, toShowRoot, toUseBlendedSelection, {toUseBlendedImages,} toThemeAware, toHideTreeLinesIfThemed, toUseExplorerTheme];
 
   FShowHidden := False;
   FShowArchive := True;
@@ -564,6 +564,7 @@ begin
   end;
 
   FDrive := #0;
+  FFileType := '*.*';
 end;
 
 
@@ -769,18 +770,21 @@ begin
     else
       Directory := TempPath;
 
-    Data := GetNodeData(CurNode);
-    while Assigned(CurNode) and (AnsiCompareText(Directory, Data.Filename) <> 0) do
+    if Directory <> '' then
     begin
-      CurNode := CurNode.NextSibling;
       Data := GetNodeData(CurNode);
-    end;
+      while Assigned(CurNode) and (AnsiCompareText(Directory, Data.Filename) <> 0) do
+      begin
+        CurNode := CurNode.NextSibling;
+        Data := GetNodeData(CurNode);
+      end;
 
-    if Assigned(CurNode) then
-    begin
-      Selected[CurNode] := True;
-      Expanded[CurNode] := True;
-      CurNode := CurNode.FirstChild;
+      if Assigned(CurNode) then
+      begin
+        Selected[CurNode] := True;
+        Expanded[CurNode] := True;
+        CurNode := CurNode.FirstChild;
+      end;
     end;
 
     if Pos('\', TempPath) <> 0 then
