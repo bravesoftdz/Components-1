@@ -21,12 +21,16 @@ type
   TBCProgressBar = class(TJvProgressBar)
   private
     { Private declarations }
-  protected
-    { Protected declarations }
+    FPosition: Integer;
+    FCount: Integer;
   public
     { Public declarations }
     class constructor Create;
     class destructor Destroy;
+    procedure Init(Count: Integer);
+    procedure StepIt;
+    procedure Show;
+    procedure Hide;
   published
     { Published declarations }
   end;
@@ -130,6 +134,28 @@ end;
 class destructor TBCProgressBar.Destroy;
 begin
   TStyleManager.Engine.UnRegisterStyleHook(TBCProgressBar, TProgressBarStyleHookMarquee);
+end;
+
+procedure TBCProgressBar.Init(Count: Integer);
+begin
+  FPosition := 0;
+  FCount := Count;
+end;
+
+procedure TBCProgressBar.StepIt;
+begin
+  Position := Trunc((FPosition / FCount) * 100);
+  Inc(FPosition);
+end;
+
+procedure TBCProgressBar.Show;
+begin
+  Visible := True;
+end;
+
+procedure TBCProgressBar.Hide;
+begin
+  Visible := False;
 end;
 
 end.
