@@ -27,10 +27,10 @@ type
     { Public declarations }
     class constructor Create;
     class destructor Destroy;
-    procedure Init(Count: Integer);
     procedure StepIt;
     procedure Show;
     procedure Hide;
+    property Count: Integer read FCount write FCount ;
   published
     { Published declarations }
   end;
@@ -136,12 +136,6 @@ begin
   TStyleManager.Engine.UnRegisterStyleHook(TBCProgressBar, TProgressBarStyleHookMarquee);
 end;
 
-procedure TBCProgressBar.Init(Count: Integer);
-begin
-  FPosition := 0;
-  FCount := Count;
-end;
-
 procedure TBCProgressBar.StepIt;
 begin
   Position := Trunc((FPosition / FCount) * 100);
@@ -151,6 +145,7 @@ end;
 procedure TBCProgressBar.Show;
 begin
   Visible := True;
+  FPosition := 0;
 end;
 
 procedure TBCProgressBar.Hide;
