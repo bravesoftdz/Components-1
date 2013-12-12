@@ -859,8 +859,7 @@ type
     function SearchReplace(const ASearch, AReplace: UnicodeString; AOptions: TSynSearchOptions): Integer;
     procedure SelectAll;
     procedure SetBookMark(BookMark: Integer; X: Integer; Y: Integer);
-    procedure SetCaretAndSelection(const ptCaret, ptBefore,
-      ptAfter: TBufferCoord);
+    procedure SetCaretAndSelection(const ptCaret, ptBefore, ptAfter: TBufferCoord);
     procedure SetDefaultKeystrokes; virtual;
     procedure SetSelWord;
     procedure SetWordBlock(Value: TBufferCoord);
@@ -950,13 +949,11 @@ type
     property LineText: UnicodeString read GetLineText write SetLineText;
     property Lines: TUnicodeStrings read fLines write SetLines;
     property Marks: TSynEditMarkList read fMarkList;
-    property MaxScrollWidth: Integer read fMaxScrollWidth
-      write SetMaxScrollWidth default 1024;
+    property MaxScrollWidth: Integer read fMaxScrollWidth write SetMaxScrollWidth default 1024;
     property Modified: Boolean read fModified write SetModified;
     property PaintLock: Integer read fPaintLock;
     property ReadOnly: Boolean read GetReadOnly write SetReadOnly default False;
-    property SearchEngine: TSynEditSearchCustom read fSearchEngine
-      write SetSearchEngine;
+    property SearchEngine: TSynEditSearchCustom read fSearchEngine write SetSearchEngine;
     property SelAvail: Boolean read GetSelAvail;
     property SelLength: Integer read GetSelLength write SetSelLength;
     property SelTabBlock: Boolean read GetSelTabBlock;
@@ -1398,8 +1395,7 @@ var
 begin
   if SelAvail then
   begin
-    ChangeTrim := (fActiveSelectionMode = smColumn) and
-      (eoTrimTrailingSpaces in Options);
+    ChangeTrim := (fActiveSelectionMode = smColumn) and (eoTrimTrailingSpaces in Options);
     try
       if ChangeTrim then
         Exclude(fOptions, eoTrimTrailingSpaces);
@@ -1736,21 +1732,17 @@ end;
 
 function TCustomSynEdit.GetSelAvail: Boolean;
 begin
-  Result := (fBlockBegin.Char <> fBlockEnd.Char) or
-    ((fBlockBegin.Line <> fBlockEnd.Line) and
-    (fActiveSelectionMode <> smColumn));
+  Result := (fBlockBegin.Char <> fBlockEnd.Char) or ((fBlockBegin.Line <> fBlockEnd.Line) and (fActiveSelectionMode <> smColumn));
 end;
 
 function TCustomSynEdit.GetSelTabBlock: Boolean;
 begin
-  Result := (fBlockBegin.Line <> fBlockEnd.Line) and
-    (fActiveSelectionMode <> smColumn);
+  Result := (fBlockBegin.Line <> fBlockEnd.Line) and (fActiveSelectionMode <> smColumn);
 end;
 
 function TCustomSynEdit.GetSelTabLine: Boolean;
 begin
-  Result := (BlockBegin.Char <= 1) and
-    (BlockEnd.Char > Length(Lines[CaretY - 1])) and SelAvail;
+  Result := (BlockBegin.Char <= 1) and (BlockEnd.Char > Length(Lines[CaretY - 1])) and SelAvail;
 end;
 
 function TCustomSynEdit.GetSelText: UnicodeString;
@@ -1854,8 +1846,7 @@ begin
           // step1: calculate total length of result string
           Inc(TotalLen, ColTo - ColFrom);
           if (Length(ts[GetRealLineNumber(First + 1) - 1]) < ColTo) and
-            (FoldRangeForLine(First + 1) <> nil) and FoldRangeForLine(First + 1)
-            .Collapsed then
+            (FoldRangeForLine(First + 1) <> nil) and FoldRangeForLine(First + 1).Collapsed then
           begin // Selection until line end -> Also get text from foldrange
             iLineCount := 1;
             for I := GetRealLineNumber(First + 1) to GetRealLineNumber
@@ -2076,8 +2067,11 @@ begin
 end;
 
 procedure TCustomSynEdit.InvalidateMinimap;
+var
+  rcInval: TRect;
 begin
-  // InvalidateMinimapLines(-1, -1);
+  rcInval := Rect(ClientWidth - FMinimap.Width, 0, ClientWidth, ClientHeight);
+  InvalidateRect(rcInval, False); //InvalidateMinimapLines(-1, -1);
 end;
 
 procedure TCustomSynEdit.InvalidateGutterLine(aLine: Integer);
@@ -2851,7 +2845,8 @@ begin
   if (sfPossibleGutterClick in fStateFlags) and (X < fGutter.Width) and
     (Button <> mbRight) then
     DoOnGutterClick(Button, X, Y)
-  else if fStateFlags * [sfDblClicked, sfWaitForDragging] = [sfWaitForDragging]
+  else
+  if fStateFlags * [sfDblClicked, sfWaitForDragging] = [sfWaitForDragging]
   then
   begin
     ComputeCaret(X, Y);
@@ -3693,13 +3688,12 @@ var
   var
     iAttri: TSynHighlighterAttributes;
   begin
-    If fActiveLine.Visible and (fActiveLine.Foreground <> clNone) and
-      (bCurrentLine) then
+    If fActiveLine.Visible and (fActiveLine.Foreground <> clNone) and bCurrentLine then
       Result := fActiveLine.Foreground
     else
     begin
       Result := Font.Color;
-      if Highlighter <> nil then
+      if Assigned(Highlighter) then
       begin
         iAttri := Highlighter.WhitespaceAttribute;
         if (iAttri <> nil) and (iAttri.Foreground <> clWindow) then
@@ -3710,9 +3704,7 @@ var
     if (CaretY > 0) and (CaretY <= Lines.Count) and
       (amForeground in ExpandLines.Attributes[CaretY - 1].aMask) and
       (ExpandLines.Attributes[CaretY - 1].aForeground <> clNone) then
-    begin
       Result := ExpandLines.Attributes[CaretY - 1].aForeground;
-    end;
   end;
 
   function colEditorBG: TColor;
@@ -3734,9 +3726,7 @@ var
     if (CaretY > 0) and (CaretY <= Lines.Count) and
       (amBackground in ExpandLines.Attributes[CaretY - 1].aMask) and
       (ExpandLines.Attributes[CaretY - 1].aBackground <> clNone) then
-    begin
       Result := ExpandLines.Attributes[CaretY - 1].aBackground;
-    end;
   end;
 
   procedure ComputeSelectionInfo;
@@ -3745,6 +3735,7 @@ var
     vEnd: TBufferCoord;
   begin
     bAnySelection := False;
+
     // Only if selection is visible anyway.
     if not HideSelection or Self.Focused then
     begin
@@ -3814,7 +3805,7 @@ var
       SetForeColor(colFG);
       Canvas.Brush.Color := colBG;
     end;
-    if Minimap then
+    if not Selected and Minimap then
       if (CurrentLine >= TopLine) and (CurrentLine < TopLine + LinesInWindow) then
         Canvas.Brush.Color := FActiveLineColor
   end;
@@ -4921,6 +4912,8 @@ begin
     fBlockBegin := Value;
     fBlockEnd := Value;
     InvalidateLines(nInval1, nInval2);
+    if FMinimap.Visible then
+      InvalidateMinimap;
     SelChanged := True;
   end
   else
@@ -7047,7 +7040,7 @@ begin //
 
   procedure TCustomSynEdit.SetActiveLineColor(Value: TColor);
   begin
-    if (fActiveLineColor <> Value) then
+    if fActiveLineColor <> Value then
     begin
       fActiveLineColor := Value;
       InvalidateLine(CaretY);
@@ -7721,7 +7714,7 @@ begin //
       Delta := TopLine - Value;
       fTopLine := Value;
       if FMinimap.Visible then
-         FMinimap.TopLine := Max(fTopLine - Trunc((FMinimap.LinesInWindow - LinesInWindow) * (fTopLine / DisplayLineCount)), 1);
+         FMinimap.TopLine := Max(fTopLine - Abs(Trunc((FMinimap.LinesInWindow - LinesInWindow) * (fTopLine / DisplayLineCount))), 1);
       iClientRect := ClientRect;
       DeflateMinimapRect(iClientRect);
       if Abs(Delta) < fLinesInWindow then
@@ -11144,7 +11137,7 @@ begin //
   procedure TCustomSynEdit.MinimapChanged(Sender: TObject);
   begin
     if DisplayLineCount > 0 then
-      FMinimap.TopLine := Max(fTopLine - Trunc((FMinimap.LinesInWindow - LinesInWindow) * (fTopLine / DisplayLineCount)), 1);
+      FMinimap.TopLine := Max(fTopLine - Abs(Trunc((FMinimap.LinesInWindow - LinesInWindow) * (fTopLine / DisplayLineCount))), 1);
     // ComputeScroll(CaretX, CaretY);
     SizeOrFontChanged(True);
     // UpdateCaret;
