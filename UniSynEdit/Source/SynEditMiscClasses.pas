@@ -186,9 +186,11 @@ type
     procedure SetGradientSteps(const Value: Integer);
     procedure SetBookmarkPanelColor(const Value: TColor);
     procedure SetRightOffsetColor(const Value: TColor);
-    procedure setLineModifiedColor(const Value: TColor);
-    procedure setLineNormalColor(const Value: TColor);
-    procedure setShowLineModified(const Value: Boolean);
+    procedure SetLineModifiedColor(const Value: TColor);
+    procedure SetLineNormalColor(const Value: TColor);
+    procedure SetShowLineModified(const Value: Boolean);
+    procedure SetShowBookmarks(const Value: Boolean);
+    procedure SetShowBookmarkPanel(const Value: Boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -213,8 +215,8 @@ type
     property RightOffset: integer read fRightOffset write SetRightOffset default 5;
     property RightOffsetColor: TColor read fRightOffsetColor write SetRightOffsetColor;
     property ShowLineNumbers: boolean read fShowLineNumbers write SetShowLineNumbers default False;
-    property ShowBookmarks: Boolean read FShowBookmarks write FShowBookmarks default True;
-    property ShowBookmarkPanel: Boolean read FShowBookmarkPanel write FShowBookmarkPanel default True;
+    property ShowBookmarks: Boolean read FShowBookmarks write SetShowBookmarks default True;
+    property ShowBookmarkPanel: Boolean read FShowBookmarkPanel write SetShowBookmarkPanel default True;
     property UseFontStyle: boolean read fUseFontStyle write SetUseFontStyle default True;
     property Visible: boolean read fVisible write SetVisible default True;
     property Width: integer read GetWidth write SetWidth default 30;
@@ -998,6 +1000,24 @@ begin
   end;
 end;
 
+procedure TSynGutter.SetShowBookmarks(const Value: boolean);
+begin
+  if FShowBookmarks <> Value then
+  begin
+    FShowBookmarks := Value;
+    if Assigned(fOnChange) then fOnChange(Self);
+  end;
+end;
+
+procedure TSynGutter.SetShowBookmarkPanel(const Value: boolean);
+begin
+  if FShowBookmarkPanel <> Value then
+  begin
+    FShowBookmarkPanel := Value;
+    if Assigned(fOnChange) then fOnChange(Self);
+  end;
+end;
+
 procedure TSynGutter.SetUseFontStyle(Value: boolean);
 begin
   if fUseFontStyle <> Value then begin
@@ -1017,7 +1037,8 @@ end;
 procedure TSynGutter.SetWidth(Value: integer);
 begin
   Value := Max(0, Value);
-  if fWidth <> Value then begin
+  if fWidth <> Value then
+  begin
     fWidth := Value;
     if Assigned(fOnChange) then fOnChange(Self);
   end;

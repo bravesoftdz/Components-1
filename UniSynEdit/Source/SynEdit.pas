@@ -3550,8 +3550,7 @@ begin
     PanelWidth := fGutter.BookmarkPanelWidth;
     if not fGutter.ShowBookmarks and not fGutter.ShowBookmarkPanel then
       PanelWidth := 0;
-    fActiveLine.Indicator.Draw(Canvas, PanelWidth + 2,
-      (DisplayY - TopLine) * LineHeight, LineHeight)
+    fActiveLine.Indicator.Draw(Canvas, PanelWidth + 2, (DisplayY - TopLine) * LineHeight, LineHeight)
   end;
   (*
     ---------------------------------------
@@ -4652,6 +4651,7 @@ var
 begin
   vFirstLine := RowToLine(aFirstRow);
   vLastLine := RowToLine(aLastRow);
+  fTextOffset := fGutter.Width + 2 - (LeftChar - 1) * fCharWidth;
 
   bCurrentLine := False;
   // If the right edge is visible and in the invalid area, prepare to paint it.
