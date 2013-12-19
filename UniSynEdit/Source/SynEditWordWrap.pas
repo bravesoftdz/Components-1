@@ -140,7 +140,7 @@ uses
   {$IFDEF SYN_CLX}
     QConsts,
   {$ELSE}
-    Consts,
+    RTLConsts,
   {$ENDIF}
 {$ENDIF}
 {$IFNDEF SYN_COMPILER_4_UP}
