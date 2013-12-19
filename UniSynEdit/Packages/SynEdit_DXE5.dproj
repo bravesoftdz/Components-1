@@ -65,14 +65,14 @@
         <VerInfo_Keys>package=com.embarcadero.$(MSBuildProjectName);label=$(MSBuildProjectName);versionCode=1;versionName=1.0.0;persistent=False;restoreAnyVersion=False;installLocation=preferExternal;largeHeap=False;theme=TitleBar</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_UsePackage>SynEdit_RXE2;SynEdit_RXE4;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>SynEdit_RXE2;SynEdit_RXE4;SynEdit_RXE5;$(DCC_UsePackage)</DCC_UsePackage>
         <Icon_MainIcon>SynEdit_DXE_Icon.ico</Icon_MainIcon>
         <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_UsePackage>SynEdit_RXE2;SynEdit_RXE4;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>SynEdit_RXE2;SynEdit_RXE4;SynEdit_RXE5;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>SynEdit_DXE_Icon.ico</Icon_MainIcon>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -99,7 +99,7 @@
         </DelphiCompile>
         <DCCReference Include="..\Source\SynEditReg.dcr"/>
         <DCCReference Include="designide.dcp"/>
-        <DCCReference Include="SynEdit_RXE4.dcp"/>
+        <DCCReference Include="SynEdit_RXE5.dcp"/>
         <DCCReference Include="..\Source\SynEditReg.pas"/>
         <DCCReference Include="..\Source\SynEditPropertyReg.pas"/>
         <DCCReference Include="..\Source\SynHighlighterManager.pas"/>

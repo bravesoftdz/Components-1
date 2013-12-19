@@ -32,7 +32,7 @@ package SynEdit_DXE5;
 
 requires
   designide,
-  SynEdit_RXE4;
+  SynEdit_RXE5;
 
 contains
   SynEditReg in '..\Source\SynEditReg.pas',
