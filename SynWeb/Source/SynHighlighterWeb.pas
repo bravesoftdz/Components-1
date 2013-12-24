@@ -3872,7 +3872,7 @@ begin
       else
         FInstance^.FTokenID := stkMLTagKeyValue;
       if GetRangeBit(27) then
-        SetRangeBit(28, UpperCase(GetToken) = 'PHP');
+        SetRangeBit(28, UpperCase(string(GetToken)) = 'PHP');
       MLSetRange(srsMLTagKey);
     end;
   end;
@@ -3906,7 +3906,7 @@ begin
         Inc(FInstance^.FRun);
         FInstance^.FTokenID := stkMLTagKeyValueQuoted;
         if GetRangeBit(27) then
-          SetRangeBit(28, UpperCase(GetToken) = #39'PHP'#39);
+          SetRangeBit(28, UpperCase(string(GetToken)) = #39'PHP'#39);
         Break;
       end;
     end;
@@ -3944,7 +3944,7 @@ begin
         Inc(FInstance^.FRun);
         FInstance^.FTokenID := stkMLTagKeyValueQuoted;
         if GetRangeBit(27) then
-          SetRangeBit(28, UpperCase(GetToken) = '"PHP"');
+          SetRangeBit(28, UpperCase(string(GetToken)) = '"PHP"');
         Break;
       end;
     end;
