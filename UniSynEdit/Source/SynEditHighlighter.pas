@@ -1189,7 +1189,8 @@ end;
 
 procedure TSynCustomHighlighter.NextToEol;
 begin
-  while not GetEol do Next;
+  while not GetEol do
+    Next;
 end;
 
 procedure TSynCustomHighlighter.ResetRange;

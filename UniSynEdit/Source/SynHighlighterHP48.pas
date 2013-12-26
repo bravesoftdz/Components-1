@@ -812,7 +812,7 @@ end;
 
 function TSynHP48Syn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 2;
+  Result := Run = fLineLen + 1; //2;
 end;
 
 function TSynHP48Syn.GetRange: Pointer;

@@ -1097,7 +1097,7 @@ end;
 
 function TSynVrml97Syn.GetEol :Boolean;
 begin
-  Result := fTokenID = tkNull;
+  Result := Run = fLineLen + 1; // fTokenID = tkNull;
 end;
 
 function TSynVrml97Syn.GetRange :Pointer;
