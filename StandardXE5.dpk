@@ -1,4 +1,4 @@
-package Standard;
+package StandardXE5;
 
 {$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
@@ -42,12 +42,8 @@ requires
   vcldb,
   vclactnband,
   JvCmp,
-  dac180,
-  odac180,
-  EhLib180,
   xmlrtl,
-  SynWeb_DXE4,
-  SynEdit_RXE4;
+  SynEdit_RXE5;
 
 contains
   HelpSystem in 'HelpSystem\HelpSystem.pas',
@@ -62,11 +58,9 @@ contains
   BCControls.CheckBox in 'Controls\BCControls.CheckBox.pas',
   BCControls.ComboBox in 'Controls\BCControls.ComboBox.pas',
   BCControls.DBEdit in 'Controls\BCControls.DBEdit.pas',
-  BCControls.DBGrid in 'Controls\BCControls.DBGrid.pas',
   BCControls.Edit in 'Controls\BCControls.Edit.pas',
   BCControls.FileControl in 'Controls\BCControls.FileControl.pas',
   BCControls.ImageList in 'Controls\BCControls.ImageList.pas',
-  BCControls.OraSynEdit in 'Controls\BCControls.OraSynEdit.pas',
   BCControls.PageControl in 'Controls\BCControls.PageControl.pas',
   BCControls.PopupMenu in 'Controls\BCControls.PopupMenu.pas',
   BCControls.ProgressPanel in 'Controls\BCControls.ProgressPanel.pas',
