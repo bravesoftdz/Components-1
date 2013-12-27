@@ -1,0 +1,82 @@
+package StandardDXE4;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS OFF}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE RELEASE}
+{$ENDIF IMPLICITBUILDING}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl,
+  vclx,
+  JvCore,
+  vclimg,
+  dbrtl,
+  JclVcl,
+  Jcl,
+  JvStdCtrls,
+  JvSystem,
+  VirtualTreesR,
+  vcldb,
+  vclactnband,
+  JvCmp,
+  dac180,
+  odac180,
+  EhLib180,
+  xmlrtl,
+  SynWeb_DXE4,
+  SynEdit_RXE4;
+
+contains
+  HelpSystem in 'HelpSystem\HelpSystem.pas',
+  hh in 'HelpSystem\hh.pas',
+  hh_funcs in 'HelpSystem\hh_funcs.pas',
+  ThdTimer in 'ThdTimer\ThdTimer.pas',
+  TimeRuler in 'TimeRuler\TimeRuler.pas',
+  BigIni in '..\..\Common\units\BigIni.pas',
+  BCCommon.LanguageStrings in '..\..\Common\units\BCCommon.LanguageStrings.pas' {LanguageDataModule: TDataModule},
+  BCCommon.Encoding in '..\..\Common\units\BCCommon.Encoding.pas',
+  Cards in 'Cards\Cards.pas',
+  BCControls.CheckBox in 'Controls\BCControls.CheckBox.pas',
+  BCControls.ComboBox in 'Controls\BCControls.ComboBox.pas',
+  BCControls.DBEdit in 'Controls\BCControls.DBEdit.pas',
+  BCControls.DBGrid in 'Controls\BCControls.DBGrid.pas',
+  BCControls.Edit in 'Controls\BCControls.Edit.pas',
+  BCControls.FileControl in 'Controls\BCControls.FileControl.pas',
+  BCControls.ImageList in 'Controls\BCControls.ImageList.pas',
+  BCControls.OraSynEdit in 'Controls\BCControls.OraSynEdit.pas',
+  BCControls.PageControl in 'Controls\BCControls.PageControl.pas',
+  BCControls.PopupMenu in 'Controls\BCControls.PopupMenu.pas',
+  BCControls.ProgressPanel in 'Controls\BCControls.ProgressPanel.pas',
+  BCControls.SpinEdit in 'Controls\BCControls.SpinEdit.pas',
+  BCControls.StringGrid in 'Controls\BCControls.StringGrid.pas',
+  BCControls.SynEdit in 'Controls\BCControls.SynEdit.pas',
+  BCControls.ToolBar in 'Controls\BCControls.ToolBar.pas',
+  BCControls.UnicodeStringHolder in 'Controls\BCControls.UnicodeStringHolder.pas',
+  BCCommon.FileUtils in '..\..\Common\units\BCCommon.FileUtils.pas',
+  BCControls.ProgressBar in 'Controls\BCControls.ProgressBar.pas',
+  BCControls.StyleHooks in 'Controls\BCControls.StyleHooks.pas';
+
+end.
