@@ -103,15 +103,12 @@ end;
 
 function TBCComboBox.IsEmpty: Boolean;
 begin
-  Result := False;
   if Trim(Text) = '' then
   begin
     MessageDlg(Format(TEXT_SET_VALUE, [LowerCase(Hint)]), mtError, [mbOK], 0);
-    try
+    if CanFocus then
       SetFocus;
-    except
-    end;
-    exit;
+    Exit(False);
   end;
   Result := True;
 end;

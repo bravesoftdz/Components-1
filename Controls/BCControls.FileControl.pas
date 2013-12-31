@@ -246,7 +246,7 @@ procedure Register;
 implementation
 
 uses
-  Vcl.Forms, Winapi.ShellAPI, Vcl.Dialogs, Vcl.Themes, BCCommon.LanguageStrings,
+  Vcl.Forms, Winapi.ShellAPI, Vcl.Dialogs, Vcl.Themes, BCCommon.LanguageStrings, BCCommon.StringUtils,
   BCCommon.Fileutils, BCControls.ImageList, System.UITypes;
 
 const
@@ -795,22 +795,10 @@ begin
   EndUpdate;
 end;
 
-function StrContains(Str1, Str2: string): Boolean;
-var
-  i: Integer;
-begin
-  for i := 1 to Length(Str1) do
-    if Pos(Str1[i], Str2) <> 0 then
-    begin
-      Result := True;
-      Exit;
-    end;
-  Result := False;
-end;
-
 function AddNullToStr(Path: string): string; //70
 begin
-  if Path = '' then exit;
+  if Path = '' then
+    Exit('');
   if Path[Length(Path)] <> #0 then
     Result := Path + #0
   else
@@ -847,7 +835,7 @@ begin
         DelName := SelectedFile;
 
       if DelName = '' then
-        exit;
+        Exit;
       {$WARNINGS OFF} { ExcludeTrailingBackslash is specific to a platform }
       DelName := ExcludeTrailingBackslash(DelName);
       {$WARNINGS ON}
@@ -1181,7 +1169,7 @@ begin
     GetWindowText(FEdit.Handle, Buffer, 255);
     S := Buffer;
 
-    if (Length(S) = 0) or (StrContains('\*?/="<>|:,;+^', S)) then
+    if (Length(S) = 0) or (StrContainsChar('\*?/="<>|:,;+^', S)) then
     begin
       MessageBeep(MB_ICONHAND);
       if Length(S) > 0 then

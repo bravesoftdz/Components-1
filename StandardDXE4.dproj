@@ -147,6 +147,7 @@
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>
         <DCCReference Include="..\..\Common\units\BCCommon.Encoding.pas"/>
+        <DCCReference Include="..\..\Common\units\BCCommon.StringUtils.pas"/>
         <DCCReference Include="Cards\Cards.pas"/>
         <DCCReference Include="Controls\BCControls.CheckBox.pas"/>
         <DCCReference Include="Controls\BCControls.ComboBox.pas"/>
@@ -161,7 +162,6 @@
         <DCCReference Include="Controls\BCControls.ProgressPanel.pas"/>
         <DCCReference Include="Controls\BCControls.SpinEdit.pas"/>
         <DCCReference Include="Controls\BCControls.StringGrid.pas"/>
-        <DCCReference Include="Controls\BCControls.SynEdit.pas"/>
         <DCCReference Include="Controls\BCControls.ToolBar.pas"/>
         <DCCReference Include="Controls\BCControls.UnicodeStringHolder.pas"/>
         <DCCReference Include="..\..\Common\units\BCCommon.FileUtils.pas"/>
@@ -217,10 +217,7 @@
                 <Source>
                     <Source Name="MainSource">StandardDXE4.dpk</Source>
                 </Source>
-                <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k180.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp180.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
-                </Excluded_Packages>
+                <Excluded_Packages/>
             </Delphi.Personality>
             <Platforms>
                 <Platform value="iOSDevice">False</Platform>

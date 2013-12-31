@@ -123,10 +123,9 @@ function TBCMultiStringHolderCollection.DoesNameExist(const Name: string): Boole
 var
   i: Integer;
 begin
-  Result := True;
   for i := 0 to Count - 1 do
     if CompareText(Items[I].Name, Name) = 0 then
-      Exit;
+      Exit(True);
   Result := False;
 end;
 
@@ -163,14 +162,11 @@ end;
 
 function TBCMultiStringHolder.GetItemByName(const Name: string): TBCMultiStringHolderCollectionItem;
 var
-  I: Integer;
+  i: Integer;
 begin
-  for I := 0 to MultipleStrings.Count - 1 do
+  for i := 0 to MultipleStrings.Count - 1 do
     if CompareText(MultipleStrings.Items[I].Name, Name) = 0 then
-    begin
-      Result := MultipleStrings.Items[I];
-      Exit;
-    end;
+      Exit(MultipleStrings.Items[I]);
   raise EBCMultiStringHolderException.CreateResFmt(@RsENoItemFoundWithName, [Name]);
 end;
 

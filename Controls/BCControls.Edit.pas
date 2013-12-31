@@ -123,13 +123,12 @@ end;
 
 function TBCEdit.IsEmpty: Boolean;
 begin
-  Result := False;
   if Trim(Text) = '' then
   begin
     MessageDlg(Format(TEXT_SET_VALUE, [LowerCase(Hint)]), mtError, [mbOK], 0);
     if CanFocus then
       SetFocus;
-    Exit;
+    Exit(False);
   end;
   Result := True;
 end;

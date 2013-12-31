@@ -58,6 +58,7 @@ contains
   BigIni in '..\..\Common\units\BigIni.pas',
   BCCommon.LanguageStrings in '..\..\Common\units\BCCommon.LanguageStrings.pas' {LanguageDataModule: TDataModule},
   BCCommon.Encoding in '..\..\Common\units\BCCommon.Encoding.pas',
+  BCCommon.StringUtils in '..\..\Common\units\BCCommon.StringUtils.pas',
   Cards in 'Cards\Cards.pas',
   BCControls.CheckBox in 'Controls\BCControls.CheckBox.pas',
   BCControls.ComboBox in 'Controls\BCControls.ComboBox.pas',
@@ -72,7 +73,6 @@ contains
   BCControls.ProgressPanel in 'Controls\BCControls.ProgressPanel.pas',
   BCControls.SpinEdit in 'Controls\BCControls.SpinEdit.pas',
   BCControls.StringGrid in 'Controls\BCControls.StringGrid.pas',
-  BCControls.SynEdit in 'Controls\BCControls.SynEdit.pas',
   BCControls.ToolBar in 'Controls\BCControls.ToolBar.pas',
   BCControls.UnicodeStringHolder in 'Controls\BCControls.UnicodeStringHolder.pas',
   BCCommon.FileUtils in '..\..\Common\units\BCCommon.FileUtils.pas',
@@ -80,3 +80,4 @@ contains
   BCControls.StyleHooks in 'Controls\BCControls.StyleHooks.pas';
 
 end.
+

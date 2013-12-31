@@ -345,7 +345,7 @@ var
 begin
   R := TabRect[Index];
   if R.Left < 0 then
-    Exit;
+    Exit(TRect.Empty);
 
   if TabPosition in [tpTop, tpBottom] then
   begin
