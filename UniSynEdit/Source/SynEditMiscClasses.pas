@@ -137,6 +137,7 @@ type
     fBorderColor: TColor;
     fWidth: integer;
     fShowLineNumbers: boolean;
+    FShowLineNumbersAfterLastLine: Boolean;
     fDigitCount: integer;
     fLeadingZeros: boolean;
     fZeroStart: boolean;
@@ -191,6 +192,7 @@ type
     procedure SetShowLineModified(const Value: Boolean);
     procedure SetShowBookmarks(const Value: Boolean);
     procedure SetShowBookmarkPanel(const Value: Boolean);
+    procedure SetShowLineNumbersAfterLastLine(const Value: boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -215,6 +217,7 @@ type
     property RightOffset: integer read fRightOffset write SetRightOffset default 5;
     property RightOffsetColor: TColor read fRightOffsetColor write SetRightOffsetColor;
     property ShowLineNumbers: boolean read fShowLineNumbers write SetShowLineNumbers default False;
+    property ShowLineNumbersAfterLastLine: Boolean read FShowLineNumbersAfterLastLine write SetShowLineNumbersAfterLastLine default False;
     property ShowBookmarks: Boolean read FShowBookmarks write SetShowBookmarks default True;
     property ShowBookmarkPanel: Boolean read FShowBookmarkPanel write SetShowBookmarkPanel default True;
     property UseFontStyle: boolean read fUseFontStyle write SetUseFontStyle default True;
@@ -997,6 +1000,16 @@ begin
   if fShowLineNumbers <> Value then begin
     fShowLineNumbers := Value;
     if Assigned(fOnChange) then fOnChange(Self);
+  end;
+end;
+
+procedure TSynGutter.SetShowLineNumbersAfterLastLine(const Value: boolean);
+begin
+  if FShowLineNumbersAfterLastLine <> Value then
+  begin
+    FShowLineNumbersAfterLastLine := Value;
+    if Assigned(fOnChange) then
+      fOnChange(Self);
   end;
 end;
 

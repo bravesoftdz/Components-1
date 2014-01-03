@@ -705,7 +705,7 @@ type
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure NotifyHookedCommandHandlers(AfterProcessing: Boolean; var Command: TSynEditorCommand; var AChar: WideChar; Data: pointer); virtual;
     procedure Paint; override;
-    procedure PaintGutter(const AClip: TRect; const aFirstRow, aLastRow: Integer); virtual;
+    procedure PaintGutter(const AClip: TRect; const aFirstRow, aLastRow, aLastTextRow: Integer); virtual;
     procedure PaintTextLines(AClip: TRect; const aFirstRow, aLastRow, FirstCol, LastCol: Integer; Minimap: Boolean); virtual;
     procedure RecalcCharExtent;
     procedure RedoItem;
@@ -824,7 +824,7 @@ type
 
     procedure InvalidateGutter;
     procedure InvalidateMinimap;
-    procedure InvalidateGutterRows(FirstRow, LastRow: Integer);
+    procedure InvalidateGutterRows(FirstRow, LastRow, LastTextRow: Integer);
     procedure InvalidateGutterLine(aLine: Integer);
     procedure InvalidateGutterLines(FirstLine, LastLine: Integer);
     procedure InvalidateLine(Line: Integer);
@@ -3033,7 +3033,7 @@ end;
 procedure TCustomSynEdit.Paint;
 var
   rcClip, rcDraw: TRect;
-  nL1, nL2, nC1, nC2: Integer;
+  nL1, nL2, nL3, nC1, nC2: Integer;
 
   // ### Code Folding ###
   cLine, xpos, X, H: Integer;
@@ -3050,8 +3050,9 @@ begin
     Inc(nC1, (rcClip.Left - fGutter.Width - 2) div CharWidth);
   nC2 := LeftChar + (rcClip.Right - fGutter.Width - 2 + CharWidth - 1) div CharWidth;
   // lines
-  nL1 := TopLine; //Max(TopLine + rcClip.Top div LineHeight, TopLine);
-  nL2 := TopLine + LinesInWindow; //MinMax(TopLine + (rcClip.Bottom + LineHeight - 1) div LineHeight, 1, DisplayLineCount);
+  nL1 := TopLine; //} Max(TopLine + rcClip.Top div LineHeight, TopLine);
+  nL2 := TopLine + LinesInWindow; //} MinMax(TopLine + (rcClip.Bottom + LineHeight - 1) div LineHeight, 1, DisplayLineCount);
+  nL3 := MinMax(TopLine + (rcClip.Bottom + LineHeight - 1) div LineHeight, 1, DisplayLineCount);
   // Now paint everything while the caret is hidden.
   HideCaret;
   try
@@ -3061,7 +3062,7 @@ begin
     begin
       rcDraw := rcClip;
       rcDraw.Right := fGutter.Width;
-      PaintGutter(rcDraw, nL1, nL2);
+      PaintGutter(rcDraw, nL1, nL2, nL3);
     end;
 
     // Then paint the text area if it was (partly) invalidated.
@@ -3199,7 +3200,7 @@ begin
   end;
 end;
 
-procedure TCustomSynEdit.PaintGutter(const AClip: TRect; const aFirstRow, aLastRow: Integer);
+procedure TCustomSynEdit.PaintGutter(const AClip: TRect; const aFirstRow, aLastRow, aLastTextRow: Integer);
 
   procedure DrawMark(aMark: TSynEditMark; var aGutterOff: Integer; aMarkRow: Integer);
   begin
@@ -3247,6 +3248,7 @@ var
   S: UnicodeString;
   vFirstLine: Integer;
   vLastLine: Integer;
+  vLastTextLine: Integer;
   vMarkRow: Integer;
   vGutterRow: Integer;
   vLineTop: Integer;
@@ -3282,6 +3284,7 @@ begin
 
   vFirstLine := RowToLine(aFirstRow);
   vLastLine := RowToLine(aLastRow);
+  vLastTextLine := RowToLine(aLastTextRow);
   // todo: Does the following comment still apply?
   // Changed to use fTextDrawer.BeginDrawing and fTextDrawer.EndDrawing only
   // when absolutely necessary.  Note: Never change brush / pen / font of the
@@ -3316,7 +3319,10 @@ begin
       rcLine.Right := Max(rcLine.Right, fGutter.Width);
       rcLine.Bottom := rcLine.Top;
 
-      for cLine := vFirstLine to vLastLine do
+      if FGutter.ShowLineNumbersAfterLastLine then
+        vLastTextLine := vLastLine;
+
+      for cLine := vFirstLine to vLastTextLine do
       begin
         vLineTop := (LineToRow(cLine) - TopLine) * LineHeight;
         if GetWordWrap and not fGutter.Gradient then
@@ -7216,13 +7222,13 @@ begin //
     end;
   end;
 
-  procedure TCustomSynEdit.InvalidateGutterRows(FirstRow, LastRow: Integer);
+  procedure TCustomSynEdit.InvalidateGutterRows(FirstRow, LastRow, LastTextRow: Integer);
   var
     vRect: TRect;
   begin
     vRect := Rect(0, LineHeight * (FirstRow - TopLine), fGutter.Width,
       LineHeight * (LastRow - TopLine + 1));
-    PaintGutter(vRect, FirstRow, LastRow);
+    PaintGutter(vRect, FirstRow, LastRow, LastTextRow);
   end;
 
   procedure TCustomSynEdit.SetLineSpacingRule(const Value: TLineSpacingRule);
