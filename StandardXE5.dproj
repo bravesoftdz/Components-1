@@ -165,6 +165,7 @@
         <DCCReference Include="JvCmp.dcp"/>
         <DCCReference Include="xmlrtl.dcp"/>
         <DCCReference Include="SynEdit_RXE5.dcp"/>
+        <DCCReference Include="SynWeb_DXE5.dcp"/>
         <DCCReference Include="HelpSystem\HelpSystem.pas"/>
         <DCCReference Include="HelpSystem\hh.pas"/>
         <DCCReference Include="HelpSystem\hh_funcs.pas"/>

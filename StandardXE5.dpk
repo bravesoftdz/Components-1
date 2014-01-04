@@ -5,11 +5,11 @@ package StandardXE5;
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
-{$DEBUGINFO ON}
+{$DEBUGINFO OFF}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
-{$LOCALSYMBOLS ON}
+{$LOCALSYMBOLS OFF}
 {$LONGSTRINGS ON}
 {$OPENSTRINGS ON}
 {$OPTIMIZATION ON}
@@ -23,7 +23,7 @@ package StandardXE5;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DEFINE DEBUG}
+{$DEFINE RELEASE}
 {$ENDIF IMPLICITBUILDING}
 {$IMPLICITBUILD ON}
 
@@ -43,7 +43,8 @@ requires
   vclactnband,
   JvCmp,
   xmlrtl,
-  SynEdit_RXE5;
+  SynEdit_RXE5,
+  SynWeb_DXE5;
 
 contains
   HelpSystem in 'HelpSystem\HelpSystem.pas',

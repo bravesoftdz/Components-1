@@ -171,7 +171,7 @@ type
   TBCFileTreeNodeRec = record
     FileType: TBCFileType;
     FullPath, Filename: UnicodeString;
-    OpenIndex, CloseIndex: Integer;
+    ImageIndex, SelectedIndex, OverlayIndex: Integer;
   end;
 
   TBCFileTreeView = class(TVirtualDrawTree)
@@ -181,14 +181,15 @@ type
     FShowHidden: Boolean;
     FShowSystem: Boolean;
     FShowArchive: Boolean;
+    FShowOverlayIcons: Boolean;
     FRootDirectory: string;
     FDefaultDirectoryPath: string;
     FExcludeOtherBranches: Boolean;
     procedure DriveChange(NewDrive: Char);
     procedure SetDrive(Value: Char);
     procedure SetFileType(NewFileType: string);
-    function GetCloseIcon(Path: string): Integer;
-    function GetOpenIcon(Path: string): Integer;
+    function GetAImageIndex(Path: string): Integer;
+    function GetSelectedIndex(Path: string): Integer;
     procedure BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);
     function GetSelectedPath: string;
     function GetSelectedFile: string;
@@ -216,6 +217,7 @@ type
     property ShowHiddenFiles: Boolean read FShowHidden write FShowHidden;
     property ShowSystemFiles: Boolean read FShowSystem write FShowSystem;
     property ShowArchiveFiles: Boolean read FShowArchive write FShowArchive;
+    property ShowOverlayIcons: Boolean read FShowOverlayIcons write FShowOverlayIcons;
     property ExcludeOtherBranches: Boolean read FExcludeOtherBranches;
     property SelectedPath: string read GetSelectedPath;
     property SelectedFile: string read GetSelectedFile;
@@ -552,10 +554,11 @@ begin
   FShowHidden := False;
   FShowArchive := True;
   FShowSystem := False;
+  FShowOverlayIcons := True;
 
   FileIconInit(True);
   Images := TBCImageList.Create(Self);
-  SysImageList := SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
+  SysImageList := SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_SYSICONINDEX or SHGFI_SMALLICON or SHGFI_ADDOVERLAYS);
   if SysImageList <> 0 then
   begin
     Images.Handle := SysImageList;
@@ -605,12 +608,12 @@ begin
   end;
 end;
 
-function TBCFileTreeView.GetCloseIcon(Path: string): Integer;
+function TBCFileTreeView.GetAImageIndex(Path: string): Integer;
 begin
   Result := GetIconIndex(Path);
 end;
 
-function TBCFileTreeView.GetOpenIcon(Path: string): Integer;
+function TBCFileTreeView.GetSelectedIndex(Path: string): Integer;
 begin
   Result := GetIconIndex(Path, SHGFI_OPENICON);
 end;
@@ -682,8 +685,9 @@ begin
           end;
 
           Data.Filename := SR.Name;
-          Data.CloseIndex := GetCloseIcon(Filename);
-          Data.OpenIndex := GetOpenIcon(Filename);
+          Data.ImageIndex := GetAImageIndex(Filename);
+          Data.SelectedIndex := GetSelectedIndex(Filename);
+          Data.OverlayIndex := GetIconOverlayIndex(Filename);
         end;
     until FindNext(SR) <> 0;
   finally
@@ -991,10 +995,13 @@ begin
       ikSelected:
         begin
           if Expanded[Node] then
-            Index := Data.OpenIndex
+            Index := Data.SelectedIndex
           else
-            Index := Data.CloseIndex;
+            Index := Data.ImageIndex;
         end;
+      ikOverlay:
+        if FShowOverlayIcons then
+          Index := Data.OverlayIndex
     end;
   end;
 end;
@@ -1091,8 +1098,9 @@ begin
                 ChildData.FileType := ftFileAccessDenied;
             end;
             ChildData.Filename := SR.Name;
-            ChildData.CloseIndex := GetCloseIcon(FName);
-            ChildData.OpenIndex := GetOpenIcon(FName);
+            ChildData.ImageIndex := GetAImageIndex(FName);
+            ChildData.SelectedIndex := GetSelectedIndex(FName);
+            ChildData.OverlayIndex := GetIconOverlayIndex(FName);
             ValidateNode(Node, False);
           end;
       until FindNext(SR) <> 0;
