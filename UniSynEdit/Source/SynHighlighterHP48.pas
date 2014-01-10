@@ -55,7 +55,7 @@ uses
 {$IFDEF SYN_CLX}
   QGraphics,
   QSynEditHighlighter,
-  QSynUnicode,  
+  QSynUnicode,
 {$ELSE}
   Windows,
   Graphics,
@@ -184,11 +184,7 @@ type
     function GetRange: Pointer; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
-    procedure AddKeywords(var StringList: TStrings); override;
-    {$IFNDEF SYN_CLX}
-    function SaveToRegistry(RootKey: HKEY; Key: string): boolean; override;
-    function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; override;
-    {$ENDIF}
+
     procedure Assign(Source: TPersistent); override;
     property AsmKeyWords: TSpeedStringList read FAsmKeyWords;
     property SAsmFoField: TSpeedStringList read FSAsmNoField;
@@ -464,7 +460,7 @@ begin
     if Datas[crc][i] = Obj then begin
       for j := i + 1 to DatasUsed[crc] - 1 do
         if i > 0 then
-        Datas[i - 1] := Datas[i];
+          Datas[i - 1] := Datas[i];
       for j := crc + 1 to High(Datas) do
         dec(SumOfUsed[j]);
       Obj.FSpeedList := nil;
@@ -552,31 +548,6 @@ begin
   FSAsmNoField.free;
   inherited Destroy;
 end; { Destroy }
-
-procedure TSynHP48Syn.AddKeywords(var StringList: TStrings);
-var
-  i: Integer;
-  S, Word: string;
-begin
-  inherited;
-  S := DefaultAsmKeyWords + #13#10 + DefaultRplKeyWords + #13#10 + SasmNoField;
-  while S <> '' do
-  begin
-    if Pos(#13#10, S) <> 0 then
-      Word := Trim(Copy(S, 1, Pos(#13#10, S) - 1))
-    else
-    begin
-      Word := Trim(S);
-      S := '';
-    end;
-    if Pos(#13#10, S) <> 0 then
-      S := Copy(S, Pos(#13#10, S) + 1, Length(S));
-    StringList.Add(Word);
-  end;
-
-  for i := 0 to Length(OtherAsmKeyWords) - 1 do
-    StringList.Add(OtherAsmKeyWords[i]);
-end;
 
 function TSynHP48Syn.AsmComProc(c: WideChar): TtkTokenKind;
 begin
@@ -770,7 +741,7 @@ end;
 
 function TSynHP48Syn.Next1: TtkTokenKind;
 begin
-  fTokenPos := Run - 1;
+  fTokenPos := Run;
   if Run > Length(fLineStr) then
     result := NullProc
   else if fRange = rsComRpl then
@@ -812,7 +783,7 @@ end;
 
 function TSynHP48Syn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1; //2;
+  Result := Run = fLineLen + 2;
 end;
 
 function TSynHP48Syn.GetRange: Pointer;
@@ -845,47 +816,6 @@ begin
   while (Run <= Length(fLineStr)) and (fLineStr[Run] > ' ') do
     Inc(Run);
 end;
-
-{$IFNDEF SYN_CLX}
-function TSynHP48Syn.LoadFromRegistry(RootKey: HKEY; Key: string): boolean;
-var
-  r: TBetterRegistry;
-begin
-  r := TBetterRegistry.Create;
-  try
-    r.RootKey := RootKey;
-    if r.OpenKeyReadOnly(Key) then begin
-      if r.ValueExists('AsmKeyWordList')
-        then AsmKeywords.Text := r.ReadString('AsmKeyWordList');
-      if r.ValueExists('RplKeyWordList')
-        then RplKeywords.Text := r.ReadString('RplKeyWordList');
-      Result := inherited LoadFromRegistry(RootKey, Key);
-    end
-    else
-      Result := false;
-  finally r.Free;
-  end;
-end;
-
-function TSynHP48Syn.SaveToRegistry(RootKey: HKEY; Key: string): boolean;
-var
-  r: TBetterRegistry;
-begin
-  r := TBetterRegistry.Create;
-  try
-    r.RootKey := RootKey;
-    if r.OpenKey(Key, true) then begin
-      Result := true;
-      r.WriteString('AsmKeyWordList', AsmKeywords.Text);
-      r.WriteString('RplKeyWordList', RplKeywords.Text);
-      Result := inherited SaveToRegistry(RootKey, Key);
-    end
-    else
-      Result := false;
-  finally r.Free;
-  end;
-end;
-{$ENDIF}
 
 procedure TSynHP48Syn.Assign(Source: TPersistent);
 var
