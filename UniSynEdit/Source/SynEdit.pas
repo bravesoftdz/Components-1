@@ -1684,12 +1684,14 @@ begin
   fOrigRedoList.Free;
   fGutter.Free;
   FMinimap.Free;
+  fWordWrap.Free;
   fWordWrapGlyph.Free;
   fTextDrawer.Free;
   FInternalImage.Free;
   fFontDummy.Free;
   fOrigLines.Free;
   FBackground.Free;
+  fActiveLine.Free;
 end;
 
 function TCustomSynEdit.GetBlockBegin: TBufferCoord;
@@ -7275,7 +7277,7 @@ begin //
 
   procedure TCustomSynEdit.WordWrapChanged(Sender: TObject);
   begin
-    If Sender is TSynWordWrap then
+    if Sender is TSynWordWrap then
     begin
       if GetWordWrap <> fWordWrap.Enabled then
         UpdateWordWrap(fWordWrap.Enabled);

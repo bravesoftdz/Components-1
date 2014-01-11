@@ -111,9 +111,11 @@ type
     procedure UpdateVirtualTree;
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
     procedure OnFileTreeViewUpdateDelayTimer(Sender: TObject);
+    procedure CNDrawItem(var Message: TWMDrawItem); message CN_DRAWITEM;
   protected
     { Protected declarations }
     procedure Change; override;
+    procedure DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     { Public declarations }
@@ -295,6 +297,7 @@ var
   Temp: string;
 begin
   inherited Create(AOwner);
+  AutoSize := False;
   Style := csOwnerDrawFixed;
   GetSystemIcons;
   GetDir(0, Temp);
@@ -518,6 +521,9 @@ end;
 constructor TBCCustomFileTypeComboBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  //Style := csOwnerDrawVariable;
+
+  AutoSize := False;
   FFileTreeViewUpdateDelay := 500;
   FFileTreeViewUpdateTimer := TTimer.Create(nil);
   with FFileTreeViewUpdateTimer do
@@ -525,6 +531,7 @@ begin
     OnTimer := OnFileTreeViewUpdateDelayTimer;
     Interval := FFileTreeViewUpdateDelay;
   end;
+  ResetItemHeight;
 end;
 
 destructor TBCCustomFileTypeComboBox.Destroy;
@@ -541,8 +548,6 @@ end;
 
 procedure TBCCustomFileTypeComboBox.SetFileTreeView(Value: TBCFileTreeView);
 begin
-  {FFileTreeView := Value;
-  UpdateVirtualTree; }
   if Assigned(FFileTreeView) then
     FFileTreeView.FFileTypeComboBox := nil;
   FFileTreeView := Value;
@@ -619,6 +624,65 @@ begin
       Add(Copy(Temp, 1, Pos('|', Temp) - 1));
       Temp := Copy(Temp, Pos('|', Temp) + 1, Length(Temp));
     end;
+  end;
+end;
+
+procedure TBCCustomFileTypeComboBox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState);
+begin
+  { ensure the correct highlite color is used }
+  Canvas.FillRect(Rect);
+  { write the text }
+  Canvas.TextOut(Rect.Left, Rect.Top + 2, Items[Index]);
+end;
+
+procedure TBCCustomFileTypeComboBox.CNDrawItem(var Message: TWMDrawItem);
+const
+  ColorStates: array[Boolean] of TStyleColor = (scComboBoxDisabled, scComboBox);
+  FontStates: array[Boolean] of TStyleFont = (sfComboBoxItemDisabled, sfComboBoxItemNormal);
+var
+  State: TOwnerDrawState;
+  LStyles: TCustomStyleServices;
+begin
+  LStyles := StyleServices;
+  with Message.DrawItemStruct{$IFNDEF CLR}^{$ENDIF} do
+  begin
+    State := TOwnerDrawState(LoWord(itemState));
+    if itemState and ODS_COMBOBOXEDIT <> 0 then
+      Include(State, odComboBoxEdit);
+    if itemState and ODS_DEFAULT <> 0 then
+      Include(State, odDefault);
+    Canvas.Handle := hDC;
+    Canvas.Font := Font;
+    if LStyles.Enabled then
+    begin
+      if seClient in StyleElements then
+        Canvas.Brush.Color := StyleServices.GetStyleColor(ColorStates[Enabled])
+      else
+        Canvas.Brush := Brush;
+      if seFont in StyleElements then
+        Canvas.Font.Color := StyleServices.GetStyleFontColor(FontStates[Enabled]);
+    end
+    else
+      Canvas.Brush := Brush;
+    if (Integer(itemID) >= 0) and (odSelected in State) then
+    begin
+      if LStyles.Enabled then
+      begin
+         Canvas.Brush.Color := LStyles.GetSystemColor(clHighlight);
+         Canvas.Font.Color := LStyles.GetStyleFontColor(sfMenuItemTextSelected);// GetSystemColor(clHighlightText);
+      end
+      else
+      begin
+        Canvas.Brush.Color := clHighlight;
+        Canvas.Font.Color := clHighlightText;
+      end;
+    end;
+    if Integer(itemID) >= 0 then
+      DrawItem(itemID, rcItem, State)
+    else
+      Canvas.FillRect(rcItem);
+    //if odFocused in State then DrawFocusRect(hDC, rcItem);
+    Canvas.Handle := 0;
   end;
 end;
 

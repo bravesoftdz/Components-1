@@ -16,6 +16,7 @@ type
     procedure SetEditable(Value: Boolean);
     procedure SetDropDownFixedWidth(const Value: Integer);
     function GetTextWidth(s: string): Integer;
+    procedure CNDrawItem(var Message: TWMDrawItem); message CN_DRAWITEM;
   protected
     { Protected declarations }
     procedure KeyPress(var Key: Char); override;
@@ -84,6 +85,57 @@ begin
 
     Canvas.FillRect(Rect) ;
     Canvas.TextOut(Rect.Left+2, Rect.Top, Items[Index]);
+  end;
+end;
+
+procedure TBCComboBox.CNDrawItem(var Message: TWMDrawItem);
+const
+  ColorStates: array[Boolean] of TStyleColor = (scComboBoxDisabled, scComboBox);
+  FontStates: array[Boolean] of TStyleFont = (sfComboBoxItemDisabled, sfComboBoxItemNormal);
+var
+  State: TOwnerDrawState;
+  LStyles: TCustomStyleServices;
+begin
+  LStyles := StyleServices;
+  with Message.DrawItemStruct{$IFNDEF CLR}^{$ENDIF} do
+  begin
+    State := TOwnerDrawState(LoWord(itemState));
+    if itemState and ODS_COMBOBOXEDIT <> 0 then
+      Include(State, odComboBoxEdit);
+    if itemState and ODS_DEFAULT <> 0 then
+      Include(State, odDefault);
+    Canvas.Handle := hDC;
+    Canvas.Font := Font;
+    if LStyles.Enabled then
+    begin
+      if seClient in StyleElements then
+        Canvas.Brush.Color := StyleServices.GetStyleColor(ColorStates[Enabled])
+      else
+        Canvas.Brush := Brush;
+      if seFont in StyleElements then
+        Canvas.Font.Color := StyleServices.GetStyleFontColor(FontStates[Enabled]);
+    end
+    else
+      Canvas.Brush := Brush;
+    if (Integer(itemID) >= 0) and (odSelected in State) then
+    begin
+      if LStyles.Enabled then
+      begin
+         Canvas.Brush.Color := LStyles.GetSystemColor(clHighlight);
+         Canvas.Font.Color := LStyles.GetStyleFontColor(sfMenuItemTextSelected);// GetSystemColor(clHighlightText);
+      end
+      else
+      begin
+        Canvas.Brush.Color := clHighlight;
+        Canvas.Font.Color := clHighlightText;
+      end;
+    end;
+    if Integer(itemID) >= 0 then
+      DrawItem(itemID, rcItem, State)
+    else
+      Canvas.FillRect(rcItem);
+    //if odFocused in State then DrawFocusRect(hDC, rcItem);
+    Canvas.Handle := 0;
   end;
 end;
 
