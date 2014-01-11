@@ -52,9 +52,6 @@ contains
   hh_funcs in 'HelpSystem\hh_funcs.pas',
   ThdTimer in 'ThdTimer\ThdTimer.pas',
   TimeRuler in 'TimeRuler\TimeRuler.pas',
-  BigIni in '..\..\Common\units\BigIni.pas',
-  BCCommon.LanguageStrings in '..\..\Common\units\BCCommon.LanguageStrings.pas' {LanguageDataModule: TDataModule},
-  BCCommon.Encoding in '..\..\Common\units\BCCommon.Encoding.pas',
   Cards in 'Cards\Cards.pas',
   BCControls.CheckBox in 'Controls\BCControls.CheckBox.pas',
   BCControls.ComboBox in 'Controls\BCControls.ComboBox.pas',
@@ -70,7 +67,6 @@ contains
   BCControls.SynEdit in 'Controls\BCControls.SynEdit.pas',
   BCControls.ToolBar in 'Controls\BCControls.ToolBar.pas',
   BCControls.UnicodeStringHolder in 'Controls\BCControls.UnicodeStringHolder.pas',
-  BCCommon.FileUtils in '..\..\Common\units\BCCommon.FileUtils.pas',
   BCControls.ProgressBar in 'Controls\BCControls.ProgressBar.pas',
   BCControls.StyleHooks in 'Controls\BCControls.StyleHooks.pas';
 

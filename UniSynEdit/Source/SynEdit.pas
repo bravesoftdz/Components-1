@@ -1689,6 +1689,7 @@ begin
   FInternalImage.Free;
   fFontDummy.Free;
   fOrigLines.Free;
+  FBackground.Free;
 end;
 
 function TCustomSynEdit.GetBlockBegin: TBufferCoord;

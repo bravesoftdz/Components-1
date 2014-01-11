@@ -22,13 +22,16 @@ type
     FIconIndex: Integer;
     FFileTreeView: TBCFileTreeView;
     FSystemIconsImageList: TImageList;
+    { Can't use Items.Objects because those objects can't be destroyed in destructor because control has no parent
+      window anymore. }
+    FDriveComboFileList: TList;
     procedure SetFileTreeView(Value: TBCFileTreeView);
     procedure GetSystemIcons;
     procedure ResetItemHeight;
-    procedure ClearItems;
     function GetDrive: Char;
     procedure SetDrive(NewDrive: Char);
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
+    procedure CNDrawItem(var Message: TWMDrawItem); message CN_DRAWITEM;
   protected
     { Protected declarations }
     procedure CreateWnd; override;
@@ -40,6 +43,7 @@ type
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure ClearItems;
     property Drive: Char read GetDrive write SetDrive;
     property FileTreeView: TBCFileTreeView read FFileTreeView write SetFileTreeView;
     property SystemIconsImageList: TImageList read FSystemIconsImageList;
@@ -98,10 +102,12 @@ type
     FFileTreeViewUpdateDelay: Integer;
     FFileTreeView: TBCFileTreeView;
     FFileTreeViewUpdateTimer: TTimer;
+    function GetFileType: string;
     procedure ResetItemHeight;
     procedure SetFileTreeView(Value: TBCFileTreeView);
     procedure SetFileTreeViewUpdateDelay(Value: Integer);
     procedure SetExtensions(Value: string);
+    procedure SetFileType(Value: string);
     procedure UpdateVirtualTree;
     procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
     procedure OnFileTreeViewUpdateDelayTimer(Sender: TObject);
@@ -116,6 +122,7 @@ type
     property Extensions: string write SetExtensions;
     property FileTreeViewUpdateDelay: Integer read FFileTreeViewUpdateDelay write SetFileTreeViewUpdateDelay;
     property FileTreeView: TBCFileTreeView read FFileTreeView write SetFileTreeView;
+    property FileType: string read GetFileType write SetFileType;
   end;
 
   TBCFileTypeComboBox = class(TBCCustomFileTypeComboBox)
@@ -129,6 +136,7 @@ type
     property Constraints;
     property FileTreeViewUpdateDelay;
     property FileTreeView;
+    property FileType;
     property DoubleBuffered;
     property DragMode;
     property DragCursor;
@@ -177,7 +185,9 @@ type
   TBCFileTreeView = class(TVirtualDrawTree)
   private
     FDrive: Char;
+    FDriveComboBox: TBCCustomDriveComboBox;
     FFileType: string;
+    FFileTypeComboBox: TBCCustomFileTypeComboBox;
     FShowHidden: Boolean;
     FShowSystem: Boolean;
     FShowArchive: Boolean;
@@ -190,6 +200,8 @@ type
     procedure SetFileType(NewFileType: string);
     function GetAImageIndex(Path: string): Integer;
     function GetSelectedIndex(Path: string): Integer;
+    function GetFileType: string;
+    function GetDrive: Char;
     procedure BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);
     function GetSelectedPath: string;
     function GetSelectedFile: string;
@@ -205,6 +217,7 @@ type
     function DoGetNodeWidth(Node: PVirtualNode; Column: TColumnIndex; Canvas: TCanvas = nil): Integer; override;
     procedure DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal); override;
     function DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink; override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
   { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -212,8 +225,8 @@ type
     procedure OpenPath(RootDirectory: string; DirectoryPath: string; ExcludeOtherBranches: Boolean);
     procedure RenameSelectedNode;
     procedure DeleteSelectedNode;
-    property Drive: Char read FDrive write SetDrive;
-    property FileType: string read FFileType write SetFileType;
+    property Drive: Char read GetDrive write SetDrive;
+    property FileType: string read GetFileType write SetFileType;
     property ShowHiddenFiles: Boolean read FShowHidden write FShowHidden;
     property ShowSystemFiles: Boolean read FShowSystem write FShowSystem;
     property ShowArchiveFiles: Boolean read FShowArchive write FShowArchive;
@@ -288,39 +301,19 @@ begin
   FDrive := Temp[1]; { make default drive selected }
   if FDrive = '\' then
     FDrive := #0;
-end;
-
-procedure TBCCustomDriveComboBox.CreateWnd;
-begin
-  inherited CreateWnd;
-  BuildList;
-  SetDrive(FDrive);
+  ResetItemHeight;
+  FDriveComboFileList := TList.Create;
 end;
 
 destructor TBCCustomDriveComboBox.Destroy;
 begin
-  // ClearItems; Can't do this because object does not have a parent window anymore...
+  if not (csDesigning in ComponentState) then
+  begin
+    ClearItems;
+    FreeAndNil(FDriveComboFileList);
+  end;
   FreeAndNil(FSystemIconsImageList);
   inherited Destroy;
-end;
-
-procedure TBCCustomDriveComboBox.GetSystemIcons;
-var
-  SHFileInfo: TSHFileInfo;
-  PathInfo: string;
-begin
-  FileIconInit(True);
-  FSystemIconsImageList := TImageList.Create(Self);
-  FSystemIconsImageList.Handle := SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
-end;
-
-procedure TBCCustomDriveComboBox.ClearItems;
-begin
-  while Items.Count > 0 do
-  begin
-    Items.Objects[0].Free; { TDriveComboFile }
-    Items.Delete(0);
-  end;
 end;
 
 procedure TBCCustomDriveComboBox.BuildList;
@@ -341,16 +334,13 @@ begin
     if (lp1 in Drives) then
     begin
       Drv := chr(ord('A') + lp1) + ':\';
-      try
-        SHGetFileInfo(PChar(Drv), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_SYSICONINDEX or SHGFI_DISPLAYNAME or SHGFI_TYPENAME);
-        DriveComboFile := TDriveComboFile.Create;
-        DriveComboFile.Drive := chr(ord('A') + lp1);
-        DriveComboFile.IconIndex := SHFileInfo.iIcon;
-        DriveComboFile.FileName := StrPas(SHFileInfo.szDisplayName);
-        Items.AddObject(StrPas(SHFileInfo.szDisplayName), DriveComboFile);
-      except
-
-      end;
+      SHGetFileInfo(PChar(Drv), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_SYSICONINDEX or SHGFI_DISPLAYNAME or SHGFI_TYPENAME);
+      DriveComboFile := TDriveComboFile.Create;
+      DriveComboFile.Drive := chr(ord('A') + lp1);
+      DriveComboFile.IconIndex := SHFileInfo.iIcon;
+      DriveComboFile.FileName := StrPas(SHFileInfo.szDisplayName);
+      Items.Add(StrPas(SHFileInfo.szDisplayName));
+      FDriveComboFileList.Add(DriveComboFile);
     end;
   end;
   Items.EndUpdate;
@@ -373,12 +363,12 @@ begin
     else
     { change selected item }
     for Item := 0 to Items.Count - 1 do
-      if UpCase(NewDrive) = TDriveComboFile(Items.Objects[Item]).Drive then
+      if UpCase(NewDrive) = TDriveComboFile(FDriveComboFileList[Item]).Drive then
       begin
         ItemIndex := Item;
         break;
       end;
-    FIconIndex := TDriveComboFile(Items.Objects[ItemIndex]).IconIndex;
+    FIconIndex := TDriveComboFile(FDriveComboFileList[ItemIndex]).IconIndex;
     if Assigned(FFileTreeView) then
       FFileTreeView.DriveChange(NewDrive);
     Change;
@@ -387,12 +377,21 @@ end;
 
 procedure TBCCustomDriveComboBox.SetFileTreeView(Value: TBCFileTreeView);
 begin
+  if Assigned(FFileTreeView) then
+    FFileTreeView.FDriveComboBox := nil;
   FFileTreeView := Value;
   if Assigned(FFileTreeView) then
   begin
-    FFileTreeView.Drive := #0;
-    FFileTreeView.DriveChange(Drive);
+    FFileTreeView.FDriveComboBox := Self;
+    FFileTreeView.FreeNotification(Self);
   end;
+end;
+
+procedure TBCCustomDriveComboBox.CreateWnd;
+begin
+  inherited CreateWnd;
+  BuildList;
+  SetDrive(FDrive);
 end;
 
 procedure TBCCustomDriveComboBox.DrawItem(Index: Integer; Rect: TRect;
@@ -401,18 +400,17 @@ begin
   { ensure the correct highlite color is used }
   Canvas.FillRect(Rect);
   { draw the actual bitmap }
-  FSystemIconsImageList.Draw(Canvas, Rect.Left + 3, Rect.Top, TDriveComboFile(Items.Objects[Index]).IconIndex);
+  FSystemIconsImageList.Draw(Canvas, Rect.Left + 3, Rect.Top, TDriveComboFile(FDriveComboFileList[Index]).IconIndex);
   { write the text }
   Canvas.TextOut(Rect.Left + FSystemIconsImageList.width + 7, Rect.Top + 2,
-    TDriveComboFile(Items.Objects[Index]).FileName);
+    TDriveComboFile(FDriveComboFileList[Index]).FileName);
 end;
 
 procedure TBCCustomDriveComboBox.Change;
 begin
-  inherited;
   if ItemIndex >= 0 then
-    if Assigned(Items.Objects[ItemIndex]) then
-      Drive := TDriveComboFile(Items.Objects[ItemIndex]).Drive[1];
+    if Assigned(FDriveComboFileList[ItemIndex]) then
+      Drive := TDriveComboFile(FDriveComboFileList[ItemIndex]).Drive[1];
 end;
 
 procedure TBCCustomDriveComboBox.CMFontChanged(var Message: TMessage);
@@ -432,12 +430,87 @@ begin
   ItemHeight := nuHeight;
 end;
 
+procedure TBCCustomDriveComboBox.GetSystemIcons;
+var
+  SHFileInfo: TSHFileInfo;
+  PathInfo: string;
+begin
+  FileIconInit(True);
+  FSystemIconsImageList := TImageList.Create(Self);
+  FSystemIconsImageList.Handle := SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
+end;
+
 procedure TBCCustomDriveComboBox.Notification(AComponent: TComponent;
   Operation: TOperation);
 begin
   inherited Notification(AComponent, Operation);
   if (Operation = opRemove) and (AComponent = FFileTreeView) then
     FFileTreeView := nil;
+end;
+
+procedure TBCCustomDriveComboBox.ClearItems;
+var
+  i: Integer;
+begin
+   if not (csDesigning in ComponentState) then
+  begin
+    for i := 0 to FDriveComboFileList.Count - 1 do
+      TDriveComboFile(FDriveComboFileList.Items[i]).Free;
+    FDriveComboFileList.Clear;
+    if not (csDestroying in ComponentState) then
+      Clear; // can't clear if the component is being destroyed or there is an exception, 'no parent window'
+  end;
+end;
+
+procedure TBCCustomDriveComboBox.CNDrawItem(var Message: TWMDrawItem);
+const
+  ColorStates: array[Boolean] of TStyleColor = (scComboBoxDisabled, scComboBox);
+  FontStates: array[Boolean] of TStyleFont = (sfComboBoxItemDisabled, sfComboBoxItemNormal);
+var
+  State: TOwnerDrawState;
+  LStyles: TCustomStyleServices;
+begin
+  LStyles := StyleServices;
+  with Message.DrawItemStruct{$IFNDEF CLR}^{$ENDIF} do
+  begin
+    State := TOwnerDrawState(LoWord(itemState));
+    if itemState and ODS_COMBOBOXEDIT <> 0 then
+      Include(State, odComboBoxEdit);
+    if itemState and ODS_DEFAULT <> 0 then
+      Include(State, odDefault);
+    Canvas.Handle := hDC;
+    Canvas.Font := Font;
+    if LStyles.Enabled then
+    begin
+      if seClient in StyleElements then
+        Canvas.Brush.Color := StyleServices.GetStyleColor(ColorStates[Enabled])
+      else
+        Canvas.Brush := Brush;
+      if seFont in StyleElements then
+        Canvas.Font.Color := StyleServices.GetStyleFontColor(FontStates[Enabled]);
+    end
+    else
+      Canvas.Brush := Brush;
+    if (Integer(itemID) >= 0) and (odSelected in State) then
+    begin
+      if LStyles.Enabled then
+      begin
+         Canvas.Brush.Color := LStyles.GetSystemColor(clHighlight);
+         Canvas.Font.Color := LStyles.GetStyleFontColor(sfMenuItemTextSelected);// GetSystemColor(clHighlightText);
+      end
+      else
+      begin
+        Canvas.Brush.Color := clHighlight;
+        Canvas.Font.Color := clHighlightText;
+      end;
+    end;
+    if Integer(itemID) >= 0 then
+      DrawItem(itemID, rcItem, State)
+    else
+      Canvas.FillRect(rcItem);
+    //if odFocused in State then DrawFocusRect(hDC, rcItem);
+    Canvas.Handle := 0;
+  end;
 end;
 
 { TBCCustomFileTypeComboBox }
@@ -468,8 +541,16 @@ end;
 
 procedure TBCCustomFileTypeComboBox.SetFileTreeView(Value: TBCFileTreeView);
 begin
+  {FFileTreeView := Value;
+  UpdateVirtualTree; }
+  if Assigned(FFileTreeView) then
+    FFileTreeView.FFileTypeComboBox := nil;
   FFileTreeView := Value;
-  UpdateVirtualTree;
+  if Assigned(FFileTreeView) then
+  begin
+    FFileTreeView.FFileTypeComboBox := Self;
+    FFileTreeView.FreeNotification(Self);
+  end;
 end;
 
 procedure TBCCustomFileTypeComboBox.SetFileTreeViewUpdateDelay(Value: Integer);
@@ -484,6 +565,16 @@ begin
   inherited;
   ResetItemHeight;
   RecreateWnd;
+end;
+
+function TBCCustomFileTypeComboBox.GetFileType: string;
+begin
+  Result := Text;
+end;
+
+procedure TBCCustomFileTypeComboBox.SetFileType(Value: string);
+begin
+  Text := Value;
 end;
 
 procedure TBCCustomFileTypeComboBox.ResetItemHeight;
@@ -578,9 +669,22 @@ begin
   inherited Destroy;
 end;
 
+procedure TBCFileTreeView.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  if Operation = opRemove then
+  begin
+    if AComponent = FDriveComboBox then
+      FDriveComboBox := nil
+    else
+    if AComponent = FFileTypeComboBox then
+      FFileTypeComboBox := nil
+  end;
+end;
+
 procedure TBCFileTreeView.DriveChange(NewDrive: Char);
 begin
-  if UpCase(NewDrive) <> UpCase(Drive) then
+  if UpCase(NewDrive) <> UpCase(FDrive) then
   begin
     FDrive := NewDrive;
     FRootDirectory := NewDrive + ':\';
@@ -591,7 +695,7 @@ end;
 
 procedure TBCFileTreeView.SetFileType(NewFileType: string);
 begin
-  if UpperCase(NewFileType) <> UpperCase(FileType) then
+  if UpperCase(NewFileType) <> UpperCase(FFileType) then
   begin
     FFileType := NewFileType;
     if not (csDesigning in ComponentState) then
@@ -599,13 +703,23 @@ begin
   end
 end;
 
+function TBCFileTreeView.GetFileType: string;
+begin
+  Result := FFileType;
+end;
+
 procedure TBCFileTreeView.SetDrive(Value: Char);
 begin
-  if (UpCase(Value) <> UpCase(Drive)) then
+  if (UpCase(Value) <> UpCase(FDrive)) then
   begin
     FDrive := Value;
     DriveChange(Value);
   end;
+end;
+
+function TBCFileTreeView.GetDrive: Char;
+begin
+  Result := FDrive;
 end;
 
 function TBCFileTreeView.GetAImageIndex(Path: string): Integer;
@@ -631,7 +745,7 @@ begin
   NodeDataSize := SizeOf(TBCFileTreeNodeRec);
 
   if not ExcludeOtherBranches then
-    FindFile := FindFirst(FDrive + ':\*.*', faAnyFile, SR)
+    FindFile := FindFirst(GetDrive + ':\*.*', faAnyFile, SR)
   else
     {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
     FindFile := FindFirst(IncludeTrailingBackslash(RootDirectory) + '*.*', faAnyFile, SR);
@@ -648,13 +762,13 @@ begin
           Continue;
       {$WARNINGS ON}
       if (SR.Name <> '.') and (SR.Name <> '..') then
-        if (SR.Attr and faDirectory <> 0) or (FFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), FFileType) then
+        if (SR.Attr and faDirectory <> 0) or (GetFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), GetFileType) then
         begin
           ANode := AddChild(nil);
 
           Data := GetNodeData(ANode);
           if not ExcludeOtherBranches then
-            FileName := FDrive + ':\' + SR.Name
+            FileName := GetDrive + ':\' + SR.Name
           else
             {$WARNINGS OFF}
             FileName := IncludeTrailingBackslash(RootDirectory) + SR.Name;
@@ -670,7 +784,7 @@ begin
           begin
             Data.FileType := ftFile;
             if not ExcludeOtherBranches then
-              Data.FullPath := FDrive + ':\'
+              Data.FullPath := GetDrive + ':\'
             else
               {$WARNINGS OFF}
               Data.FullPath := IncludeTrailingBackslash(RootDirectory);
@@ -799,7 +913,7 @@ begin
   EndUpdate;
 end;
 
-function AddNullToStr(Path: string): string; //70
+function AddNullToStr(Path: string): string;
 begin
   if Path = '' then
     Exit('');
@@ -1071,7 +1185,7 @@ begin
         FName := IncludeTrailingBackslash(Data.FullPath) + SR.Name; //StrPas(Win32FD.cFileName);
         {$WARNINGS ON}
         if (SR.Name <> '.') and (SR.Name <> '..') then
-          if (SR.Attr and faDirectory <> 0) or (FFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), FFileType) then
+          if (SR.Attr and faDirectory <> 0) or (GetFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), GetFileType) then
           begin
             ChildNode := AddChild(Node);
             ChildData := GetNodeData(ChildNode);

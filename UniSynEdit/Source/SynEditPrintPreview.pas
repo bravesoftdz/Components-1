@@ -601,13 +601,15 @@ end;
 
 procedure TSynEditPrintPreview.SetScalePercent(Value: Integer);
 begin
-  if (FScalePercent <> Value) then begin
+  if (FScalePercent <> Value) then
+  begin
     FScaleMode := pscUserScaled;
     FScrollPosition := Point(0, 0);
     FScalePercent := Value;
     SizeChanged;
     Invalidate;
-  end else
+  end
+  else
     ScaleMode := pscUserScaled;
   if Assigned(FOnScaleChange) then                                              // JD 2002-01-9
     FOnScaleChange(Self);                                                       // JD 2002-01-9
