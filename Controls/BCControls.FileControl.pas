@@ -805,7 +805,9 @@ var
   Data: PBCFileTreeNodeRec;
 begin
   BeginUpdate;
-  Clear;
+  ANode := GetFirst;
+  if Assigned(ANode) then
+    Clear;
   NodeDataSize := SizeOf(TBCFileTreeNodeRec);
 
   if not ExcludeOtherBranches then
@@ -1074,9 +1076,14 @@ procedure TBCFileTreeView.DoFreeNode(Node: PVirtualNode);
 var
   Data: PBCFileTreeNodeRec;
 begin
-  inherited;
   Data := GetNodeData(Node);
+  {Data^.FullPath := '';
+  Data^.Filename := '';
+  Data^.ImageIndex := 0;
+  Data^.SelectedIndex := 0;
+  Data^.OverlayIndex := 0;}
   Finalize(Data^);
+  inherited;
 end;
 
 procedure TBCFileTreeView.DoPaintNode(var PaintInfo: TVTPaintInfo);

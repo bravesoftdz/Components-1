@@ -1520,6 +1520,8 @@ begin
 destructor TSynInternalImage.Destroy;
 begin
   FreeBitmapFromInternalList;
+  if Assigned(fImages) then
+    fImages.Free;
   inherited Destroy;
 end;
 

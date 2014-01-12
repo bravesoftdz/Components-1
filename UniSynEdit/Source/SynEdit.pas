@@ -1674,6 +1674,9 @@ begin
   fPlugins.Free;
   fPlugins := nil;
 
+  FBufferBmp.Free;
+  fMoveRightEdgeBitmap.Free;
+
   fMarkList.Free;
   fBookMarkOpt.Free;
   fKeyStrokes.Free;
@@ -1692,6 +1695,9 @@ begin
   fOrigLines.Free;
   FBackground.Free;
   fActiveLine.Free;
+  fLineDivider.Free;
+  fRightEdge.Free;
+  fScrollBars.Free;
 end;
 
 function TCustomSynEdit.GetBlockBegin: TBufferCoord;
