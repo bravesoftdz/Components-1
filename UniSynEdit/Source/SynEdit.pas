@@ -711,7 +711,6 @@ type
     procedure RedoItem;
     procedure InternalSetCaretXY(const Value: TBufferCoord); virtual;
     procedure SetCaretXY(const Value: TBufferCoord); virtual;
-    procedure SetCaretXYEx(CallEnsureCursorPos: Boolean; Value: TBufferCoord); virtual;
     procedure SetFontSmoothing(AValue: TSynFontSmoothMethod);
     procedure SetName(const Value: TComponentName); override;
     procedure SetReadOnly(Value: Boolean); virtual;
@@ -758,6 +757,8 @@ type
     property InternalCaretXY: TBufferCoord write InternalSetCaretXY;
     property FontSmoothing: TSynFontSmoothMethod read fFontSmoothing write SetFontSmoothing;
   public
+    procedure SetCaretXYEx(CallEnsureCursorPos: Boolean; Value: TBufferCoord); virtual;
+
     procedure SetHorizontalScrollBarPos(ScrollCode: TScrollCode; Pos: Smallint);
     procedure SetVerticalScrollBarPos(ScrollCode: TScrollCode; Pos: Smallint);
     procedure SetLineColor(Line: Integer; ForeColor, BackColor: TColor);
@@ -856,7 +857,7 @@ type
     procedure RegisterCommandHandler(const AHandlerProc: THookedCommandEvent; AHandlerData: pointer);
     function RowColumnToPixels(const RowCol: TDisplayCoord): TPoint;
     function RowColToCharIndex(RowCol: TBufferCoord): Integer;
-    function SearchReplace(const ASearch, AReplace: UnicodeString; AOptions: TSynSearchOptions): Integer;
+    function SearchReplace(const ASearch, AReplace: UnicodeString; AOptions: TSynSearchOptions; SetCaretXYPosition: Boolean = True): Integer;
     procedure SelectAll;
     procedure SetBookMark(BookMark: Integer; X: Integer; Y: Integer);
     procedure SetCaretAndSelection(const ptCaret, ptBefore, ptAfter: TBufferCoord);
@@ -11282,7 +11283,7 @@ begin //
   // find / replace
 
   function TCustomSynEdit.SearchReplace(const ASearch, AReplace: UnicodeString;
-    AOptions: TSynSearchOptions): Integer;
+    AOptions: TSynSearchOptions; SetCaretXYPosition: Boolean): Integer;
   var
     ptStart, ptEnd: TBufferCoord; // start and end of the search range
     ptCurrent: TBufferCoord; // current search position
@@ -11369,7 +11370,8 @@ begin //
     fSearchEngine.Pattern := ASearch;
     // search while the current search position is inside of the search range
     nReplaceLen := 0;
-    DoOnPaintTransient(ttBefore);
+    if SetCaretXYPosition then
+      DoOnPaintTransient(ttBefore);
     if bReplaceAll and not bPrompt then
     begin
       IncPaintLock;
@@ -11407,17 +11409,28 @@ begin //
           // handler or as the search result.
 
           ptCurrent.Char := nFound;
-          BlockBegin := ptCurrent;
-          // Be sure to use the Ex version of CursorPos so that it appears in the middle if necessary
-          SetCaretXYEx(False, BufferCoord(1, ptCurrent.Line));
-          EnsureCursorPosVisibleEx(True);
+
+
+          if SetCaretXYPosition then
+          begin
+            BlockBegin := ptCurrent;
+            // Be sure to use the Ex version of CursorPos so that it appears in the middle if necessary
+            SetCaretXYEx(False, BufferCoord(1, ptCurrent.Line));
+            EnsureCursorPosVisibleEx(True);
+          end;
           Inc(ptCurrent.Char, nSearchLen);
-          BlockEnd := ptCurrent;
-          InternalCaretXY := ptCurrent;
-          if bBackward then
-            InternalCaretXY := BlockBegin
+          if SetCaretXYPosition then
+          begin
+            BlockEnd := ptCurrent;
+
+            //InternalCaretXY := ptCurrent;
+            if bBackward then
+              InternalCaretXY := BlockBegin
+            else
+              InternalCaretXY := ptCurrent;
+          end
           else
-            InternalCaretXY := ptCurrent;
+            SetCaretXYEx(False, ptCurrent);
           // If it's a search only we can leave the procedure now.
           if not(bReplace or bReplaceAll) then
             Exit;
@@ -11483,7 +11496,8 @@ begin //
         DecPaintLock;
       if bEndUndoBlock then
         EndUndoBlock;
-      DoOnPaintTransient(ttAfter);
+      if SetCaretXYPosition then
+        DoOnPaintTransient(ttAfter);
     end;
   end;
 
