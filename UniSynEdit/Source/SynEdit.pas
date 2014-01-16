@@ -857,7 +857,7 @@ type
     procedure RegisterCommandHandler(const AHandlerProc: THookedCommandEvent; AHandlerData: pointer);
     function RowColumnToPixels(const RowCol: TDisplayCoord): TPoint;
     function RowColToCharIndex(RowCol: TBufferCoord): Integer;
-    function SearchReplace(const ASearch, AReplace: UnicodeString; AOptions: TSynSearchOptions; SetCaretXYPosition: Boolean = True): Integer;
+    function SearchReplace(const ASearch, AReplace: UnicodeString; AOptions: TSynSearchOptions): Integer;
     procedure SelectAll;
     procedure SetBookMark(BookMark: Integer; X: Integer; Y: Integer);
     procedure SetCaretAndSelection(const ptCaret, ptBefore, ptAfter: TBufferCoord);
@@ -11283,7 +11283,7 @@ begin //
   // find / replace
 
   function TCustomSynEdit.SearchReplace(const ASearch, AReplace: UnicodeString;
-    AOptions: TSynSearchOptions; SetCaretXYPosition: Boolean): Integer;
+    AOptions: TSynSearchOptions): Integer;
   var
     ptStart, ptEnd: TBufferCoord; // start and end of the search range
     ptCurrent: TBufferCoord; // current search position
@@ -11370,8 +11370,7 @@ begin //
     fSearchEngine.Pattern := ASearch;
     // search while the current search position is inside of the search range
     nReplaceLen := 0;
-    if SetCaretXYPosition then
-      DoOnPaintTransient(ttBefore);
+    DoOnPaintTransient(ttBefore);
     if bReplaceAll and not bPrompt then
     begin
       IncPaintLock;
@@ -11411,26 +11410,19 @@ begin //
           ptCurrent.Char := nFound;
 
 
-          if SetCaretXYPosition then
-          begin
-            BlockBegin := ptCurrent;
-            // Be sure to use the Ex version of CursorPos so that it appears in the middle if necessary
-            SetCaretXYEx(False, BufferCoord(1, ptCurrent.Line));
-            EnsureCursorPosVisibleEx(True);
-          end;
+          BlockBegin := ptCurrent;
+          // Be sure to use the Ex version of CursorPos so that it appears in the middle if necessary
+          SetCaretXYEx(False, BufferCoord(1, ptCurrent.Line));
+          EnsureCursorPosVisibleEx(True);
           Inc(ptCurrent.Char, nSearchLen);
-          if SetCaretXYPosition then
-          begin
-            BlockEnd := ptCurrent;
+          BlockEnd := ptCurrent;
 
-            //InternalCaretXY := ptCurrent;
-            if bBackward then
-              InternalCaretXY := BlockBegin
-            else
-              InternalCaretXY := ptCurrent;
-          end
+          //InternalCaretXY := ptCurrent;
+          if bBackward then
+            InternalCaretXY := BlockBegin
           else
-            SetCaretXYEx(False, ptCurrent);
+            InternalCaretXY := ptCurrent;
+
           // If it's a search only we can leave the procedure now.
           if not(bReplace or bReplaceAll) then
             Exit;
@@ -11496,8 +11488,7 @@ begin //
         DecPaintLock;
       if bEndUndoBlock then
         EndUndoBlock;
-      if SetCaretXYPosition then
-        DoOnPaintTransient(ttAfter);
+      DoOnPaintTransient(ttAfter);
     end;
   end;
 
