@@ -68,6 +68,7 @@ contains
   BCControls.ToolBar in 'Controls\BCControls.ToolBar.pas',
   BCControls.UnicodeStringHolder in 'Controls\BCControls.UnicodeStringHolder.pas',
   BCControls.ProgressBar in 'Controls\BCControls.ProgressBar.pas',
-  BCControls.StyleHooks in 'Controls\BCControls.StyleHooks.pas';
+  BCControls.StyleHooks in 'Controls\BCControls.StyleHooks.pas',
+  BCControls.ColorComboBox in 'Controls\BCControls.ColorComboBox.pas';
 
 end.
