@@ -147,10 +147,7 @@ begin
     end;
 
     FillRect(R);
-    //Brush.Color := clGray;
-    //OffsetRect(LRect, 2, 2);
-    //FillRect(LRect);
-    //OffsetRect(LRect, -2, -2);
+
     Brush.Color := TColor(Items.Objects[Index]);
     try
       Rectangle(LRect);
@@ -163,7 +160,17 @@ begin
       S := ColorDialogText;
       DoGetDisplayName(Index, TColor(Items.Objects[Index]), S);
       Brush.Color := Self.Color;
+      if LStyles.Enabled then
+      begin
+        Canvas.Brush.Color := LStyles.GetStyleColor(ColorStates[Enabled]);
+        Canvas.Font.Color  := LStyles.GetStyleFontColor(FontColorStates[Enabled]);
 
+        if odSelected in State then
+        begin
+          Canvas.Brush.Color := LStyles.GetSystemColor(clHighlight);
+          Canvas.Font.Color  := LStyles.GetSystemColor(clHighlightText);
+        end;
+      end;
       FillRect(R);
       R.Left := R.Left + 2;
       R.Right := R.Left + TextWidth(S) + 2;
