@@ -1286,7 +1286,7 @@ begin
             ChildData.ImageIndex := GetAImageIndex(FName);
             ChildData.SelectedIndex := GetSelectedIndex(FName);
             ChildData.OverlayIndex := GetIconOverlayIndex(FName);
-            ValidateNode(Node, False);
+            //ValidateNode(Node, False);
           end;
       until FindNext(SR) <> 0;
 

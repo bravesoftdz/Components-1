@@ -69,7 +69,7 @@ const
   ColorStates: array[Boolean] of TStyleColor = (scComboBoxDisabled, scEdit); // scComboBox);
   FontColorStates: array[Boolean] of TStyleFont = (sfComboBoxItemDisabled, sfComboBoxItemNormal);
 var
-  LStyles  : TCustomStyleServices;
+  LStyles: TCustomStyleServices;
 begin
   LStyles  := StyleServices;
   if LStyles.Enabled then
