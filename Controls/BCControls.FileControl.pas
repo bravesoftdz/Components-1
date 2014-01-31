@@ -433,6 +433,148 @@ begin
   ItemHeight := nuHeight;
 end;
 
+procedure IL_SaveImages(Stream: TStream; ImageList: TImageList);
+var
+wid, hgt, cnt, sz : longint;
+i, x, y : integer;
+bmp : Vcl.Graphics.TBitmap;
+MS : TMemoryStream;
+begin
+Stream.Size := 0;
+wid := ImageList.Width;
+Stream.Write(wid, SizeOf(wid));
+
+hgt := ImageList.Height;
+Stream.Write(hgt, SizeOf(hgt));
+
+cnt := ImageList.Count;
+Stream.Write(cnt, SizeOf(cnt));
+
+if cnt > 0 then begin
+bmp := Vcl.Graphics.TBitmap.Create;
+try
+x := wid *cnt;
+if x > Screen.Width then begin
+bmp.Width := wid *(Screen.Width div wid);
+bmp.Height := hgt *((x div bmp.Width) +1);
+end else begin
+bmp.Width := x;
+bmp.Height := hgt;
+end;
+
+x := 0;
+y := 0;
+for i := 0 to cnt -1 do begin
+ImageList.Draw(bmp.Canvas, x, y, i);
+
+Inc(x, wid);
+if x >= bmp.Width then begin
+x := 0;
+Inc(y, hgt);
+end;
+end;
+
+MS := TMemoryStream.Create;
+try
+bmp.SaveToStream(MS);
+
+sz := MS.Size;
+Stream.Write(sz, SizeOf(sz));
+Stream.CopyFrom(MS, 0);
+finally
+MS.Free;
+end;
+
+finally
+bmp.Free;
+end;
+end;
+end;
+
+procedure IL_LoadImages(Stream: TStream; ImageList: TImageList);
+var
+bmp, mask, image : Vcl.Graphics.TBitmap;
+wid, hgt, cnt, sz : longint;
+MS : TMemoryStream;
+x, y : integer;
+begin
+Stream.Position := 0;
+
+Stream.Read(wid, SizeOf(wid));
+Stream.Read(hgt, SizeOf(hgt));
+Stream.Read(cnt, SizeOf(cnt));
+
+ImageList.Clear;
+ImageList.Height := hgt;
+ImageList.Width := wid;
+
+if cnt > 0 then begin
+bmp := Vcl.Graphics.TBitmap.Create;
+image := Vcl.Graphics.TBitmap.Create;
+mask := Vcl.Graphics.TBitmap.Create;
+try
+Stream.Read(sz, SizeOf(sz));
+MS := TMemoryStream.Create;
+try
+MS.CopyFrom(Stream, sz);
+MS.Position := 0;
+bmp.LoadFromStream(MS);
+finally
+MS.Free;
+end;
+
+mask.Width := wid;
+mask.Height := hgt;
+
+image.Width := wid;
+image.Height := hgt;
+
+x := 0;
+y := 0;
+while cnt > 0 do begin
+image.Canvas.Draw(-x, -y, bmp);
+
+mask.Assign(image); // lower left pixel
+mask.Canvas.Brush.Color := image.Canvas.Pixels[0, hgt -1];
+mask.Monochrome := true;
+
+ImageList.Add(image, mask);
+Dec(cnt);
+
+Inc(x, wid);
+if x >= bmp.Width then begin
+Inc(y, hgt);
+x := 0;
+end;
+end;
+
+finally
+bmp.Free;
+image.Free;
+mask.Free;
+end;
+end;
+
+end;
+
+
+//Example use...
+
+procedure SaveImages(const Filename: string; AImageList: TImageList);
+var
+FS : TFileStream;
+begin
+if FileExists(Filename) then
+FS := TFileStream.Create(Filename, fmOpenReadWrite or fmShareDenyWrite)
+else
+FS := TFileStream.Create(Filename, fmCreate);
+try
+IL_SaveImages(FS, AImageList);
+finally
+FS.Free;
+end;
+end;
+
 procedure TBCCustomDriveComboBox.GetSystemIcons;
 var
   SHFileInfo: TSHFileInfo;
@@ -441,6 +583,7 @@ begin
   FileIconInit(True);
   FSystemIconsImageList := TImageList.Create(Self);
   FSystemIconsImageList.Handle := SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
+  SaveImages('c:\temp\images.dat', FSystemIconsImageList);
 end;
 
 procedure TBCCustomDriveComboBox.Notification(AComponent: TComponent;
@@ -951,6 +1094,8 @@ begin
   if not DirectoryExists(ExtractFileDir(DirectoryPath)) then
     Exit;
   BeginUpdate;
+  FDriveComboBox.BuildList;
+  FDriveComboBox.Drive := FDrive;
   FDefaultDirectoryPath := DirectoryPath;
   FExcludeOtherBranches := ExcludeOtherBranches;
   FRootDirectory := RootDirectory;
