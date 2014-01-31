@@ -803,12 +803,27 @@ var
   SR: TSearchRec;
   FileName: string;
   Data: PBCFileTreeNodeRec;
+  LDrive: Char;
+  DriveRemote: Boolean;
 begin
   BeginUpdate;
   ANode := GetFirst;
   if Assigned(ANode) then
     Clear;
   NodeDataSize := SizeOf(TBCFileTreeNodeRec);
+
+  { Access check for remote drive is impossible
+
+    Even when performing AccessCheck(), you are doing an access check against an access token that is generated "locally",
+    with the security descriptor associated with the object. When you directly access the object on a remote system, a network
+    access token gets generated on the remote system. This network access token is used to perform access check on the object
+    to determine whether access should be granted or denied. The object could be either a file or named pipe or AD object.
+
+    e.g. If the user is member of Administrators group on the remote system, when you directly access the object on a remote
+    system, the network access token that gets generated on the remote system will have Administrators group and will allow access.
+    Whereas, when you call AccessCheck() with a local access token, you will get different results. }
+  LDrive := GetDrive;
+  DriveRemote := GetDriveType(@LDrive) = DRIVE_REMOTE;
 
   if not ExcludeOtherBranches then
     FindFile := FindFirst(GetDrive + ':\*.*', faAnyFile, SR)
@@ -856,13 +871,14 @@ begin
               Data.FullPath := IncludeTrailingBackslash(RootDirectory);
               {$WARNINGS ON}
           end;
-          if not CheckAccessToFile(FILE_GENERIC_READ, Data.FullPath) then
-          begin
-            if Data.FileType = ftDirectory then
-              Data.FileType := ftDirectoryAccessDenied
-            else
-              Data.FileType := ftFileAccessDenied;
-          end;
+          if not DriveRemote then
+            if not CheckAccessToFile(FILE_GENERIC_READ, Filename) then //Data.FullPath) then
+            begin
+              if Data.FileType = ftDirectory then
+                Data.FileType := ftDirectoryAccessDenied
+              else
+                Data.FileType := ftFileAccessDenied;
+            end;
 
           Data.Filename := SR.Name;
           Data.ImageIndex := GetAImageIndex(Filename);
@@ -1237,8 +1253,23 @@ var
   SR: TSearchRec;
   ChildNode: PVirtualNode;
   FName: String;
+  LDrive: Char;
+  DriveRemote: Boolean;
 begin
   Data := GetNodeData(Node);
+
+  { Access check for remote drive is impossible
+
+    Even when performing AccessCheck(), you are doing an access check against an access token that is generated "locally",
+    with the security descriptor associated with the object. When you directly access the object on a remote system, a network
+    access token gets generated on the remote system. This network access token is used to perform access check on the object
+    to determine whether access should be granted or denied. The object could be either a file or named pipe or AD object.
+
+    e.g. If the user is member of Administrators group on the remote system, when you directly access the object on a remote
+    system, the network access token that gets generated on the remote system will have Administrators group and will allow access.
+    Whereas, when you call AccessCheck() with a local access token, you will get different results. }
+  LDrive := GetDrive;
+  DriveRemote := GetDriveType(@LDrive) = DRIVE_REMOTE;
 
   {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
   if FindFirst(IncludeTrailingBackslash(Data.FullPath) + '*.*', faAnyFile, SR) = 0 then
@@ -1275,13 +1306,14 @@ begin
               ChildData.FullPath := IncludeTrailingBackslash(Data.FullPath);
               {$WARNINGS ON}
             end;
-            if not CheckAccessToFile(FILE_GENERIC_READ, ChildData.FullPath) then
-            begin
-              if ChildData.FileType = ftDirectory then
-                ChildData.FileType := ftDirectoryAccessDenied
-              else
-                ChildData.FileType := ftFileAccessDenied;
-            end;
+            if not DriveRemote then
+              if not CheckAccessToFile(FILE_GENERIC_READ, FName) then //ChildData.FullPath) then
+              begin
+                if ChildData.FileType = ftDirectory then
+                  ChildData.FileType := ftDirectoryAccessDenied
+                else
+                  ChildData.FileType := ftFileAccessDenied;
+              end;
             ChildData.Filename := SR.Name;
             ChildData.ImageIndex := GetAImageIndex(FName);
             ChildData.SelectedIndex := GetSelectedIndex(FName);
@@ -1310,7 +1342,7 @@ end;
 
 destructor TEditLink.Destroy;
 begin
-  //FEdit.Free;
+  FEdit.Free;
   inherited;
 end;
 
