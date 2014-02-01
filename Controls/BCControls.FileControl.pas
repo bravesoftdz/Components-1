@@ -180,6 +180,7 @@ type
   PBCFileTreeNodeRec = ^TBCFileTreeNodeRec;
   TBCFileTreeNodeRec = record
     FileType: TBCFileType;
+    SaturateImage: Boolean;
     FullPath, Filename: UnicodeString;
     ImageIndex, SelectedIndex, OverlayIndex: Integer;
   end;
@@ -220,6 +221,7 @@ type
     procedure DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal); override;
     function DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure PaintImage(var PaintInfo: TVTPaintInfo; ImageInfoIndex: TVTImageInfoIndex; DoOverlay: Boolean); override;
   public
   { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -264,7 +266,7 @@ implementation
 
 uses
   Vcl.Forms, Winapi.ShellAPI, Vcl.Dialogs, Vcl.Themes, BCCommon.LanguageStrings, BCCommon.StringUtils,
-  BCCommon.Fileutils, BCControls.ImageList, System.UITypes;
+  BCCommon.Fileutils, BCControls.ImageList, System.UITypes, Winapi.CommCtrl;
 
 const
   FILE_ATTRIBUTES = FILE_ATTRIBUTE_READONLY or FILE_ATTRIBUTE_HIDDEN or FILE_ATTRIBUTE_SYSTEM or FILE_ATTRIBUTE_ARCHIVE or FILE_ATTRIBUTE_NORMAL or FILE_ATTRIBUTE_DIRECTORY;
@@ -879,7 +881,10 @@ begin
               else
                 Data.FileType := ftFileAccessDenied;
             end;
-
+          {$WARNINGS OFF}
+          Data.SaturateImage := (SR.Attr and faHidden <> 0) or (SR.Attr and faSysFile <> 0) or
+            (Data.FileType = ftDirectoryAccessDenied) or (Data.FileType = ftFileAccessDenied);
+          {$WARNINGS ON}
           Data.Filename := SR.Name;
           Data.ImageIndex := GetAImageIndex(Filename);
           Data.SelectedIndex := GetSelectedIndex(Filename);
@@ -1095,11 +1100,6 @@ var
   Data: PBCFileTreeNodeRec;
 begin
   Data := GetNodeData(Node);
-  {Data^.FullPath := '';
-  Data^.Filename := '';
-  Data^.ImageIndex := 0;
-  Data^.SelectedIndex := 0;
-  Data^.OverlayIndex := 0;}
   Finalize(Data^);
   inherited;
 end;
@@ -1206,6 +1206,55 @@ begin
         if FShowOverlayIcons then
           Index := Data.OverlayIndex
     end;
+  end;
+end;
+
+type
+  TCustomImageListCast = class(TCustomImageList);
+
+procedure DrawSaturatedImage(ImageList: TCustomImageList; Canvas: TCanvas; X, Y, Index: Integer);
+{$if CompilerVersion >= 21}
+var
+  Params: TImageListDrawParams;
+begin
+  FillChar(Params, SizeOf(Params), 0);
+  Params.cbSize := SizeOf(Params);
+  Params.himl := ImageList.Handle;
+  Params.i := Index;
+  Params.hdcDst := Canvas.Handle;
+  Params.x := X;
+  Params.y := Y;
+  Params.fState := ILS_SATURATE;
+  ImageList_DrawIndirect(@Params);
+{$else}
+begin
+  TCustomImageListCast(ImageList).DoDraw(Index, Canvas, X, Y, Style, Enabled);
+{$ifend}
+end;
+
+procedure TBCFileTreeView.PaintImage(var PaintInfo: TVTPaintInfo; ImageInfoIndex: TVTImageInfoIndex; DoOverlay: Boolean);
+var
+  Data: PBCFileTreeNodeRec;
+begin
+  with PaintInfo do
+  begin
+    Data := GetNodeData(Node);
+
+    if Data.SaturateImage then
+    begin
+      if DoOverlay then
+        GetImageIndex(PaintInfo, ikOverlay, iiOverlay, Images)
+      else
+        PaintInfo.ImageInfo[iiOverlay].Index := -1;
+      with ImageInfo[ImageInfoIndex] do
+      begin
+        DrawSaturatedImage(Images, Canvas, XPos, YPos, Index);
+        if ImageInfo[iiOverlay].Index >= 15 then
+          DrawSaturatedImage(ImageInfo[iiOverlay].Images, Canvas, XPos, YPos, ImageInfo[iiOverlay].Index);
+      end;
+    end
+    else
+      inherited;
   end;
 end;
 
@@ -1316,6 +1365,10 @@ begin
                 else
                   ChildData.FileType := ftFileAccessDenied;
               end;
+            {$WARNINGS OFF}
+            ChildData.SaturateImage := (SR.Attr and faHidden <> 0) or (SR.Attr and faSysFile <> 0) or
+              (ChildData.FileType = ftFileAccessDenied) or (ChildData.FileType = ftDirectoryAccessDenied);
+            {$WARNINGS ON}
             ChildData.Filename := SR.Name;
             ChildData.ImageIndex := GetAImageIndex(FName);
             ChildData.SelectedIndex := GetSelectedIndex(FName);
