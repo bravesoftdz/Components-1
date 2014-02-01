@@ -49,12 +49,12 @@ type
     procedure DragDrop(Source: TObject; X, Y: Integer); override;
     procedure Invalidate; override;
     procedure UpdatePageCaption(Page: TTabSheet);
+    { Set TabClosed to True, when a tab is closed otherwise drag will begin and the cursor will be prohibited }
+    property TabClosed: Boolean read FTabClosed write FTabClosed;
   published
     { Published declarations }
     property ActivePageCaption: TCaption read GetActivePageCaption write SetActivePageCaption;
     property TabDragDrop: Boolean read FTabDragDrop write FTabDragDrop;
-    { Set TabClosed to True, when a tab is closed otherwise drag will begin and the cursor will be prohibited }
-    property TabClosed: Boolean read FTabClosed write FTabClosed;
     property HoldShiftToDragDrop: Boolean read FHoldShiftToDragDrop write FHoldShiftToDragDrop;
     property ShowCloseButton: Boolean read FShowCloseButton write SetShowCloseButton;
     property OnCloseButtonClick: TNotifyEvent read FOnCloseButtonClick write FOnCloseButtonClick;

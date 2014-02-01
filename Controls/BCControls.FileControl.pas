@@ -1213,7 +1213,6 @@ type
   TCustomImageListCast = class(TCustomImageList);
 
 procedure DrawSaturatedImage(ImageList: TCustomImageList; Canvas: TCanvas; X, Y, Index: Integer);
-{$if CompilerVersion >= 21}
 var
   Params: TImageListDrawParams;
 begin
@@ -1226,10 +1225,6 @@ begin
   Params.y := Y;
   Params.fState := ILS_SATURATE;
   ImageList_DrawIndirect(@Params);
-{$else}
-begin
-  TCustomImageListCast(ImageList).DoDraw(Index, Canvas, X, Y, Style, Enabled);
-{$ifend}
 end;
 
 procedure TBCFileTreeView.PaintImage(var PaintInfo: TVTPaintInfo; ImageInfoIndex: TVTImageInfoIndex; DoOverlay: Boolean);
