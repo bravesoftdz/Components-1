@@ -389,12 +389,14 @@ end;
 
 class constructor TBCPageControl.Create;
 begin
-  TStyleManager.Engine.RegisterStyleHook(TCustomTabControl, TTabControlStyleHookBtnClose);
+  if Assigned(TStyleManager.Engine) then
+    TStyleManager.Engine.RegisterStyleHook(TCustomTabControl, TTabControlStyleHookBtnClose);
 end;
 
 class destructor TBCPageControl.Destroy;
 begin
-  TStyleManager.Engine.UnRegisterStyleHook(TCustomTabControl, TTabControlStyleHookBtnClose);
+  if Assigned(TStyleManager.Engine) then
+    TStyleManager.Engine.UnRegisterStyleHook(TCustomTabControl, TTabControlStyleHookBtnClose);
 end;
 
 constructor TBCPageControl.Create(AOwner: TComponent);

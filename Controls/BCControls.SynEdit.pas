@@ -43,12 +43,14 @@ end;
 
 class constructor TBCSynEdit.Create;
 begin
-  TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
+  if Assigned(TStyleManager.Engine) then
+    TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
 end;
 
 class destructor TBCSynEdit.Destroy;
 begin
-  TStyleManager.Engine.UnRegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
+  if Assigned(TStyleManager.Engine) then
+    TStyleManager.Engine.UnRegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
 end;
 
 destructor TBCSynEdit.Destroy;
