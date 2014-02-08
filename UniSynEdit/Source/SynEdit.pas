@@ -10099,6 +10099,8 @@ begin //
                       vTabTrim := CharIndex2CaretPos(CaretX, TabWidth, Temp);
                     ProperSetLine(CaretY - 1, Temp);
                     fCaretX := fCaretX - (SpaceCount1 - SpaceCount2);
+                    if fCaretX < 1 then
+                      fCaretX := 1;
                     UpdateLastCaretX;
                     fStateFlags := fStateFlags + [sfCaretChanged];
                     StatusChanged([scCaretX]);

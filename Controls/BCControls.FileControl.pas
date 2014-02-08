@@ -1287,7 +1287,7 @@ var
 begin
   Result := inherited;
   Data := GetNodeData(Node);
-  if Canvas = nil then
+  if not Assigned(Canvas) then
     Canvas := Self.Canvas;
   if Assigned(Data) then
     Result := Canvas.TextWidth(Trim(Data.FileName)) + 2 * TextMargin;
