@@ -801,7 +801,7 @@ end;
 
 function TBCFileTreeView.GetDriveRemote: Boolean;
 var
-  LDrive: Char;
+  LDrive: string;
   LDriveType: Cardinal;
 begin
   { Access check for remote drive is impossible
@@ -814,11 +814,9 @@ begin
     e.g. If the user is member of Administrators group on the remote system, when you directly access the object on a remote
     system, the network access token that gets generated on the remote system will have Administrators group and will allow access.
     Whereas, when you call AccessCheck() with a local access token, you will get different results. }
-  LDrive := GetDrive;
-  LDriveType := GetDriveType(@LDrive);
-  { GetDriveType incorrectly returns DRIVE_NO_ROOT_DIR when its parameter is the mount point of an empty removable drive.
-    Also mapped network drives are causing same problem in Vista/7. }
-  Result := (LDriveType = DRIVE_REMOTE) or (LDriveType = DRIVE_NO_ROOT_DIR);
+  LDrive := GetDrive + ':\';
+  LDriveType := GetDriveType(PChar(LDrive));
+  Result := LDriveType = DRIVE_REMOTE;
 end;
 
 procedure TBCFileTreeView.BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);
