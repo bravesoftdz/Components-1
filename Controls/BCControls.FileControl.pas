@@ -209,6 +209,7 @@ type
     function GetSelectedPath: string;
     function GetSelectedFile: string;
     function IsDirectoryEmpty(const Directory: string): Boolean;
+    function GetDriveRemote: Boolean;
   protected
     function DeleteTreeNode(Node: PVirtualNode): Boolean;
     procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
@@ -798,22 +799,11 @@ begin
   Result := GetIconIndex(Path, SHGFI_OPENICON);
 end;
 
-procedure TBCFileTreeView.BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);
+function TBCFileTreeView.GetDriveRemote: Boolean;
 var
-  FindFile: Integer;
-  ANode: PVirtualNode;
-  SR: TSearchRec;
-  FileName: string;
-  Data: PBCFileTreeNodeRec;
   LDrive: Char;
-  DriveRemote: Boolean;
+  LDriveType: Cardinal;
 begin
-  BeginUpdate;
-  ANode := GetFirst;
-  if Assigned(ANode) then
-    Clear;
-  NodeDataSize := SizeOf(TBCFileTreeNodeRec);
-
   { Access check for remote drive is impossible
 
     Even when performing AccessCheck(), you are doing an access check against an access token that is generated "locally",
@@ -825,7 +815,28 @@ begin
     system, the network access token that gets generated on the remote system will have Administrators group and will allow access.
     Whereas, when you call AccessCheck() with a local access token, you will get different results. }
   LDrive := GetDrive;
-  DriveRemote := GetDriveType(@LDrive) = DRIVE_REMOTE;
+  LDriveType := GetDriveType(@LDrive);
+  { GetDriveType incorrectly returns DRIVE_NO_ROOT_DIR when its parameter is the mount point of an empty removable drive.
+    Also mapped network drives are causing same problem in Vista/7. }
+  Result := (LDriveType = DRIVE_REMOTE) or (LDriveType = DRIVE_NO_ROOT_DIR);
+end;
+
+procedure TBCFileTreeView.BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);
+var
+  FindFile: Integer;
+  ANode: PVirtualNode;
+  SR: TSearchRec;
+  FileName: string;
+  Data: PBCFileTreeNodeRec;
+  DriveRemote: Boolean;
+begin
+  BeginUpdate;
+  ANode := GetFirst;
+  if Assigned(ANode) then
+    Clear;
+  NodeDataSize := SizeOf(TBCFileTreeNodeRec);
+
+  DriveRemote := GetDriveRemote;
 
   if not ExcludeOtherBranches then
     FindFile := FindFirst(GetDrive + ':\*.*', faAnyFile, SR)
@@ -1299,23 +1310,11 @@ var
   SR: TSearchRec;
   ChildNode: PVirtualNode;
   FName: String;
-  LDrive: Char;
   DriveRemote: Boolean;
 begin
   Data := GetNodeData(Node);
 
-  { Access check for remote drive is impossible
-
-    Even when performing AccessCheck(), you are doing an access check against an access token that is generated "locally",
-    with the security descriptor associated with the object. When you directly access the object on a remote system, a network
-    access token gets generated on the remote system. This network access token is used to perform access check on the object
-    to determine whether access should be granted or denied. The object could be either a file or named pipe or AD object.
-
-    e.g. If the user is member of Administrators group on the remote system, when you directly access the object on a remote
-    system, the network access token that gets generated on the remote system will have Administrators group and will allow access.
-    Whereas, when you call AccessCheck() with a local access token, you will get different results. }
-  LDrive := GetDrive;
-  DriveRemote := GetDriveType(@LDrive) = DRIVE_REMOTE;
+  DriveRemote := GetDriveRemote;
 
   {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
   if FindFirst(IncludeTrailingBackslash(Data.FullPath) + '*.*', faAnyFile, SR) = 0 then
