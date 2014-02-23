@@ -396,9 +396,6 @@ var
 begin
   if StyleServices.Available then
   begin
-    //if Control.Parent is TTabSheet then
-    //  LColor := GetColorTab(TTabSheet(Control.Parent).PageIndex)
-    //else
     if TStyleManager.ActiveStyle.Name = 'Windows' then
       LColor := clWindow
     else
