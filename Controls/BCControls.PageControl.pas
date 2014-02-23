@@ -20,6 +20,7 @@ type
     procedure DrawTab(Canvas: TCanvas; Index: Integer); override;
     procedure MouseEnter; override;
     procedure MouseLeave; override;
+    procedure PaintBackground(Canvas: TCanvas); override;
   public
     constructor Create(AControl: TWinControl); override;
   end;
@@ -66,7 +67,7 @@ procedure Register;
 implementation
 
 uses
-  Winapi.Windows, Winapi.CommCtrl, Vcl.Themes;
+  Winapi.Windows, Winapi.CommCtrl, Vcl.Themes, System.Generics.Collections;
 
 const
   SPACE_FOR_TAB_CLOSE_BUTTON = '      ';
@@ -162,7 +163,8 @@ begin
       begin
         if Index = TabIndex then
           DrawState := ttTabItemSelected
-        else if (Index = HotTabIndex) and MouseInControl then
+        else
+        if (Index = HotTabIndex) and MouseInControl then
           DrawState := ttTabItemHot
         else
           DrawState := ttTabItemNormal;
@@ -171,7 +173,8 @@ begin
       begin
         if Index = TabIndex then
           DrawState := ttTabItemLeftEdgeSelected
-        else if (Index = HotTabIndex) and MouseInControl then
+        else
+        if (Index = HotTabIndex) and MouseInControl then
           DrawState := ttTabItemLeftEdgeHot
         else
           DrawState := ttTabItemLeftEdgeNormal;
@@ -180,7 +183,8 @@ begin
       begin
         if Index = TabIndex then
           DrawState := ttTabItemBothEdgeSelected
-        else if (Index = HotTabIndex) and MouseInControl then
+        else
+        if (Index = HotTabIndex) and MouseInControl then
           DrawState := ttTabItemBothEdgeHot
         else
           DrawState := ttTabItemBothEdgeNormal;
@@ -189,7 +193,8 @@ begin
       begin
         if Index = TabIndex then
           DrawState := ttTabItemRightEdgeSelected
-        else if (Index = HotTabIndex) and MouseInControl then
+        else
+        if (Index = HotTabIndex) and MouseInControl then
           DrawState := ttTabItemRightEdgeHot
         else
           DrawState := ttTabItemRightEdgeNormal;
@@ -202,7 +207,7 @@ begin
     StyleServices.DrawElement(Canvas.Handle, Details, R);
   end;
 
-  if (Images <> nil) and (ImageIndex < Images.Count) then//check the bounds of the image index to draw
+  if (Images <> nil) and (ImageIndex < Images.Count) then //check the bounds of the image index to draw
   begin
     GlyphR := LayoutR;
     case TabPosition of
@@ -382,6 +387,25 @@ begin
   begin
     FHotIndex := -1;
     Invalidate;
+  end;
+end;
+
+procedure TTabControlStyleHookBtnClose.PaintBackground(Canvas: TCanvas);
+var
+  LColor: TColor;
+begin
+  if StyleServices.Available then
+  begin
+    //if Control.Parent is TTabSheet then
+    //  LColor := GetColorTab(TTabSheet(Control.Parent).PageIndex)
+    //else
+    if TStyleManager.ActiveStyle.Name = 'Windows' then
+      LColor := clWindow
+    else
+      LColor := StyleServices.GetStyleColor(scPanel);
+
+    Canvas.Brush.Color := LColor;
+    Canvas.FillRect(Control.ClientRect);
   end;
 end;
 
