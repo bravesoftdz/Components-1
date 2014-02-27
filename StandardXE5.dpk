@@ -44,7 +44,10 @@ requires
   JvCmp,
   xmlrtl,
   SynEdit_RXE5,
-  SynWeb_DXE5;
+  SynWeb_DXE5,
+  EhLib190,
+  dac190,
+  odac190;
 
 contains
   HelpSystem in 'HelpSystem\HelpSystem.pas',
@@ -69,6 +72,8 @@ contains
   BCControls.UnicodeStringHolder in 'Controls\BCControls.UnicodeStringHolder.pas',
   BCControls.ProgressBar in 'Controls\BCControls.ProgressBar.pas',
   BCControls.StyleHooks in 'Controls\BCControls.StyleHooks.pas',
-  BCControls.ColorComboBox in 'Controls\BCControls.ColorComboBox.pas';
+  BCControls.ColorComboBox in 'Controls\BCControls.ColorComboBox.pas',
+  BCControls.DBGrid in 'Controls\BCControls.DBGrid.pas',
+  BCControls.OraSynEdit in 'Controls\BCControls.OraSynEdit.pas';
 
 end.
