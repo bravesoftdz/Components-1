@@ -134,8 +134,8 @@ end;
 
 class destructor TBCProgressBar.Destroy;
 begin
-  if Assigned(TStyleManager.Engine) then
-    TStyleManager.Engine.UnRegisterStyleHook(TBCProgressBar, TProgressBarStyleHookMarquee);
+  //if Assigned(TStyleManager.Engine) then
+  //  TStyleManager.Engine.UnRegisterStyleHook(TBCProgressBar, TProgressBarStyleHookMarquee);
 end;
 
 procedure TBCProgressBar.StepIt;

@@ -49,8 +49,9 @@ end;
 
 class destructor TBCSynEdit.Destroy;
 begin
-  if Assigned(TStyleManager.Engine) then
-    TStyleManager.Engine.UnRegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
+  //if Assigned(TStyleManager.Engine) then
+  //  if TStyleManager.ActiveStyle.Name <> 'Windows' then
+  //    TStyleManager.Engine.UnRegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
 end;
 
 destructor TBCSynEdit.Destroy;
