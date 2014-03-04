@@ -40,7 +40,7 @@ procedure Register;
 implementation
 
 uses
-  System.UITypes, Vcl.Themes, BCControls.StyleHooks;
+  System.UITypes, Vcl.Themes;
 
 resourcestring
   TEXT_SET_VALUE = 'Set value %s.';
