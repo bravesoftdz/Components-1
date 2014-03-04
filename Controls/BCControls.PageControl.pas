@@ -457,7 +457,7 @@ begin
       Page.Caption := Page.Caption + SPACE_FOR_TAB_CLOSE_BUTTON
     else
       Page.Caption := Page.Caption + SPACE_FOR_TAB_CLOSE_BUTTON_CARBON
-  end;
+  end
 end;
 
 procedure TBCPageControl.UpdateTabCaptions(OnlyActivePage: Boolean);
