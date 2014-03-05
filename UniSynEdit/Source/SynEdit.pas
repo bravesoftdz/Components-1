@@ -411,6 +411,7 @@ type
     fReadOnly: Boolean;
     fScrollHintColor: TColor;
     FNonBlinkingCaretColor: TColor;
+    FNonBlinkingCaretFontColor: TColor;
     fScrollHintFormat: TScrollHintFormat;
     fTextHeight: Integer;
     fTextOffset: Integer;
@@ -935,6 +936,7 @@ type
     property CaretXY: TBufferCoord read GetCaretXY write SetCaretXY;
     property ActiveLineColor: TColor read fActiveLineColor write SetActiveLineColor default clNone;
     property NonBlinkingCaretColor: TColor read FNonBlinkingCaretColor write FNonBlinkingCaretColor default clBlack;
+    property NonBlinkingCaretFontColor: TColor read FNonBlinkingCaretFontColor write FNonBlinkingCaretFontColor default clWhite;
     property DisplayX: Integer read GetDisplayX;
     property DisplayY: Integer read GetDisplayY;
     property DisplayXY: TDisplayCoord read GetDisplayXY;
@@ -3027,7 +3029,7 @@ begin
     { Character }
     TempBitmap.Canvas.Brush.Style := bsClear;
     TempBitmap.Canvas.Font.Name := Font.Name;
-    TempBitmap.Canvas.Font.Color := Color;
+    TempBitmap.Canvas.Font.Color := FNonBlinkingCaretFontColor;
     TempBitmap.Canvas.Font.Style := Font.Style;
     TempBitmap.Canvas.Font.Height := Font.Height;
     TempBitmap.Canvas.Font.Size := Font.Size;
