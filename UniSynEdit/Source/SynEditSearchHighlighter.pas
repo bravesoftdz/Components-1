@@ -32,18 +32,19 @@ uses
 
 procedure THighlightSearchPlugin.AfterPaint(ACanvas: TCanvas; const AClip: TRect; FirstLine, LastLine: integer);
 
-  procedure PaintHightlight(StartXY, EndXY: TBufferCoord);
+  procedure PaintHighlight(StartXY, EndXY: TBufferCoord);
   var
     Pix: TPoint;
     S: string;
   begin
     if StartXY.Char < EndXY.Char then
     begin
-      Pix := FSynEdit.RowColumnToPixels(fSynEdit.BufferToDisplayPos(StartXY));
+      Pix := FSynEdit.RowColumnToPixels(FSynEdit.BufferToDisplayPos(StartXY));
       ACanvas.Brush.Color := clYellow;
       ACanvas.Brush.Style := bsSolid;
-      SetTextCharacterExtra(ACanvas.Handle, FSynEdit.CharWidth - ACanvas.TextWidth('W'));
+      SetTextCharacterExtra(ACanvas.Handle, FSynEdit.CharWidth - ACanvas.TextWidth('i'));
       S := Copy(FSynEdit.Lines[StartXY.Line - 1], StartXY.Char, EndXY.Char - StartXY.Char);
+      //SetBkMode(ACanvas.Handle, TRANSPARENT);
       ACanvas.TextOut(Pix.X, Pix.Y, S);
     end;
   end;
@@ -62,9 +63,9 @@ begin
       // Highlight front part
       StartXY := FoundItem.Start;
       EndXY := StartXY;
-      while not fSynEdit.IsPointInSelection(EndXY) and (EndXY.Char < FoundItem.Start.Char + FoundItem.Length) do
+      while not FSynEdit.IsPointInSelection(EndXY) and (EndXY.Char < FoundItem.Start.Char + FoundItem.Length) do
         Inc(EndXY.Char);
-      PaintHightlight(StartXY, EndXY);
+      PaintHighlight(StartXY, EndXY);
 
       StartXY.Char := EndXY.Char;
       EndXY.Char := FoundItem.Start.Char + FoundItem.Length;
@@ -72,7 +73,7 @@ begin
       while FSynEdit.IsPointInSelection(StartXY) and (StartXY.Char < EndXY.Char) do
         Inc(StartXY.Char);
       // Highlight end part
-      PaintHightlight(StartXY, EndXY);
+      PaintHighlight(StartXY, EndXY);
     end;
   end;
 end;
