@@ -128,6 +128,19 @@ type
     property TopLine: Integer read FTopLine write FTopLine default 1;
   end;
 
+  TSynSearchMap = class(TPersistent)
+  private
+    FWidth: Integer;
+    FVisible: Boolean;
+    procedure SetWidth(Value: Integer);
+    function GetWidth: Integer;
+  public
+    constructor Create;
+  published
+    property Width: Integer read GetWidth write SetWidth default 5;
+    property Visible: Boolean read FVisible write FVisible default False;
+  end;
+
   TSynGutterBorderStyle = (gbsNone, gbsMiddle, gbsRight);
 
   TSynGutter = class(TPersistent)
@@ -2901,6 +2914,31 @@ destructor TSynMinimap.Destroy;
 begin
   FFont.Free;
   inherited Destroy;
+end;
+
+{ TSynSearchMap }
+
+procedure TSynSearchMap.SetWidth(Value: integer);
+begin
+  Value := Max(0, Value);
+  if FWidth <> Value then
+    FWidth := Value;
+end;
+
+function TSynSearchMap.GetWidth: Integer;
+begin
+  if FVisible then
+    Result := FWidth
+  else
+    Result := 0;
+end;
+
+constructor TSynSearchMap.Create;
+begin
+  inherited Create;
+
+  FVisible := False;
+  FWidth := 8;
 end;
 
 begin

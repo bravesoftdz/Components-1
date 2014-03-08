@@ -448,6 +448,7 @@ type
     FLastRow: Integer;
     fGutter: TSynGutter;
     FMinimap: TSynMinimap;
+    FSearchMap: TSynSearchMap;
     fTabWidth: Integer;
     fTextDrawer: TheTextDrawer;
     fInvalidateRect: TRect;
@@ -602,7 +603,7 @@ type
     // procedure SetExtraLineSpacing(const Value: Integer);
     procedure SetFont(const Value: TFont);
     procedure SetGutter(const Value: TSynGutter);
-    procedure SetMinimap(const Value: TSynMinimap);
+    //procedure SetMinimap(const Value: TSynMinimap);
     procedure SetGutterWidth(Value: Integer);
     procedure SetHideSelection(const Value: Boolean);
     procedure SetHighlighter(const Value: TSynCustomHighlighter);
@@ -709,6 +710,7 @@ type
     procedure Paint; override;
     procedure PaintGutter(const AClip: TRect; const aFirstRow, aLastRow, aLastTextRow: Integer); virtual;
     procedure PaintTextLines(AClip: TRect; const aFirstRow, aLastRow, FirstCol, LastCol: Integer; Minimap: Boolean); virtual;
+    procedure PaintSearchMap(AClip: TRect); virtual;
     procedure RecalcCharExtent;
     procedure RedoItem;
     procedure InternalSetCaretXY(const Value: TBufferCoord); virtual;
@@ -978,7 +980,8 @@ type
     property BookMarkOptions: TSynBookMarkOpt read fBookMarkOpt write SetBookMarkOpt;
     property BorderStyle: TSynBorderStyle read fBorderStyle write SetBorderStyle default bsSingle;
     property Gutter: TSynGutter read fGutter write SetGutter;
-    property Minimap: TSynMinimap read FMinimap write SetMinimap;
+    property Minimap: TSynMinimap read FMinimap; // write SetMinimap;
+    property SearchMap: TSynSearchMap read FSearchMap;
     property HideSelection: Boolean read fHideSelection write SetHideSelection default False;
     property InsertCaret: TSynEditCaretType read fInsertCaret write SetInsertCaret default ctVerticalLine;
     property InsertMode: Boolean read fInserting write SetInsertMode default True;
@@ -1102,6 +1105,7 @@ type
     property MaxScrollWidth;
     property MaxUndo;
     property Minimap;
+    property SearchMap;
     property Options;
     property OverwriteCaret;
     property ReadOnly;
@@ -1156,8 +1160,8 @@ uses
   // ### Code Folding ###
   SynCompletionProposal,
   // ### End Code Folding ###
-  SynEditWordWrap,
-  SynEditStrConst;
+  SynEditWordWrap, SynEditSearchHighlighter,
+  SynEditStrConst, Vcl.Themes;
 
 function FlatSB_GetScrollInfo(HWnd: HWnd; BarFlag: Integer; var ScrollInfo: TScrollInfo): bool; stdcall; external comctl32 name 'FlatSB_GetScrollInfo';
 function FlatSB_SetScrollInfo(HWnd: HWnd; BarFlag: Integer; const ScrollInfo: TScrollInfo; Redraw: bool): Integer; stdcall; external comctl32 name 'FlatSB_SetScrollInfo';
@@ -1506,6 +1510,7 @@ begin
   fGutter.OnChange := GutterChanged;
   FMinimap := TSynMinimap.Create;
   FMinimap.OnChange := MinimapChanged;
+  FSearchMap := TSynSearchMap.Create;
   fWordWrapGlyph := TSynGlyph.Create(HINSTANCE, 'SynEditWrapped', clLime);
   fWordWrapGlyph.OnChange := WordWrapGlyphChange;
   fTextOffset := fGutter.Width + 2;
@@ -1694,6 +1699,7 @@ begin
   fOrigRedoList.Free;
   fGutter.Free;
   FMinimap.Free;
+  FSearchMap.Free;
   fWordWrap.Free;
   fWordWrapGlyph.Free;
   fTextDrawer.Free;
@@ -2086,7 +2092,7 @@ procedure TCustomSynEdit.InvalidateMinimap;
 var
   rcInval: TRect;
 begin
-  rcInval := Rect(ClientWidth - FMinimap.Width, 0, ClientWidth, ClientHeight);
+  rcInval := Rect(ClientWidth - FMinimap.Width - FSearchMap.Width, 0, ClientWidth - FSearchMap.Width, ClientHeight);
   InvalidateRect(rcInval, False); //InvalidateMinimapLines(-1, -1);
 end;
 
@@ -2147,7 +2153,7 @@ begin
   // FGutter.Visible then
   //  Rect.Left := FGutter.Width;
   if FMinimap.Visible then
-    Rect.Right := ClientRect.Width - FMinimap.Width;
+    Rect.Right := ClientRect.Width - FMinimap.Width - FSearchMap.Width;
 end;
 
 procedure TCustomSynEdit.InvalidateLines(FirstLine, LastLine: Integer);
@@ -2459,7 +2465,7 @@ end;
 
 function TCustomSynEdit.IsNotOverMinimap(X: Integer): Boolean;
 begin
-  Result := not FMinimap.Visible or FMinimap.Visible and (X < ClientRect.Width - FMinimap.Width)
+  Result := not FMinimap.Visible or FMinimap.Visible and (X < ClientRect.Width - FMinimap.Width - FSearchMap.Width)
 end;
 
 procedure TCustomSynEdit.MouseDown(Button: TMouseButton; Shift: TShiftState;
@@ -2593,7 +2599,7 @@ begin
   if (sfPossibleGutterClick in fStateFlags) and (Button = mbRight) then
     DoOnGutterClick(Button, X, Y);
 
-  if FMinimap.Visible and (X > ClientRect.Width - FMinimap.Width) then
+  if FMinimap.Visible and (X > ClientRect.Width - FMinimap.Width - FSearchMap.Width) then
     DoOnMinimapClick(Button, X, Y);
 
   SetFocus;
@@ -2631,7 +2637,7 @@ begin
   if Gutter.ShowBookmarks and (X < Gutter.BookmarkPanelWidth) then
     Exit;
 
-  if FMinimap.Visible and (X > ClientRect.Width - FMinimap.Width) then
+  if FMinimap.Visible and (X > ClientRect.Width - FMinimap.Width - FSearchMap.Width) then
   begin
     Cursor := crArrow;
     if FMinimapClicked then
@@ -3056,8 +3062,9 @@ var
   Rect: TRect;
   FoldRange: TSynEditFoldRange;
   // ### End Code Folding ###
-
+  LStyles: TCustomStyleServices;
 begin
+  LStyles := StyleServices;
   // Get the invalidated rect. Compute the invalid area in lines / columns.
   rcClip := Canvas.ClipRect;
   // columns
@@ -3187,10 +3194,11 @@ begin
 
     // Paint minimap text lines
     if FMinimap.Visible then
-      if (rcClip.Right >= ClientRect.Width - FMinimap.Width) then
+      if (rcClip.Right >= ClientRect.Width - FMinimap.Width - FSearchMap.Width) then
       begin
         rcDraw := rcClip;
-        rcDraw.Left := ClientRect.Width - FMinimap.Width;
+        rcDraw.Left := ClientRect.Width - FMinimap.Width - FSearchMap.Width;
+        rcDraw.Right := ClientRect.Width - FSearchMap.Width;
 
         fTextDrawer.SetBaseFont(FMinimap.Font);
         fTextDrawer.Style := FMinimap.Font.Style;
@@ -3206,6 +3214,15 @@ begin
         fTextDrawer.SetBaseFont(Font);
       end;
 
+    // Paint search map
+    if FSearchMap.Visible then
+      if (rcClip.Right >= ClientRect.Width - FSearchMap.Width) then
+      begin
+        rcDraw := rcClip;
+        rcDraw.Left := ClientRect.Width - FSearchMap.Width;
+        PaintSearchMap(rcDraw);
+      end;
+
     if eoNonBlinkingCaret in Options then
       DrawCursor(Canvas);
     // If there is a custom paint handler call it.
@@ -3214,6 +3231,54 @@ begin
   finally
     UpdateCaret;
   end;
+end;
+
+procedure TCustomSynEdit.PaintSearchMap(AClip: TRect);
+var
+  i, j, k: Integer;
+  LHeight: Double;
+  LStyles: TCustomStyleServices;
+  HighlightSearchPlugin: THighlightSearchPlugin;
+  FoundItem: TFoundItem;
+begin
+  LStyles := StyleServices;
+  if LStyles.Enabled then
+    Canvas.Brush.Color := LStyles.GetStyleColor(scPanel)
+  else
+    Canvas.Brush.Color := FActiveLineColor;
+  Canvas.FillRect(AClip);
+  Canvas.Brush.Color := Color;
+  LHeight := (ClientRect.Height / Lines.Count);
+  AClip.Top := Round((TopLine - 1) * LHeight);
+  AClip.Bottom := Round((TopLine + LinesInWindow) * LHeight);
+  Canvas.FillRect(AClip);
+  if LStyles.Enabled then
+    Canvas.Pen.Color := LStyles.GetSystemColor(clHighlight)
+  else
+    Canvas.Pen.Color := clHighlight;
+  Canvas.Pen.Width := 1;
+  Canvas.Pen.Style := psSolid;
+  for i := 0 to fPlugins.Count - 1 do
+    if fPlugins[i] is THighlightSearchPlugin then
+    begin
+      HighlightSearchPlugin := THighlightSearchPlugin(fPlugins[i]);
+
+      for j := 0 to HighlightSearchPlugin.FoundItems.Count - 1 do
+      begin
+        FoundItem :=  HighlightSearchPlugin.FoundItems[j] as TFoundItem;
+        k := Round((FoundItem.Start.Line - 1) * LHeight);
+        Canvas.MoveTo(AClip.Left, k);
+        Canvas.LineTo(AClip.Right, k);
+        Canvas.MoveTo(AClip.Left, k + 1);
+        Canvas.LineTo(AClip.Right, k + 1);
+      end;
+    end;
+  Canvas.Pen.Color := FActiveLineColor;
+  k := Round((CaretY - 1) * LHeight);
+  Canvas.MoveTo(AClip.Left, k);
+  Canvas.LineTo(AClip.Right, k);
+  Canvas.MoveTo(AClip.Left, k + 1);
+  Canvas.LineTo(AClip.Right, k + 1);
 end;
 
 procedure TCustomSynEdit.PaintGutter(const AClip: TRect; const aFirstRow, aLastRow, aLastTextRow: Integer);
@@ -3834,7 +3899,7 @@ var
   function ColumnToXValue(Col: Integer): Integer;
   begin
     if Minimap then
-      Result := ClientRect.Width - FMinimap.Width
+      Result := ClientRect.Width - FMinimap.Width - FSearchMap.Width
     else
       Result := fTextOffset;
 
@@ -11114,10 +11179,10 @@ begin //
     fGutter.Assign(Value);
   end;
 
-  procedure TCustomSynEdit.SetMinimap(const Value: TSynMinimap);
+ {procedure TCustomSynEdit.SetMinimap(const Value: TSynMinimap);
   begin
     FMinimap.Assign(Value);
-  end;
+  end; }
 
   procedure TCustomSynEdit.GutterChanged(Sender: TObject);
   var
@@ -11629,7 +11694,7 @@ begin //
   begin
     if HandleAllocated and (fCharWidth <> 0) then
     begin
-      fCharsInWindow := Max(ClientWidth - FGutter.Width - 1 - FMinimap.Width, 0) div fCharWidth;
+      fCharsInWindow := Max(ClientWidth - FGutter.Width - 1 - FMinimap.Width - FSearchMap.Width, 0) div fCharWidth;
       fLinesInWindow := ClientHeight div LineHeight;
 
       if GetWordWrap then
@@ -12867,7 +12932,7 @@ begin //
     if (Line >= TopLine) and (Line <= TopLine + LinesInWindow) then
     begin
       // invalidate text area of this line
-      rcInval := Rect(0, LineHeight * (Line - TopLine), ClientWidth, 0);
+      rcInval := Rect(0, LineHeight * (Line - TopLine), ClientWidth - FMinimap.Width - FSearchMap.Width, 0);
       rcInval.Bottom := rcInval.Top + LineHeight;
       DeflateMinimapRect(rcInval);
       //rcInval.Left := 0;

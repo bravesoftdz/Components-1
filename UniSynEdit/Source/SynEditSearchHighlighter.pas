@@ -24,6 +24,7 @@ type
   public
     constructor Create(ASynEdit: TSynEdit; AFoundItems: TObjectList);
     destructor Destroy; override;
+    property FoundItems: TObjectList read FFoundItems;
   end;
 
 implementation
