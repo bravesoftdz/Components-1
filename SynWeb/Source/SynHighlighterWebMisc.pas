@@ -80,7 +80,7 @@ uses
 {$IFDEF UNISYNEDIT}
   SynUnicode,
 {$ENDIF}
-  SynEditTextBuffer,
+  SynEditTextBuffer, SynTextDrawer,
   SynEditHighlighter,
   SynEditTypes,
   SynCompletionProposal,

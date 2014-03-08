@@ -13,6 +13,8 @@ type
 
   THighlightSearchPlugin = class(TSynEditPlugin)
   private
+    FBlendFunc: BLENDFUNCTION;
+    FBmp: TBitmap;
     FSynEdit: TSynEdit;
     FFoundItems: TObjectList;
   protected
@@ -21,12 +23,13 @@ type
     procedure LinesDeleted(FirstLine, Count: integer); override;
   public
     constructor Create(ASynEdit: TSynEdit; AFoundItems: TObjectList);
+    destructor Destroy; override;
   end;
 
 implementation
 
 uses
-  Math;
+  Math, Vcl.Themes;
 
 { THighlightSearchPlugin }
 
@@ -34,18 +37,37 @@ procedure THighlightSearchPlugin.AfterPaint(ACanvas: TCanvas; const AClip: TRect
 
   procedure PaintHighlight(StartXY, EndXY: TBufferCoord);
   var
+    LStyles: TCustomStyleServices;
     Pix: TPoint;
     S: string;
   begin
+    LStyles := StyleServices;
     if StartXY.Char < EndXY.Char then
     begin
       Pix := FSynEdit.RowColumnToPixels(FSynEdit.BufferToDisplayPos(StartXY));
-      ACanvas.Brush.Color := clYellow;
-      ACanvas.Brush.Style := bsSolid;
-      SetTextCharacterExtra(ACanvas.Handle, FSynEdit.CharWidth - ACanvas.TextWidth('i'));
+
+      if LStyles.Enabled then
+        FBmp.Canvas.Brush.Color := LStyles.GetSystemColor(clHighlight)
+      else
+        FBmp.Canvas.Brush.Color := clHighlight;
+
+      FBmp.Canvas.Brush.Style := bsSolid;
       S := Copy(FSynEdit.Lines[StartXY.Line - 1], StartXY.Char, EndXY.Char - StartXY.Char);
-      //SetBkMode(ACanvas.Handle, TRANSPARENT);
-      ACanvas.TextOut(Pix.X, Pix.Y, S);
+
+      FBmp.Height := FSynEdit.LineHeight;
+      FBmp.Width := FSynEdit.CharWidth * Length(S);
+      FBmp.Canvas.FillRect(Rect(0, 0, FBmp.Width, FBmp.Height));
+
+      FBmp.Canvas.Font.Assign(FSynEdit.Font);
+
+      if (GetRValue(FSynedit.Color) + GetGValue(FSynedit.Color) + GetBValue(FSynedit.Color) < 500) then
+        FBmp.Canvas.Font.Color := clWhite
+      else
+        FBmp.Canvas.Font.Color := clBlack;
+      FBmp.Canvas.TextOut(0, 0, S);
+
+      Windows.AlphaBlend(ACanvas.Handle, Pix.X, Pix.Y, FBmp.Width, FBmp.Height,
+        FBmp.Canvas.Handle, 0, 0, FBmp.Width, FBmp.Height, FBlendFunc);
     end;
   end;
 
@@ -85,6 +107,16 @@ begin
 
   FSynEdit := ASynEdit;
   FFoundItems := AFoundItems;
+
+  FBmp := TBitmap.Create;
+  FBlendFunc.BlendOp := AC_SRC_OVER;
+  FBlendFunc.SourceConstantAlpha := 128;
+end;
+
+destructor THighlightSearchPlugin.Destroy;
+begin
+  FBmp.Free;
+  inherited;
 end;
 
 procedure THighlightSearchPlugin.LinesDeleted(FirstLine, Count: integer);

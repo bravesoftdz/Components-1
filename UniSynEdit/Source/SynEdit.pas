@@ -418,6 +418,7 @@ type
     fTopLine: Integer;
     fHighlighter: TSynCustomHighlighter;
     fSelectedColor: TSynSelectedColor;
+    FSearchHighlightColor: TColor;
     fActiveLineColor: TColor;
     fUndoList: TSynEditUndoList;
     fRedoList: TSynEditUndoList;
@@ -989,6 +990,7 @@ type
     property ScrollHintColor: TColor read fScrollHintColor write fScrollHintColor default clInfoBk;
     property ScrollHintFormat: TScrollHintFormat read fScrollHintFormat write fScrollHintFormat default shfTopLineOnly;
     property SelectedColor: TSynSelectedColor read fSelectedColor write SetSelectedColor;
+    property SearchHighlightColor: TColor read FSearchHighlightColor write FSearchHighlightColor default clHighlight;
     property SelectionMode: TSynSelectionMode read fSelectionMode write SetSelectionMode default smNormal;
     property ActiveSelectionMode: TSynSelectionMode read fActiveSelectionMode write SetActiveSelectionMode stored False;
     property TabWidth: Integer read fTabWidth write SetTabWidth default 8;
@@ -1574,6 +1576,8 @@ begin
   FDoubleClickTime := GetDoubleClickTime;
 
   SynFontChanged(nil);
+
+  FSearchHighlightColor := clHighlight;
 
   // ### Code Folding ###
   { fHint := TSynCompletionProposal.Create(nil);
