@@ -12,6 +12,7 @@ type
     FDocumentName: string;
     FFileDateTime: TDateTime;
     FHtmlVersion: TSynWebHtmlVersion;
+    FSearchString: string;
     FSynMacroRecorder: TSynMacroRecorder;
     FEncoding: TEncoding;
   protected
@@ -25,6 +26,7 @@ type
     property DocumentName: string read FDocumentName write FDocumentName;
     property FileDateTime: TDateTime read FFileDateTime write FFileDateTime;
     property HtmlVersion: TSynWebHtmlVersion read FHtmlVersion write FHtmlVersion;
+    property SearchString: string read FSearchString write FSearchString;
     property SynMacroRecorder: TSynMacroRecorder read FSynMacroRecorder write FSynMacroRecorder;
     property Encoding: TEncoding read FEncoding write FEncoding;
   end;

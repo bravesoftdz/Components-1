@@ -861,6 +861,7 @@ type
     procedure RegisterCommandHandler(const AHandlerProc: THookedCommandEvent; AHandlerData: pointer);
     function RowColumnToPixels(const RowCol: TDisplayCoord): TPoint;
     function RowColToCharIndex(RowCol: TBufferCoord): Integer;
+    function FindSearchTerm(ATerm: string; FoundItems: TObjectList; SearchOptions: TSynSearchOptions): Boolean;
     function SearchReplace(const ASearch, AReplace: UnicodeString; AOptions: TSynSearchOptions): Integer;
     procedure SelectAll;
     procedure SetBookMark(BookMark: Integer; X: Integer; Y: Integer);
@@ -14174,6 +14175,34 @@ begin //
         Exit;
       end;
   end;
+
+function TCustomSynEdit.FindSearchTerm(ATerm: string; FoundItems: TObjectList; SearchOptions: TSynSearchOptions): Boolean;
+var
+  i: Integer;
+  j: Integer;
+  FoundItem: TFoundItem;
+begin
+  Result := False;
+
+  if (ATerm = '') or not Assigned(SearchEngine) then
+    Exit(True);
+
+  for i := 0 to Lines.Count - 1 do
+  begin
+    SearchEngine.Options := SearchOptions;
+    SearchEngine.Pattern := ATerm;
+    SearchEngine.FindAll(Lines[i]);
+    for j := 0 to SearchEngine.ResultCount - 1 do
+    begin
+      FoundItem := TFoundItem.Create;
+      FoundItem.Start := BufferCoord(SearchEngine.Results[j], i + 1);
+      FoundItem.Length := SearchEngine.Lengths[j];
+      FoundItems.Add(FoundItem);
+      InvalidateLine(i + 1);
+      Result := True;
+    end;
+  end;
+end;
 
   { TSynEditMark }
 

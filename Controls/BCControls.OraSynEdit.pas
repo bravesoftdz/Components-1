@@ -13,6 +13,7 @@ type
     FOraQuery: TOraQuery;
     FPlanQuery: TOraQuery;
     FOraSQL: TOraSQL;
+    FSearchString: string;
     FStartTime: TDateTime;
     FObjectCompletionProposal: TSynCompletionProposal;
     FObjectFieldCompletionProposal: TSynCompletionProposal;
@@ -28,6 +29,7 @@ type
     property InThread: Boolean read FInThread write FInThread;
     property DocumentName: string read FDocumentName write FDocumentName;
     property FileDateTime: TDateTime read FFileDateTime write FFileDateTime;
+    property SearchString: string read FSearchString write FSearchString;
     property StartTime: TDateTime read FStartTime write FStartTime;
     property QueryOpened: Boolean read GetQueryOpened;
     property ObjectCompletionProposal: TSynCompletionProposal read FObjectCompletionProposal write FObjectCompletionProposal;

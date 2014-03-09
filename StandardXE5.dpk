@@ -74,6 +74,7 @@ contains
   BCControls.StyleHooks in 'Controls\BCControls.StyleHooks.pas',
   BCControls.ColorComboBox in 'Controls\BCControls.ColorComboBox.pas',
   BCControls.DBGrid in 'Controls\BCControls.DBGrid.pas',
-  BCControls.OraSynEdit in 'Controls\BCControls.OraSynEdit.pas';
+  BCControls.OraSynEdit in 'Controls\BCControls.OraSynEdit.pas',
+  BCControls.ButtonedEdit in 'Controls\BCControls.ButtonedEdit.pas';
 
 end.
