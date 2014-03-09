@@ -3063,9 +3063,7 @@ var
   Rect: TRect;
   FoldRange: TSynEditFoldRange;
   // ### End Code Folding ###
-  LStyles: TCustomStyleServices;
 begin
-  LStyles := StyleServices;
   // Get the invalidated rect. Compute the invalid area in lines / columns.
   rcClip := Canvas.ClipRect;
   // columns
