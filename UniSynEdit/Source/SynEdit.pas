@@ -336,6 +336,9 @@ type
     FSaveSelectionMode: TSynSelectionMode;
     FAltEnabled: Boolean;
     fGutterCharWidth: Integer;
+
+    FFoundItems: TObjectList;
+
     procedure WMCancelMode(var Message: TMessage); message WM_CANCELMODE;
     procedure WMCaptureChanged(var Msg: TMessage); message WM_CAPTURECHANGED;
     procedure WMChar(var Msg: TWMChar); message WM_CHAR;
@@ -578,6 +581,7 @@ type
     function GetWordWrap: Boolean;
     procedure GutterChanged(Sender: TObject);
     procedure MinimapChanged(Sender: TObject);
+    procedure SearchmapChanged(Sender: TObject);
     function LeftSpaces(const Line: UnicodeString): Integer;
     function LeftSpacesEx(const Line: UnicodeString; WantTabs: Boolean): Integer;
     function GetLeftSpacing(CharCount: Integer; WantTabs: Boolean): UnicodeString;
@@ -1512,6 +1516,7 @@ begin
   FMinimap := TSynMinimap.Create;
   FMinimap.OnChange := MinimapChanged;
   FSearchMap := TSynSearchMap.Create;
+  FSearchMap.OnChange := SearchMapChanged;
   fWordWrapGlyph := TSynGlyph.Create(HINSTANCE, 'SynEditWrapped', clLime);
   fWordWrapGlyph.OnChange := WordWrapGlyphChange;
   fTextOffset := fGutter.Width + 2;
@@ -2332,6 +2337,7 @@ begin
   inherited Loaded;
   GutterChanged(Self);
   MinimapChanged(Self);
+  SearchmapChanged(Self);
   UpdateScrollBars;
 end;
 
@@ -3234,10 +3240,10 @@ end;
 
 procedure TCustomSynEdit.PaintSearchMap(AClip: TRect);
 var
-  i, j, k: Integer;
+  i, j: Integer;
   LHeight: Double;
   LStyles: TCustomStyleServices;
-  HighlightSearchPlugin: THighlightSearchPlugin;
+  //HighlightSearchPlugin: THighlightSearchPlugin;
   FoundItem: TFoundItem;
 begin
   LStyles := StyleServices;
@@ -3247,37 +3253,35 @@ begin
     Canvas.Brush.Color := FActiveLineColor;
   Canvas.FillRect(AClip);
   Canvas.Brush.Color := Color;
-  LHeight := (ClientRect.Height / Lines.Count);
+  LHeight := ClientRect.Height / Max(Lines.Count, 1);
   AClip.Top := Round((TopLine - 1) * LHeight);
   AClip.Bottom := Round((TopLine + LinesInWindow) * LHeight);
   Canvas.FillRect(AClip);
+
+  if not Assigned(FFoundItems) then
+    Exit;
+
   if LStyles.Enabled then
     Canvas.Pen.Color := LStyles.GetSystemColor(clHighlight)
   else
     Canvas.Pen.Color := clHighlight;
   Canvas.Pen.Width := 1;
   Canvas.Pen.Style := psSolid;
-  for i := 0 to fPlugins.Count - 1 do
-    if fPlugins[i] is THighlightSearchPlugin then
-    begin
-      HighlightSearchPlugin := THighlightSearchPlugin(fPlugins[i]);
-
-      for j := 0 to HighlightSearchPlugin.FoundItems.Count - 1 do
-      begin
-        FoundItem :=  HighlightSearchPlugin.FoundItems[j] as TFoundItem;
-        k := Round((FoundItem.Start.Line - 1) * LHeight);
-        Canvas.MoveTo(AClip.Left, k);
-        Canvas.LineTo(AClip.Right, k);
-        Canvas.MoveTo(AClip.Left, k + 1);
-        Canvas.LineTo(AClip.Right, k + 1);
-      end;
-    end;
+  for i := 0 to FFoundItems.Count - 1 do
+  begin
+    FoundItem :=  FFoundItems[i] as TFoundItem;
+    j := Round((FoundItem.Start.Line - 1) * LHeight);
+    Canvas.MoveTo(AClip.Left, j);
+    Canvas.LineTo(AClip.Right, j);
+    Canvas.MoveTo(AClip.Left, j + 1);
+    Canvas.LineTo(AClip.Right, j + 1);
+  end;
   Canvas.Pen.Color := FActiveLineColor;
-  k := Round((CaretY - 1) * LHeight);
-  Canvas.MoveTo(AClip.Left, k);
-  Canvas.LineTo(AClip.Right, k);
-  Canvas.MoveTo(AClip.Left, k + 1);
-  Canvas.LineTo(AClip.Right, k + 1);
+  j := Round((CaretY - 1) * LHeight);
+  Canvas.MoveTo(AClip.Left, j);
+  Canvas.LineTo(AClip.Right, j);
+  Canvas.MoveTo(AClip.Left, j + 1);
+  Canvas.LineTo(AClip.Right, j + 1);
 end;
 
 procedure TCustomSynEdit.PaintGutter(const AClip: TRect; const aFirstRow, aLastRow, aLastTextRow: Integer);
@@ -11235,6 +11239,11 @@ begin //
       InvalidateMinimap;
   end;
 
+  procedure TCustomSynEdit.SearchMapChanged(Sender: TObject);
+  begin
+    Invalidate;
+  end;
+
   procedure TCustomSynEdit.LockUndo;
   begin
     fUndoList.Lock;
@@ -14184,6 +14193,8 @@ begin
 
   if (ATerm = '') or not Assigned(SearchEngine) then
     Exit(True);
+
+  FFoundItems := FoundItems;
 
   for i := 0 to Lines.Count - 1 do
   begin
