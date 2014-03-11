@@ -99,7 +99,7 @@ type
   public
     property FriendlyName: UnicodeString read fFriendlyName;
     property IntegerStyle: Integer read GetStyleFromInt write SetStyleFromInt;
-    property Name: string read fName;
+    property Name: string read fName write fName;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
   published
     property Background: TColor read fBackground write SetBackground
@@ -128,7 +128,6 @@ const
 type
   TSynCustomHighlighter = class(TComponent)
   private
-    fAttributes: TStringList;
     fAttrChangeHooks: TSynNotifyEventChain;
     fUpdateCount: Integer;
     fEnabled: Boolean;
@@ -143,6 +142,7 @@ type
     procedure SetAdditionalIdentChars(const Value: TSysCharSet);
     procedure SetAdditionalWordBreakChars(const Value: TSysCharSet);
   protected
+    fAttributes: TStringList;
     fCasedLine: PWideChar;
     fCasedLineStr: UnicodeString;
     fCaseSensitive: Boolean;
@@ -172,6 +172,7 @@ type
     function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       virtual; abstract;
     function GetDefaultFilter: string; virtual;
+    function GetIdentChars: TSynIdentChars; virtual;
     function GetSampleSource: UnicodeString; virtual;
     procedure DoSetLine(const Value: UnicodeString; LineNumber: Integer); virtual;
     function IsCurrentToken(const Token: UnicodeString): Boolean; virtual;
@@ -183,7 +184,7 @@ type
   protected
     function GetCapabilitiesProp: TSynHighlighterCapabilities;
     function GetFriendlyLanguageNameProp: UnicodeString;
-    function GetLanguageNameProp: string;
+    function GetLanguageNameProp: string; virtual;
   public
     class function GetCapabilities: TSynHighlighterCapabilities; virtual;
     class function GetFriendlyLanguageName: UnicodeString; virtual;
@@ -218,14 +219,15 @@ type
 {$IFNDEF SYN_CLX}
     function LoadFromRegistry(RootKey: HKEY; Key: string): Boolean; virtual;
     function SaveToRegistry(RootKey: HKEY; Key: string): Boolean; virtual;
-    function LoadFromFile(AFileName: string): Boolean;
-    function SaveToFile(AFileName: string): Boolean;
+    function LoadFromFile(AFileName: string): Boolean; virtual;
+    function SaveToFile(AFileName: string): Boolean; virtual;
 {$ENDIF}
     procedure HookAttrChangeEvent(ANotifyEvent: TNotifyEvent);
     procedure UnhookAttrChangeEvent(ANotifyEvent: TNotifyEvent);
     function IsIdentChar(AChar: WideChar): Boolean; virtual;
     function IsWhiteChar(AChar: WideChar): Boolean; virtual;
     function IsWordBreakChar(AChar: WideChar): Boolean; virtual;
+    property IdentChars: TSynIdentChars read GetIdentChars;
     property FriendlyLanguageName: UnicodeString read GetFriendlyLanguageNameProp;
     property LanguageName: string read GetLanguageNameProp;
   public
@@ -1302,6 +1304,11 @@ procedure TSynCustomHighlighter.Loaded;
 begin
   inherited;
   DefHighlightChange(nil);
+end;
+
+function TSynCustomHighlighter.GetIdentChars: TSynIdentChars;
+begin
+  Result := [#33..#255];
 end;
 
 // Pos and Result are 1-based (i.e. positions in a UnicodeString not a PWideChar)

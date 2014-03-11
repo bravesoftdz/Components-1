@@ -140,6 +140,16 @@ contains
   SynHighlighterLLVM in '..\Source\SynHighlighterLLVM.pas',
   SynEditWildcardSearch in '..\Source\SynEditWildcardSearch.pas',
   SynEditCodeFolding in '..\Source\SynEditCodeFolding.pas',
-  SynEditSearchHighlighter in '..\Source\SynEditSearchHighlighter.pas';
+  SynEditSearchHighlighter in '..\Source\SynEditSearchHighlighter.pas',
+  SynUniHighlighter in '..\Source\SynUniHighlighter.pas',
+  SynUniRules in '..\Source\SynUniRules.pas',
+  SynUniClasses in '..\Source\SynUniClasses.pas',
+  SynUniFormatNativeXml20 in '..\Source\SynUniFormatNativeXml20.pas',
+  SynUniFormat in '..\Source\SynUniFormat.pas',
+  SynUniFormatNativeXml in '..\Source\SynUniFormatNativeXml.pas',
+  SynUniFormatNativeXmlAuto in '..\Source\SynUniFormatNativeXmlAuto.pas',
+  SimpleXML in '..\Source\SimpleXML.pas',
+  SynUniFormatNativeXml15 in '..\Source\SynUniFormatNativeXml15.pas',
+  SynUniFormatNativeXml18 in '..\Source\SynUniFormatNativeXml18.pas';
 
 end.

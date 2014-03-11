@@ -41,89 +41,6 @@ unit SynEditReg;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  // SynEdit components
-  QSynEdit,
-  QSynMemo,
-  {$IFNDEF SYN_DELPHI_PE}
-  QSynDBEdit,
-  {$ENDIF}
-  QSynEditStrConst,
-  QSynEditHighlighter,
-  QSynEditMiscClasses,
-  QSynEditPlugins,
-  QSynEditExport,
-  QSynExportHTML,
-  QSynExportRTF,
-  QSynExportTeX,
-  QSynHighlighterMulti,
-  QSynCompletionProposal,
-  QSynEditPythonBehaviour,
-  QSynEditPrint,
-  QSynEditPrintPreview,
-  QSynMacroRecorder,
-  QSynAutoCorrect,
-  QSynEditSearch,
-  QSynEditRegexSearch,
-  QSynHighlighterManager,
-  QSynEditOptionsDialog,
-  QSynHighlighterADSP21xx,
-  QSynHighlighterAsm,
-  QSynHighlighterAWK,
-  QSynHighlighterBaan,
-  QSynHighlighterBat,
-  QSynHighlighterCAC,
-  QSynHighlighterCache,
-  QSynHighlighterCobol,
-  QSynHighlighterCpp,
-  QSynHighlighterCS,
-  QSynHighlighterCss,
-  QSynHighlighterDfm,
-  QSynHighlighterDml,
-  QSynHighlighterDOT,
-  QSynHighlighterEiffel,
-  QSynHighlighterFortran,
-  QSynHighlighterFoxpro,
-  QSynHighlighterGalaxy,
-  QSynHighlighterGeneral,
-  QSynHighlighterHaskell,
-  QSynHighlighterHC11,
-  QSynHighlighterHP48,
-  QSynHighlighterHtml,
-  QSynHighlighterIni,
-  QSynHighlighterInno,
-  QSynHighlighterJava,
-  QSynHighlighterJScript,
-  QSynHighlighterKix,
-  QSynHighlighterModelica,
-  QSynHighlighterM3,
-  QSynHighlighterPas,
-  QSynHighlighterPerl,
-  QSynHighlighterPHP,
-  QSynHighlighterProgress,
-  QSynHighlighterPython,
-  QSynHighlighterRC,
-  QSynHighlighterRuby,
-  QSynHighlighterSml,
-  QSynHighlighterSQL,
-  QSynHighlighterTclTk,
-  QSynHighlighterTeX,
-  QSynHighlighterUNIXShellScript,
-  QSynHighlighterURI,
-  QSynHighlighterVB,
-  QSynHighlighterVBScript,
-  QSynHighlighterVrml97,
-  QSynHighlighterGWS,
-  QSynHighlighterCPM,
-  QSynHighlighterSDD,
-  QSynHighlighterXML,
-  QSynHighlighterMsg,
-  QSynHighlighterIDL,
-  QSynHighlighterUnreal,
-  QSynHighlighterST,
-  QSynHighlighterLDraw,
-  QSynURIOpener,
-{$ELSE}
   // SynEdit components
   SynEdit,
   SynMemo,
@@ -212,7 +129,7 @@ uses
   SynHighlighterYAML,
   SynHighlighterLLVM,
   SynURIOpener,
-{$ENDIF}
+  SynUniHighlighter,
   Classes;
 
 procedure Register;
@@ -277,7 +194,7 @@ begin
     // other
     TSynBaanSyn, TSynGalaxySyn, TSynProgressSyn, TSynMsgSyn, TSynLLVMIRSyn,
     TSynIdlSyn, TSynUnrealSyn, TSynCPMSyn, TSynTeXSyn, TSynYAMLSyn,
-    TSynHaskellSyn, TSynLDRSyn, TSynURISyn, TSynDOTSyn, TSynRCSyn
+    TSynHaskellSyn, TSynLDRSyn, TSynURISyn, TSynDOTSyn, TSynRCSyn, TSynUniSyn
   ]);
 end;
 

@@ -3243,7 +3243,6 @@ var
   i, j: Integer;
   LHeight: Double;
   LStyles: TCustomStyleServices;
-  //HighlightSearchPlugin: THighlightSearchPlugin;
   FoundItem: TFoundItem;
 begin
   LStyles := StyleServices;

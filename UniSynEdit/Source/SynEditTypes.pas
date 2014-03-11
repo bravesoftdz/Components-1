@@ -72,6 +72,8 @@ type
     ssoEntireScope, ssoSelectedOnly, ssoReplace, ssoReplaceAll, ssoPrompt);
   TSynSearchOptions = set of TSynSearchOption;
 
+  TSynIdentChars = set of AnsiChar;
+
   TCategoryMethod = function(AChar: WideChar): Boolean of object;
 
   TKeyPressWEvent = procedure(Sender: TObject; var Key: WideChar) of object;
