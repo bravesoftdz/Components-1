@@ -999,6 +999,7 @@ begin
       begin
         Selected[CurNode] := True;
         Expanded[CurNode] := True;
+        ScrollIntoView(CurNode, True);
         CurNode := CurNode.FirstChild;
       end;
     end;
