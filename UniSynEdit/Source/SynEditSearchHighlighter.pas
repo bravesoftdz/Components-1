@@ -77,6 +77,8 @@ var
   FoundItem: TFoundItem;
   StartXY, EndXY: TBufferCoord;
 begin
+  if not FSynEdit.ShowSearchHighlighter then
+    Exit;
   for i := 0 to FFoundItems.Count - 1 do
   begin
     FoundItem := FFoundItems[i] as TFoundItem;

@@ -276,7 +276,7 @@ begin
     Result := ImportToken(TSynMultiToken(AObject), XMLDocument.DocumentElement)
   else begin
     raise Exception.Create(ClassName + '.ImportFromStream: Cannot import into '+AObject.ClassName+' object');
-    Result := False;
+//    Result := False;
   end;
   //XMLDocument.Active := False;
   //SynUniSyn.DefHighlightChange(SynUniSyn);
@@ -319,7 +319,7 @@ begin
   end
   else begin
     raise Exception.Create(ClassName + '.ExportToStream: Cannot export from '+AObject.ClassName+' object');
-    Result := False;
+//    Result := False;
   end;
 
   XmlDocument.Save(AStream);

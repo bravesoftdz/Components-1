@@ -452,6 +452,7 @@ type
     fGutter: TSynGutter;
     FMinimap: TSynMinimap;
     FSearchMap: TSynSearchMap;
+    FShowSearchHighlighter: Boolean;
     fTabWidth: Integer;
     fTextDrawer: TheTextDrawer;
     fInvalidateRect: TRect;
@@ -987,6 +988,7 @@ type
     property Gutter: TSynGutter read fGutter write SetGutter;
     property Minimap: TSynMinimap read FMinimap; // write SetMinimap;
     property SearchMap: TSynSearchMap read FSearchMap;
+    property ShowSearchHighlighter: Boolean read FShowSearchHighlighter write FShowSearchHighlighter default True;
     property HideSelection: Boolean read fHideSelection write SetHideSelection default False;
     property InsertCaret: TSynEditCaretType read fInsertCaret write SetInsertCaret default ctVerticalLine;
     property InsertMode: Boolean read fInserting write SetInsertMode default True;
@@ -1111,6 +1113,7 @@ type
     property MaxUndo;
     property Minimap;
     property SearchMap;
+    property ShowSearchHighlighter;
     property Options;
     property OverwriteCaret;
     property ReadOnly;
@@ -1517,6 +1520,7 @@ begin
   FMinimap.OnChange := MinimapChanged;
   FSearchMap := TSynSearchMap.Create;
   FSearchMap.OnChange := SearchMapChanged;
+  FShowSearchHighlighter := True;
   fWordWrapGlyph := TSynGlyph.Create(HINSTANCE, 'SynEditWrapped', clLime);
   fWordWrapGlyph.OnChange := WordWrapGlyphChange;
   fTextOffset := fGutter.Width + 2;
