@@ -10053,8 +10053,7 @@ begin //
                         if (eoTrimTrailingSpaces in Options) and (Len = 0) then
                           while BackCounter >= 0 do
                           begin
-                            SpaceCount2 :=
-                              LeftSpacesEx(Lines[BackCounter], True);
+                            SpaceCount2 := LeftSpacesEx(Lines[BackCounter], True);
                             if SpaceCount2 < SpaceCount1 then
                               break;
                             Dec(BackCounter);
@@ -10067,8 +10066,7 @@ begin //
                               break;
                             Dec(BackCounter);
                           end;
-                        if (BackCounter = -1) and (SpaceCount2 > SpaceCount1)
-                        then
+                        if (BackCounter = -1) and (SpaceCount2 > SpaceCount1) then
                           SpaceCount2 := 0;
                       end;
                       if SpaceCount2 = SpaceCount1 then
@@ -10104,8 +10102,7 @@ begin //
                   // delete text before the caret
                   SpaceCount1 := LeftSpaces(Temp);
                   SpaceCount2 := 0;
-                  if (Temp[CaretX - 1] <= TSynSpaceChar) and (SpaceCount1 = CaretX - 1)
-                  then
+                  if (Temp[CaretX - 1] <= TSynSpaceChar) and (SpaceCount1 = CaretX - 1) then
                   begin
                     if eoSmartTabDelete in fOptions then
                     begin
@@ -10120,8 +10117,7 @@ begin //
                             break;
                           Dec(BackCounter);
                         end;
-                        if (BackCounter = -1) and (SpaceCount2 > SpaceCount1)
-                        then
+                        if (BackCounter = -1) and (SpaceCount2 > SpaceCount1) then
                           SpaceCount2 := 0;
                       end;
                       if SpaceCount2 = SpaceCount1 then
@@ -10163,8 +10159,7 @@ begin //
                       begin
                         Helper := Copy(Temp, SpaceCount2 - SpaceCount1 + 1,
                           SpaceCount1);
-                        Delete(Temp, SpaceCount2 - SpaceCount1 + 1,
-                          SpaceCount1);
+                        Delete(Temp, SpaceCount2 - SpaceCount1 + 1, SpaceCount1);
                       end;
                       SpaceCount2 := 0;
                     end;
@@ -10174,8 +10169,9 @@ begin //
                     if (eoTrimTrailingSpaces in Options) and
                       (Len <> Length(TabBuffer)) then
                       vTabTrim := CharIndex2CaretPos(CaretX, TabWidth, Temp);
+
                     ProperSetLine(CaretY - 1, Temp);
-                    fCaretX := fCaretX - (SpaceCount1 - SpaceCount2);
+                    //fCaretX := fCaretX - (SpaceCount1 - SpaceCount2);
                     if fCaretX < 1 then
                       fCaretX := 1;
                     UpdateLastCaretX;
