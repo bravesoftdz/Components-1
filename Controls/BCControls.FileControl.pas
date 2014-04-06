@@ -335,6 +335,7 @@ begin
   ClearItems;
   Integer(Drives) := GetLogicalDrives;
 
+  FileIconInit(True);
   for lp1 := 0 to 25 do
   begin
     if (lp1 in Drives) then
@@ -437,13 +438,9 @@ begin
 end;
 
 procedure TBCCustomDriveComboBox.GetSystemIcons;
-var
-  SHFileInfo: TSHFileInfo;
-  PathInfo: string;
 begin
-  FileIconInit(True);
   FSystemIconsImageList := TImageList.Create(Self);
-  FSystemIconsImageList.Handle := SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
+  FSystemIconsImageList.Handle := GetSysImageList; //SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
 end;
 
 procedure TBCCustomDriveComboBox.Notification(AComponent: TComponent;
@@ -693,8 +690,6 @@ end;
 
 constructor TBCFileTreeView.Create;
 var
-  SHFileInfo: TSHFileInfo;
-  PathInfo: String;
   SysImageList: THandle;
 begin
   inherited Create(AOwner);
@@ -714,9 +709,8 @@ begin
   FShowSystem := False;
   FShowOverlayIcons := True;
 
-  FileIconInit(True);
   Images := TBCImageList.Create(Self);
-  SysImageList := SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_SYSICONINDEX or SHGFI_SMALLICON or SHGFI_ADDOVERLAYS);
+  SysImageList := GetSysImageList; //SHGetFileInfo(PChar(PathInfo), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_SYSICONINDEX or SHGFI_SMALLICON or SHGFI_ADDOVERLAYS);
   if SysImageList <> 0 then
   begin
     Images.Handle := SysImageList;
