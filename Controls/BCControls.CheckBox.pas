@@ -16,15 +16,16 @@ type
     function GetText: TCaption;
     procedure AdjustBounds;
     procedure FontChanged(Sender: TObject);
-    procedure SetText(const Value: TCaption);
   protected
     { Protected declarations }
     procedure DoEnter; override;
     procedure SetAutoSize(Value: Boolean); override;
-  published
-    { Published declarations }
+  public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure SetText(const Value: TCaption);
+  published
+    { Published declarations }
     property AutoSize: Boolean read FAutoSize write SetAutoSize;
     property Caption read GetText write SetText;
     property ReadOnly: Boolean read FReadOnly write FReadOnly;

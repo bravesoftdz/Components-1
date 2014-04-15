@@ -219,7 +219,7 @@ type
       var Ghosted: Boolean; var Index: Integer): TCustomImageList; override;
     function DoCompare(Node1, Node2: PVirtualNode; Column: TColumnIndex): Integer; override;
     function DoGetNodeWidth(Node: PVirtualNode; Column: TColumnIndex; Canvas: TCanvas = nil): Integer; override;
-    procedure DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal); override;
+    function DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean; override;
     function DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure PaintImage(var PaintInfo: TVTPaintInfo; ImageInfoIndex: TVTImageInfoIndex; DoOverlay: Boolean); override;
@@ -1297,7 +1297,7 @@ begin
     Result := Canvas.TextWidth(Trim(Data.FileName)) + 2 * TextMargin;
 end;
 
-procedure TBCFileTreeView.DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal);
+function TBCFileTreeView.DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean;
 var
   Data, ChildData: PBCFileTreeNodeRec;
   SR: TSearchRec;
@@ -1305,6 +1305,8 @@ var
   FName: String;
   DriveRemote: Boolean;
 begin
+  Result := True;
+
   Data := GetNodeData(Node);
 
   DriveRemote := GetDriveRemote;
