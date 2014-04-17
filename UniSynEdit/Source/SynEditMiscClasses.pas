@@ -1380,7 +1380,8 @@ begin
   if aName <> '' then
   begin
     fInternalGlyph := TBitmap.Create;
-    fInternalGlyph.LoadFromResourceName(aModule, aName);
+    //fInternalGlyph.LoadFromResourceName(aModule, aName);
+    fInternalGlyph.Handle := LoadBitmap(aModule, PWideChar(aName));
     fInternalMaskColor := aMaskColor;
   end
   else
@@ -1677,8 +1678,8 @@ begin
 
   { There is no loaded resource in the list so let's create a new one }
   Result := TBitmap.Create;
-  Result.LoadFromResourceName(aModule, Name);
-
+  //Result.LoadFromResourceName(aModule, Name);
+  Result.Handle := LoadBitmap(aModule, PWideChar(Name));
   { Add the new resource to our list }
   newIntRes := TInternalResource.Create;
   newIntRes.UsageCount := 1;
