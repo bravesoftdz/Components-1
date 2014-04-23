@@ -348,6 +348,8 @@ begin
       DriveComboFile.FileName := StrPas(SHFileInfo.szDisplayName);
       Items.Add(StrPas(SHFileInfo.szDisplayName));
       FDriveComboFileList.Add(DriveComboFile);
+      { destroy the icon, we are only using the index }
+      DestroyIcon(SHFileInfo.hIcon);
     end;
   end;
   Items.EndUpdate;

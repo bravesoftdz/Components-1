@@ -44,6 +44,8 @@ uses
   // SynEdit components
   SynEdit,
   SynMemo,
+  DesignIntf,
+  DesignEditors,
   {$IFNDEF SYN_DELPHI_PE}
   SynDBEdit,
   {$ENDIF}
@@ -129,7 +131,6 @@ uses
   SynHighlighterYAML,
   SynHighlighterLLVM,
   SynURIOpener,
-  SynUniHighlighter,
   Classes;
 
 procedure Register;
@@ -194,7 +195,7 @@ begin
     // other
     TSynBaanSyn, TSynGalaxySyn, TSynProgressSyn, TSynMsgSyn, TSynLLVMIRSyn,
     TSynIdlSyn, TSynUnrealSyn, TSynCPMSyn, TSynTeXSyn, TSynYAMLSyn,
-    TSynHaskellSyn, TSynLDRSyn, TSynURISyn, TSynDOTSyn, TSynRCSyn, TSynUniSyn
+    TSynHaskellSyn, TSynLDRSyn, TSynURISyn, TSynDOTSyn, TSynRCSyn
   ]);
 end;
 
