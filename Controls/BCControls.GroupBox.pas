@@ -83,8 +83,6 @@ procedure TBCGroupBox.Paint;
 var
   LTextWidth, LTextHeight: Integer;
   LStyles: TCustomStyleServices;
-  Details: TThemedElementDetails;
-  BevelRect: TRect;
 begin
   inherited;
   LStyles := StyleServices;
