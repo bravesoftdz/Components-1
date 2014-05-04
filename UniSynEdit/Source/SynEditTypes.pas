@@ -69,7 +69,7 @@ type
   ESynError = class(Exception);
 
   TSynSearchOption = (ssoMatchCase, ssoWholeWord, ssoBackwards,
-    ssoEntireScope, ssoSelectedOnly, ssoReplace, ssoReplaceAll, ssoPrompt);
+    ssoEntireScope, ssoSelectedOnly, ssoReplace, ssoReplaceAll, ssoDeleteLine, ssoPrompt);
   TSynSearchOptions = set of TSynSearchOption;
 
   TSynIdentChars = set of AnsiChar;

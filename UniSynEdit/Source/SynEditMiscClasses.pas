@@ -527,13 +527,12 @@ type
     function GetResultCount: Integer; virtual; abstract;
     procedure SetOptions(const Value: TSynSearchOptions); virtual; abstract;
   public
-    function FindAll(const NewText: unicodestring): Integer; virtual; abstract;
-    function Replace(const aOccurrence, aReplacement: unicodestring)
-      : unicodestring; virtual; abstract;
+    function FindAll(const NewText: UnicodeString): Integer; virtual; abstract;
+    function Replace(const aOccurrence, aReplacement: UnicodeString): UnicodeString; virtual; abstract;
     property ResultCount: Integer read GetResultCount;
     property Results[aIndex: Integer]: Integer read GetResult;
     property Lengths[aIndex: Integer]: Integer read GetLength;
-    property Pattern: unicodestring read GetPattern write SetPattern;
+    property Pattern: UnicodeString read GetPattern write SetPattern;
     property Options: TSynSearchOptions write SetOptions;
   end;
 

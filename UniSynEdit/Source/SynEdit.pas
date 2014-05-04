@@ -95,7 +95,8 @@ type
 
   TProcessCommandEvent = procedure(Sender: TObject; var Command: TSynEditorCommand; var AChar: WideChar; Data: pointer) of object;
 
-  TReplaceTextEvent = procedure(Sender: TObject; const ASearch, AReplace: UnicodeString; Line, Column: Integer; var Action: TSynReplaceAction) of object;
+  TReplaceTextEvent = procedure(Sender: TObject; const ASearch, AReplace: UnicodeString; Line, Column: Integer;
+    DeleteLine: Boolean; var Action: TSynReplaceAction) of object;
 
   TSpecialLineColorsEvent = procedure(Sender: TObject; Line: Integer; var Special: Boolean; var FG, BG: TColor) of object;
 
@@ -749,7 +750,7 @@ type
 
     procedure DoOnPlaceMark(var Mark: TSynEditMark); virtual;
     procedure DoOnProcessCommand(var Command: TSynEditorCommand; var AChar: WideChar; Data: pointer); virtual;
-    function DoOnReplaceText(const ASearch, AReplace: UnicodeString; Line, Column: Integer): TSynReplaceAction; virtual;
+    function DoOnReplaceText(const ASearch, AReplace: UnicodeString; Line, Column: Integer; DeleteLine: Boolean): TSynReplaceAction; virtual;
     function DoOnSpecialLineColors(Line: Integer; var Foreground, Background: TColor): Boolean; virtual;
     procedure DoOnStatusChange(Changes: TSynStatusChanges); virtual;
     function GetSelEnd: Integer;
@@ -11371,7 +11372,7 @@ begin //
     nInLine: Integer;
     bBackward, bFromCursor: Boolean;
     bPrompt: Boolean;
-    bReplace, bReplaceAll: Boolean;
+    bReplace, bReplaceAll, bDeleteLine: Boolean;
     bEndUndoBlock: Boolean;
     nAction: TSynReplaceAction;
     iResultOffset: Integer;
@@ -11406,6 +11407,7 @@ begin //
     bPrompt := (ssoPrompt in AOptions);
     bReplace := (ssoReplace in AOptions);
     bReplaceAll := (ssoReplaceAll in AOptions);
+    bDeleteLine := (ssoDeleteLine in AOptions);
     bFromCursor := not(ssoEntireScope in AOptions);
     if not SelAvail then
       Exclude(AOptions, ssoSelectedOnly);
@@ -11486,9 +11488,7 @@ begin //
           Inc(Result);
           // Select the text, so the user can see it in the OnReplaceText event
           // handler or as the search result.
-
           ptCurrent.Char := nFound;
-
 
           BlockBegin := ptCurrent;
           // Be sure to use the Ex version of CursorPos so that it appears in the middle if necessary
@@ -11511,7 +11511,7 @@ begin //
           if bPrompt and Assigned(fOnReplaceText) then
           begin
             nAction := DoOnReplaceText(ASearch, AReplace,
-              ptCurrent.Line, nFound);
+              ptCurrent.Line, nFound, bDeleteLine);
             if nAction = raCancel then
               Exit;
           end
@@ -11535,9 +11535,17 @@ begin //
                 BeginUndoBlock;
               bEndUndoBlock := True;
             end;
-            // Allow advanced substition in the search engine
-            SelText := fSearchEngine.Replace(SelText, AReplace);
-            nReplaceLen := CaretX - nFound;
+            if bDeleteLine then
+            begin
+              Lines.Delete(ptCurrent.Line - 1);
+              Exit;
+            end
+            else
+            begin
+              // Allow advanced substition in the search engine
+              SelText := fSearchEngine.Replace(SelText, AReplace);
+              nReplaceLen := CaretX - nFound;
+            end
           end;
           // fix the caret position and the remaining results
           if not bBackward then
@@ -11572,8 +11580,7 @@ begin //
     end;
   end;
 
-  function TCustomSynEdit.IsPointInSelection(const Value: TBufferCoord)
-    : Boolean;
+  function TCustomSynEdit.IsPointInSelection(const Value: TBufferCoord): Boolean;
   var
     ptBegin, ptEnd: TBufferCoord;
   begin
@@ -13294,11 +13301,11 @@ begin //
   end;
 
   function TCustomSynEdit.DoOnReplaceText(const ASearch,
-    AReplace: UnicodeString; Line, Column: Integer): TSynReplaceAction;
+    AReplace: UnicodeString; Line, Column: Integer; DeleteLine: Boolean): TSynReplaceAction;
   begin
     Result := raCancel;
     if Assigned(fOnReplaceText) then
-      fOnReplaceText(Self, ASearch, AReplace, Line, Column, Result);
+      fOnReplaceText(Self, ASearch, AReplace, Line, Column, DeleteLine, Result);
   end;
 
   procedure TCustomSynEdit.DoOnStatusChange(Changes: TSynStatusChanges);

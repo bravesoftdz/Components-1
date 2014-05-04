@@ -75,6 +75,10 @@ contains
   BCControls.ColorComboBox in 'Controls\BCControls.ColorComboBox.pas',
   BCControls.DBGrid in 'Controls\BCControls.DBGrid.pas',
   BCControls.OraSynEdit in 'Controls\BCControls.OraSynEdit.pas',
-  BCControls.ButtonedEdit in 'Controls\BCControls.ButtonedEdit.pas';
+  BCControls.ButtonedEdit in 'Controls\BCControls.ButtonedEdit.pas',
+  BCControls.GroupBox in 'Controls\BCControls.GroupBox.pas',
+  BCControls.LayoutController in 'Controls\BCControls.LayoutController.pas',
+  BCControls.LayoutPanel in 'Controls\BCControls.LayoutPanel.pas',
+  BCControls.RadioButton in 'Controls\BCControls.RadioButton.pas';
 
 end.
