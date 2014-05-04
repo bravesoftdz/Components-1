@@ -81,7 +81,7 @@ end;
 
 procedure TBCGroupBox.Paint;
 var
-  LTextWidth, LTextHeight: Integer;
+  y, LTextWidth, LTextHeight: Integer;
   LStyles: TCustomStyleServices;
 begin
   inherited;
@@ -92,17 +92,17 @@ begin
     Font.Assign(FCaptionFont);
     Brush.Style := bsClear;
     Pen.Color := clLtGray;
-    if LStyles.Enabled and (TStyleManager.ActiveStyle.Name <> 'Windows') then
+    if LStyles.Enabled then
     begin
-      Pen.Color := LStyles.GetStyleColor(scGenericGradientEnd);
+      Pen.Color := LStyles.GetSystemColor(clBtnShadow);
       Font.Color := LStyles.GetStyleFontColor(sfTextLabelNormal);
     end;
     TextOut(FLeftMargin, FTopMargin, Caption);
     LTextWidth := TextWidth(Caption);
     LTextHeight := GetCaptionHeight;
-
-    MoveTo(FLeftMargin + LTextWidth + 5, FTopMargin + LTextHeight div 2);
-    LineTo(Width - 5, FTopMargin + LTextHeight div 2);
+    y := (FTopMargin + LTextHeight div 2) + 1;
+    MoveTo(FLeftMargin + LTextWidth + 5, y);
+    LineTo(Width - 5, y);
   end;
 end;
 
