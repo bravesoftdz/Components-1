@@ -102,7 +102,7 @@ begin
     LTextHeight := GetCaptionHeight;
     y := (FTopMargin + LTextHeight div 2) + 1;
     MoveTo(FLeftMargin + LTextWidth + 5, y);
-    LineTo(Width - 5, y);
+    LineTo(Width, y);
   end;
 end;
 
