@@ -938,10 +938,10 @@ begin
   TreeNode := GetFirstSelected;
   if not Assigned(TreeNode) then
     Exit;
-  if TreeNode.ChildCount > 0 then
-    Exit;
 
   Data := GetNodeData(TreeNode);
+  if Data.FileType = ftDirectory then
+    Exit;
 
   {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
   Result := IncludeTrailingBackslash(Data.FullPath);

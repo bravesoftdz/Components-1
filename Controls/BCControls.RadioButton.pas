@@ -1,4 +1,4 @@
-unit BCControls.CheckBox;
+unit BCControls.RadioButton;
 
 interface
 
@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Classes, Vcl.Controls, Vcl.StdCtrls, Vcl.Graphics;
 
 type
-  TBCCheckBox = class(TCheckBox)
+  TBCRadioButton = class(TRadioButton)
   strict private
     { Private declarations }
     FCanvas: TControlCanvas;
@@ -40,10 +40,10 @@ uses
 
 procedure Register;
 begin
-  RegisterComponents('bonecode', [TBCCheckBox]);
+  RegisterComponents('bonecode', [TBCRadioButton]);
 end;
 
-constructor TBCCheckBox.Create(AOwner: TComponent);
+constructor TBCRadioButton.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FReadOnly := False;
@@ -56,13 +56,13 @@ begin
   ControlStyle := ControlStyle - [csDoubleClicks];
 end;
 
-destructor TBCCheckBox.Destroy;
+destructor TBCRadioButton.Destroy;
 begin
   FCanvas.Free;
   inherited Destroy;
 end;
 
-procedure TBCCheckBox.DoEnter;
+procedure TBCRadioButton.DoEnter;
 begin
   if not ReadOnly then
     inherited
@@ -70,28 +70,28 @@ begin
     Parent.SetFocus
 end;
 
-procedure TBCCheckBox.SetAutoSize(Value: Boolean);
+procedure TBCRadioButton.SetAutoSize(Value: Boolean);
 begin
   FAutoSize := Value;
   if Value then
     AdjustBounds;
 end;
 
-procedure TBCCheckBox.AdjustBounds;
+procedure TBCRadioButton.AdjustBounds;
 begin
   FCanvas.Font := Font;
   Width := FCanvas.TextWidth(Caption) + GetSystemMetrics(SM_CXMENUCHECK) + 4;
   Height := FCanvas.TextHeight(Caption) + 2;
 end;
 
-procedure TBCCheckBox.FontChanged(Sender: TObject);
+procedure TBCRadioButton.FontChanged(Sender: TObject);
 begin
   if Assigned(FFontChanged) then
     FFontChanged(Sender);
   AdjustBounds;
 end;
 
-procedure TBCCheckBox.SetText(const Value: TCaption);
+procedure TBCRadioButton.SetText(const Value: TCaption);
 var
   s: TCaption;
 begin
@@ -106,7 +106,7 @@ begin
   end;
 end;
 
-function TBCCheckBox.GetText: TCaption;
+function TBCRadioButton.GetText: TCaption;
 var
   Len: Integer;
 begin
