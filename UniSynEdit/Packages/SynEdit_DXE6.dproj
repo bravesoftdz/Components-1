@@ -1,7 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{6E21797B-4D50-4028-9D52-05CDFE6CEAEA}</ProjectGuid>
-        <MainSource>SynEdit_DXE5.dpk</MainSource>
+        <MainSource>SynEdit_DXE6.dpk</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
         <TargetedPlatforms>1</TargetedPlatforms>
@@ -51,7 +51,7 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
-        <SanitizedProjectName>SynEdit_DXE5</SanitizedProjectName>
+        <SanitizedProjectName>SynEdit_DXE6</SanitizedProjectName>
         <DesignOnlyPackage>true</DesignOnlyPackage>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <GenPackage>true</GenPackage>
@@ -114,7 +114,7 @@
         </DelphiCompile>
         <DCCReference Include="..\Source\SynEditReg.dcr"/>
         <DCCReference Include="designide.dcp"/>
-        <DCCReference Include="SynEdit_RXE5.dcp"/>
+        <DCCReference Include="SynEdit_RXE6.dcp"/>
         <DCCReference Include="..\Source\SynEditReg.pas"/>
         <DCCReference Include="..\Source\SynEditPropertyReg.pas"/>
         <DCCReference Include="..\Source\SynHighlighterManager.pas"/>
@@ -136,7 +136,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">SynEdit_DXE5.dpk</Source>
+                    <Source Name="MainSource">SynEdit_DXE6.dpk</Source>
                 </Source>
                 <VersionInfo>
                     <VersionInfo Name="IncludeVerInfo">True</VersionInfo>

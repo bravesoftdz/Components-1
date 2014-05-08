@@ -140,7 +140,6 @@ contains
   SynHighlighterLLVM in '..\Source\SynHighlighterLLVM.pas',
   SynEditWildcardSearch in '..\Source\SynEditWildcardSearch.pas',
   SynEditCodeFolding in '..\Source\SynEditCodeFolding.pas',
-  SynEditSearchHighlighter in '..\Source\SynEditSearchHighlighter.pas',
-  SimpleXML in '..\Source\SimpleXML.pas';
+  SynEditSearchHighlighter in '..\Source\SynEditSearchHighlighter.pas';
 
 end.
