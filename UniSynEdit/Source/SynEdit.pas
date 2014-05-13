@@ -11462,8 +11462,7 @@ begin //
     else
       bEndUndoBlock := False;
     try
-      while (ptCurrent.Line >= ptStart.Line) and
-        (ptCurrent.Line <= ptEnd.Line) do
+      while (ptCurrent.Line >= ptStart.Line) and (ptCurrent.Line <= ptEnd.Line) do
       begin
         nInLine := fSearchEngine.FindAll(Lines[ptCurrent.Line - 1]);
         iResultOffset := 0;
@@ -11537,8 +11536,8 @@ begin //
             end;
             if bDeleteLine then
             begin
-              Lines.Delete(ptCurrent.Line - 1);
-              Exit;
+              ExecuteCommand(ecDeleteLine, 'Y', nil);
+              Dec(ptCurrent.Line);
             end
             else
             begin
