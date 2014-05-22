@@ -44,10 +44,9 @@ requires
   JvCmp,
   xmlrtl,
   SynEdit_RXE6,
-  SynWeb_DXE6,
-  EhLib200,
   dac200,
-  odac200;
+  odac200,
+  SynWeb_DXE6;
 
 contains
   HelpSystem in 'HelpSystem\HelpSystem.pas',
