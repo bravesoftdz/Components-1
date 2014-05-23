@@ -23,6 +23,10 @@ type
     { Private declarations }
     FPosition: Integer;
     FCount: Integer;
+    FOnStepChange: TNotifyEvent;
+    FOnShow: TNotifyEvent;
+    FOnHide: TNotifyEvent;
+    procedure SetCount(Value: Integer);
   public
     { Public declarations }
     class constructor Create;
@@ -30,9 +34,12 @@ type
     procedure StepIt;
     procedure Show;
     procedure Hide;
-    property Count: Integer read FCount write FCount ;
+    property Count: Integer read FCount write SetCount;
   published
     { Published declarations }
+    property OnStepChange: TNotifyEvent read FOnStepChange write FOnStepChange;
+    property OnShow: TNotifyEvent read FOnShow write FOnShow;
+    property OnHide: TNotifyEvent read FOnHide write FOnHide;
   end;
 
 procedure Register;
@@ -142,17 +149,28 @@ procedure TBCProgressBar.StepIt;
 begin
   Position := Trunc((FPosition / FCount) * 100);
   Inc(FPosition);
+  if Assigned(FOnStepChange) then
+    FOnStepChange(nil);
 end;
 
 procedure TBCProgressBar.Show;
 begin
   Visible := True;
   FPosition := 0;
+  if Assigned(FOnShow) then
+    FOnShow(nil);
 end;
 
 procedure TBCProgressBar.Hide;
 begin
   Visible := False;
+  if Assigned(FOnHide) then
+    FOnHide(nil);
+end;
+
+procedure TBCProgressBar.SetCount(Value: Integer);
+begin
+  FCount := Value;
 end;
 
 end.
