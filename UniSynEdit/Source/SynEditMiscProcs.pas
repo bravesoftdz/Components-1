@@ -71,6 +71,9 @@ type
   PIntArray = ^TIntArray;
   TIntArray = array[0..MaxIntArraySize - 1] of Integer;
 
+  PIntegerArray = ^TIntegerArray;
+  TIntegerArray = array of Integer;
+
 {$IFNDEF SYN_COMPILER_4_UP}
 function Max(x, y: Integer): Integer;
 function Min(x, y: Integer): Integer;

@@ -52,12 +52,9 @@ unit SynEdit;
 interface
 
 uses
-  Vcl.Controls, Contnrs, Vcl.Graphics, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls,
-  Windows, Messages, Vcl.StdActns,
-  Vcl.Dialogs, UITypes, SynUnicode, Imm, SynTextDrawer, SynEditTypes,
-  SynEditKeyConst, SynEditMiscProcs,
-  SynEditMiscClasses, SynEditTextBuffer, SynEditKeyCmds, SynEditHighlighter,
-  SynEditKbdHandler, SynEditCodeFolding,
+  Vcl.Controls, Contnrs, Vcl.Graphics, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Windows, Messages, Vcl.StdActns,
+  Vcl.Dialogs, UITypes, SynUnicode, Imm, SynTextDrawer, SynEditTypes, SynEditKeyConst, SynEditMiscProcs,
+  SynEditMiscClasses, SynEditTextBuffer, SynEditKeyCmds, SynEditHighlighter, SynEditKbdHandler, SynEditCodeFolding,
   SynRegExpr, WideStrUtils, Math, SysUtils, Classes;
 
 const

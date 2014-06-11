@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, Vcl.Controls, SynEdit, SynHighlighterWebData, SynMacroRecorder,
-  SynEditKeyCmds, Winapi.Messages;
+  SynEditKeyCmds, Winapi.Messages, SynCompletionProposal;
 
 type
   TBCSynEdit = class(TSynEdit)
@@ -19,8 +19,8 @@ type
     procedure DoOnProcessCommand(var Command: TSynEditorCommand; var AChar: WideChar; Data: pointer); override;
   public
     class constructor Create;
-    class destructor Destroy;
     destructor Destroy; override;
+    function SplitTextIntoWords(SynCompletionProposal: TSynCompletionProposal; CaseSensitive: Boolean): string;
     procedure LoadFromFile(const FileName: String);
     procedure SaveToFile(const FileName: String);
     property DocumentName: string read FDocumentName write FDocumentName;
@@ -36,7 +36,7 @@ procedure Register;
 implementation
 
 uses
-  SynUnicode, BCControls.StyleHooks, Vcl.Themes, BCCommon.Encoding, SynEditTypes, SynEditTextBuffer;
+  Winapi.Windows, SynUnicode, BCControls.StyleHooks, Vcl.Themes, BCCommon.Encoding, SynEditTypes, SynEditTextBuffer;
 
 procedure Register;
 begin
@@ -47,13 +47,6 @@ class constructor TBCSynEdit.Create;
 begin
   if Assigned(TStyleManager.Engine) then
     TStyleManager.Engine.RegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
-end;
-
-class destructor TBCSynEdit.Destroy;
-begin
-  //if Assigned(TStyleManager.Engine) then
-  //  if TStyleManager.ActiveStyle.Name <> 'Windows' then
-  //    TStyleManager.Engine.UnRegisterStyleHook(TCustomSynEdit, TSynEditStyleHook);
 end;
 
 destructor TBCSynEdit.Destroy;
@@ -108,6 +101,59 @@ begin
   if Assigned(FSynMacroRecorder) then
     if FSynMacroRecorder.State = msRecording then
       FSynMacroRecorder.AddEvent(Command, AChar, Data);
+end;
+
+function TBCSynEdit.SplitTextIntoWords(SynCompletionProposal: TSynCompletionProposal; CaseSensitive: Boolean): string;
+var
+  i: Integer;
+  S, Word: string;
+  StringList: TStringList;
+  startpos, endpos: Integer;
+  KeywordStringList: TStrings;
+begin
+  Result := '';
+  S := Text;
+  SynCompletionProposal.ItemList.Clear;
+  startpos := 1;
+  KeywordStringList := TStringList.Create;
+  StringList := TStringList.Create;
+  StringList.CaseSensitive := CaseSensitive;
+  try
+    { add document words }
+    while startpos <= Length(S) do
+    begin
+      while (startpos <= Length(S)) and not IsCharAlpha(S[startpos]) do
+        Inc(startpos);
+      if startpos <= Length(S) then
+      begin
+        endpos := startpos + 1;
+        while (endpos <= Length(S)) and IsCharAlpha(S[endpos]) do
+          Inc(endpos);
+        Word := Copy(S, startpos, endpos - startpos);
+        if endpos - startpos > Length(Result) then
+          Result := Word;
+        if StringList.IndexOf(Word) = -1 then { no duplicates }
+          StringList.Add(Word);
+        startpos := endpos + 1;
+      end;
+    end;
+    { add highlighter keywords }
+    Highlighter.AddKeywords(KeywordStringList);
+    for i := 0 to KeywordStringList.Count - 1 do
+    begin
+      Word := KeywordStringList.Strings[i];
+      if Length(Word) > Length(Result) then
+        Result := Word;
+      if StringList.IndexOf(Word) = -1 then { no duplicates }
+        StringList.Add(Word);
+    end;
+  finally
+    StringList.Sort;
+    SynCompletionProposal.ItemList.Assign(StringList);
+    StringList.Free;
+    if Assigned(KeywordStringList) then
+      KeywordStringList.Free;
+  end;
 end;
 
 end.

@@ -241,16 +241,9 @@
         <DCCReference Include="..\Source\SynHighlighterCss.pas"/>
         <DCCReference Include="..\Source\SynHighlighterLDraw.pas"/>
         <DCCReference Include="..\Source\SynHighlighterURI.pas"/>
-        <DCCReference Include="..\Source\SynURIOpener.pas"/>
         <DCCReference Include="..\Source\SynHighlighterDOT.pas"/>
         <DCCReference Include="..\Source\SynHighlighterVrml97.pas"/>
         <DCCReference Include="..\Source\SynHighlighterEiffel.pas"/>
-        <DCCReference Include="..\Source\SynUnicode.pas">
-            <Form>$IFNDEF CPUX64</Form>
-        </DCCReference>
-        <DCCReference Include="..\Source\SynUsp10.pas">
-            <Form>$ENDIF</Form>
-        </DCCReference>
         <DCCReference Include="..\Source\SynHighlighterDWS.pas"/>
         <DCCReference Include="..\Source\SynHighlighterYAML.pas"/>
         <DCCReference Include="..\Source\SynHighlighterWebIDL.pas"/>
@@ -258,6 +251,13 @@
         <DCCReference Include="..\Source\SynEditWildcardSearch.pas"/>
         <DCCReference Include="..\Source\SynEditCodeFolding.pas"/>
         <DCCReference Include="..\Source\SynEditSearchHighlighter.pas"/>
+        <DCCReference Include="..\Source\SynUnicode.pas"/>
+        <DCCReference Include="..\Source\SynUniHighlighter.pas"/>
+        <DCCReference Include="..\..\SynWeb\Source\SynTokenMatch.pas"/>
+        <DCCReference Include="..\Source\SynUniClasses.pas"/>
+        <DCCReference Include="..\Source\SynUniRules.pas"/>
+        <DCCReference Include="..\source\SynUniParser.pas"/>
+        <DCCReference Include="..\Source\SynURIOpener.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

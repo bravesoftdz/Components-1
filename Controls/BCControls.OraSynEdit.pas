@@ -21,9 +21,8 @@ type
     FEncoding: TEncoding;
     function GetQueryOpened: Boolean;
   public
-    //class constructor Create;
-    //class destructor Destroy;
     constructor Create(AOwner: TComponent); override;
+    function SplitTextIntoWords(SynCompletionProposal: TSynCompletionProposal; CaseSensitive: Boolean): string;
     procedure LoadFromFile(const FileName: String);
     procedure SaveToFile(const FileName: String);
     property InThread: Boolean read FInThread write FInThread;
@@ -44,22 +43,12 @@ procedure Register;
 implementation
 
 uses
-  SynUnicode, BCCommon.Encoding, SynEditTextBuffer;
+  Winapi.Windows, SynUnicode, BCCommon.Encoding, SynEditTextBuffer;
 
 procedure Register;
 begin
   RegisterComponents('bonecode', [TBCOraSynEdit]);
 end;
-
-{class constructor TBCOraSynEdit.Create;
-begin
-  TStyleManager.Engine.RegisterStyleHook(TBCOraSynEdit, TSynEditStyleHook);
-end;
-
-class destructor TBCOraSynEdit.Destroy;
-begin
-  TStyleManager.Engine.UnRegisterStyleHook(TBCOraSynEdit, TSynEditStyleHook);
-end; }
 
 constructor TBCOraSynEdit.Create(AOwner: TComponent);
 begin
@@ -109,6 +98,59 @@ end;
 procedure TBCOraSynEdit.SaveToFile(const FileName: String);
 begin
   Lines.SaveToFile(FileName, FEncoding);
+end;
+
+function TBCOraSynEdit.SplitTextIntoWords(SynCompletionProposal: TSynCompletionProposal; CaseSensitive: Boolean): string;
+var
+  i: Integer;
+  S, Word: string;
+  StringList: TStringList;
+  startpos, endpos: Integer;
+  KeywordStringList: TStrings;
+begin
+  Result := '';
+  S := Text;
+  SynCompletionProposal.ItemList.Clear;
+  startpos := 1;
+  KeywordStringList := TStringList.Create;
+  StringList := TStringList.Create;
+  StringList.CaseSensitive := CaseSensitive;
+  try
+    { add document words }
+    while startpos <= Length(S) do
+    begin
+      while (startpos <= Length(S)) and not IsCharAlpha(S[startpos]) do
+        Inc(startpos);
+      if startpos <= Length(S) then
+      begin
+        endpos := startpos + 1;
+        while (endpos <= Length(S)) and IsCharAlpha(S[endpos]) do
+          Inc(endpos);
+        Word := Copy(S, startpos, endpos - startpos);
+        if endpos - startpos > Length(Result) then
+          Result := Word;
+        if StringList.IndexOf(Word) = -1 then { no duplicates }
+          StringList.Add(Word);
+        startpos := endpos + 1;
+      end;
+    end;
+    { add highlighter keywords }
+    Highlighter.AddKeywords(KeywordStringList);
+    for i := 0 to KeywordStringList.Count - 1 do
+    begin
+      Word := KeywordStringList.Strings[i];
+      if Length(Word) > Length(Result) then
+        Result := Word;
+      if StringList.IndexOf(Word) = -1 then { no duplicates }
+        StringList.Add(Word);
+    end;
+  finally
+    StringList.Sort;
+    SynCompletionProposal.ItemList.Assign(StringList);
+    StringList.Free;
+    if Assigned(KeywordStringList) then
+      KeywordStringList.Free;
+  end;
 end;
 
 end.

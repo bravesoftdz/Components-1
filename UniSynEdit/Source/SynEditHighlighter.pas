@@ -73,6 +73,8 @@ type
     fName: string;
     fStyle: TFontStyles;
     fStyleDefault: TFontStyles;
+
+    fRule: TObject;
     fOnChange: TNotifyEvent;
     procedure Changed; virtual;
     function GetBackgroundColorStored: Boolean;
@@ -97,9 +99,10 @@ type
     function SaveToFile(Ini: TIniFile): Boolean;
 {$ENDIF}
   public
-    property FriendlyName: UnicodeString read fFriendlyName;
+    property FriendlyName: UnicodeString read fFriendlyName write fFriendlyName;
     property IntegerStyle: Integer read GetStyleFromInt write SetStyleFromInt;
     property Name: string read fName write fName;
+    property Rule: TObject read fRule write fRule;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
   published
     property Background: TColor read fBackground write SetBackground

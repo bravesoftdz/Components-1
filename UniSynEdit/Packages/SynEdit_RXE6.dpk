@@ -5,7 +5,7 @@ package SynEdit_RXE6;
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
-{$DEBUGINFO ON}
+{$DEBUGINFO OFF}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
@@ -128,18 +128,22 @@ contains
   SynHighlighterCss in '..\Source\SynHighlighterCss.pas',
   SynHighlighterLDraw in '..\Source\SynHighlighterLDraw.pas',
   SynHighlighterURI in '..\Source\SynHighlighterURI.pas',
-  SynURIOpener in '..\Source\SynURIOpener.pas',
   SynHighlighterDOT in '..\Source\SynHighlighterDOT.pas',
   SynHighlighterVrml97 in '..\Source\SynHighlighterVrml97.pas',
   SynHighlighterEiffel in '..\Source\SynHighlighterEiffel.pas',
-  SynUnicode in '..\Source\SynUnicode.pas' {$IFNDEF CPUX64},
-  SynUsp10 in '..\Source\SynUsp10.pas' {$ENDIF},
   SynHighlighterDWS in '..\Source\SynHighlighterDWS.pas',
   SynHighlighterYAML in '..\Source\SynHighlighterYAML.pas',
   SynHighlighterWebIDL in '..\Source\SynHighlighterWebIDL.pas',
   SynHighlighterLLVM in '..\Source\SynHighlighterLLVM.pas',
   SynEditWildcardSearch in '..\Source\SynEditWildcardSearch.pas',
   SynEditCodeFolding in '..\Source\SynEditCodeFolding.pas',
-  SynEditSearchHighlighter in '..\Source\SynEditSearchHighlighter.pas';
+  SynEditSearchHighlighter in '..\Source\SynEditSearchHighlighter.pas',
+  SynUnicode in '..\Source\SynUnicode.pas',
+  SynUniHighlighter in '..\Source\SynUniHighlighter.pas',
+  SynTokenMatch in '..\..\SynWeb\Source\SynTokenMatch.pas',
+  SynUniClasses in '..\Source\SynUniClasses.pas',
+  SynUniRules in '..\Source\SynUniRules.pas',
+  SynUniParser in '..\source\SynUniParser.pas',
+  SynURIOpener in '..\Source\SynURIOpener.pas';
 
 end.

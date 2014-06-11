@@ -130,6 +130,7 @@ uses
   SynHighlighterWebIDL,
   SynHighlighterYAML,
   SynHighlighterLLVM,
+  SynUniHighlighter,
   SynURIOpener,
   Classes;
 
@@ -195,7 +196,7 @@ begin
     // other
     TSynBaanSyn, TSynGalaxySyn, TSynProgressSyn, TSynMsgSyn, TSynLLVMIRSyn,
     TSynIdlSyn, TSynUnrealSyn, TSynCPMSyn, TSynTeXSyn, TSynYAMLSyn,
-    TSynHaskellSyn, TSynLDRSyn, TSynURISyn, TSynDOTSyn, TSynRCSyn
+    TSynHaskellSyn, TSynLDRSyn, TSynURISyn, TSynDOTSyn, TSynRCSyn, TSynUniSyn
   ]);
 end;
 
