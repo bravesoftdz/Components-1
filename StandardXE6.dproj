@@ -169,7 +169,6 @@
         <DCCReference Include="SynEdit_RXE6.dcp"/>
         <DCCReference Include="dac200.dcp"/>
         <DCCReference Include="odac200.dcp"/>
-        <DCCReference Include="SynWeb_DXE6.dcp"/>
         <DCCReference Include="HelpSystem\HelpSystem.pas"/>
         <DCCReference Include="HelpSystem\hh.pas"/>
         <DCCReference Include="HelpSystem\hh_funcs.pas"/>

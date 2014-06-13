@@ -45,8 +45,7 @@ requires
   xmlrtl,
   SynEdit_RXE6,
   dac200,
-  odac200,
-  SynWeb_DXE6;
+  odac200;
 
 contains
   HelpSystem in 'HelpSystem\HelpSystem.pas',
