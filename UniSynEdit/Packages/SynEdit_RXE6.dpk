@@ -144,6 +144,9 @@ contains
   SynUniClasses in '..\Source\SynUniClasses.pas',
   SynUniRules in '..\Source\SynUniRules.pas',
   SynUniParser in '..\source\SynUniParser.pas',
-  SynURIOpener in '..\Source\SynURIOpener.pas';
+  SynURIOpener in '..\Source\SynURIOpener.pas',
+  SynHighlighterWeb in '..\Source\SynHighlighterWeb.pas',
+  SynHighlighterWebData in '..\Source\SynHighlighterWebData.pas',
+  SynHighlighterWebMisc in '..\Source\SynHighlighterWebMisc.pas';
 
 end.

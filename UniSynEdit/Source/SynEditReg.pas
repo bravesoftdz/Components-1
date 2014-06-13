@@ -132,6 +132,13 @@ uses
   SynHighlighterLLVM,
   SynUniHighlighter,
   SynURIOpener,
+
+  // SynWeb components
+  SynHighlighterWeb,
+  SynHighlighterWebData,
+  SynHighlighterWebMisc,
+  SynTokenMatch,
+
   Classes;
 
 procedure Register;
@@ -197,6 +204,19 @@ begin
     TSynBaanSyn, TSynGalaxySyn, TSynProgressSyn, TSynMsgSyn, TSynLLVMIRSyn,
     TSynIdlSyn, TSynUnrealSyn, TSynCPMSyn, TSynTeXSyn, TSynYAMLSyn,
     TSynHaskellSyn, TSynLDRSyn, TSynURISyn, TSynDOTSyn, TSynRCSyn, TSynUniSyn
+  ]);
+  // SynWeb highlighters
+  RegisterComponents(SYNS_HighlightersPage, [
+    //classic
+    TSynWebEngine,
+    TSynWebHtmlSyn,
+    TSynWebWmlSyn,
+    TSynWebXmlSyn,
+    TSynWebCssSyn,
+    TSynWebEsSyn,
+    TSynWebPhpCliSyn,
+    TSynWebPhpPlainSyn,
+    TSynWebSmartySyn
   ]);
 end;
 

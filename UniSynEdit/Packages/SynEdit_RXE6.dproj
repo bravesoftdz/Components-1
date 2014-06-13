@@ -258,6 +258,9 @@
         <DCCReference Include="..\Source\SynUniRules.pas"/>
         <DCCReference Include="..\source\SynUniParser.pas"/>
         <DCCReference Include="..\Source\SynURIOpener.pas"/>
+        <DCCReference Include="..\Source\SynHighlighterWeb.pas"/>
+        <DCCReference Include="..\Source\SynHighlighterWebData.pas"/>
+        <DCCReference Include="..\Source\SynHighlighterWebMisc.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
