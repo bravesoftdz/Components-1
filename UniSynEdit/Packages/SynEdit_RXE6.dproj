@@ -253,7 +253,6 @@
         <DCCReference Include="..\Source\SynEditSearchHighlighter.pas"/>
         <DCCReference Include="..\Source\SynUnicode.pas"/>
         <DCCReference Include="..\Source\SynUniHighlighter.pas"/>
-        <DCCReference Include="..\..\SynWeb\Source\SynTokenMatch.pas"/>
         <DCCReference Include="..\Source\SynUniClasses.pas"/>
         <DCCReference Include="..\Source\SynUniRules.pas"/>
         <DCCReference Include="..\source\SynUniParser.pas"/>
@@ -261,6 +260,7 @@
         <DCCReference Include="..\Source\SynHighlighterWeb.pas"/>
         <DCCReference Include="..\Source\SynHighlighterWebData.pas"/>
         <DCCReference Include="..\Source\SynHighlighterWebMisc.pas"/>
+        <DCCReference Include="..\Source\SynTokenMatch.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

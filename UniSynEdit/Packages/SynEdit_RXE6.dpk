@@ -140,13 +140,13 @@ contains
   SynEditSearchHighlighter in '..\Source\SynEditSearchHighlighter.pas',
   SynUnicode in '..\Source\SynUnicode.pas',
   SynUniHighlighter in '..\Source\SynUniHighlighter.pas',
-  SynTokenMatch in '..\..\SynWeb\Source\SynTokenMatch.pas',
   SynUniClasses in '..\Source\SynUniClasses.pas',
   SynUniRules in '..\Source\SynUniRules.pas',
   SynUniParser in '..\source\SynUniParser.pas',
   SynURIOpener in '..\Source\SynURIOpener.pas',
   SynHighlighterWeb in '..\Source\SynHighlighterWeb.pas',
   SynHighlighterWebData in '..\Source\SynHighlighterWebData.pas',
-  SynHighlighterWebMisc in '..\Source\SynHighlighterWebMisc.pas';
+  SynHighlighterWebMisc in '..\Source\SynHighlighterWebMisc.pas',
+  SynTokenMatch in '..\Source\SynTokenMatch.pas';
 
 end.
