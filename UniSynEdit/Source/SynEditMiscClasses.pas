@@ -177,6 +177,7 @@ type
     FShowBookmarkPanel: Boolean;
     fShowLineModified: Boolean;
     fLineNormalColor: TColor;
+    FLeftOffset: Integer; // deprecated
     function GetWidth: Integer;
     procedure SetIntens(const Value: Boolean);
     procedure SetAutoSize(const Value: Boolean);
@@ -215,56 +216,39 @@ type
     function FormatLineNumber(Line: Integer): string;
     function RealGutterWidth(CharWidth: Integer): Integer;
   published
-    property ShowLineModified: Boolean read fShowLineModified
-      write SetShowLineModified;
-    property LineModifiedColor: TColor read fLineModifiedColor
-      write SetLineModifiedColor;
-    property LineNormalColor: TColor read fLineNormalColor
-      write SetLineNormalColor;
+    property ShowLineModified: Boolean read fShowLineModified write SetShowLineModified;
+    property LineModifiedColor: TColor read fLineModifiedColor write SetLineModifiedColor;
+    property LineNormalColor: TColor read fLineNormalColor write SetLineNormalColor;
     property Intens: Boolean read FIntens write SetIntens default True;
     property AutoSize: Boolean read fAutoSize write SetAutoSize default False;
-    property BorderStyle: TSynGutterBorderStyle read fBorderStyle
-      write SetBorderStyle default gbsNone;
+    property BorderStyle: TSynGutterBorderStyle read fBorderStyle write SetBorderStyle default gbsNone;
     property Color: TColor read fColor write SetColor default clBtnFace;
     property Cursor: TCursor read fCursor write fCursor default crDefault;
     property DigitCount: Integer read fDigitCount write SetDigitCount default 4;
     property Font: TFont read FFont write SetFont;
-    property LeadingZeros: Boolean read fLeadingZeros write SetLeadingZeros
-      default False;
-    property BookmarkPanelWidth: Integer read FBookmarkPanelWidth
-      write SetBookmarkPanelWidth default 20;
-    property BookmarkPanelColor: TColor read FBookmarkPanelColor
-      write SetBookmarkPanelColor;
-    property RightOffset: Integer read fRightOffset write SetRightOffset
-      default 5;
-    property RightOffsetColor: TColor read fRightOffsetColor
-      write SetRightOffsetColor;
-    property ShowLineNumbers: Boolean read fShowLineNumbers
-      write SetShowLineNumbers default False;
-    property ShowLineNumbersAfterLastLine: Boolean
-      read FShowLineNumbersAfterLastLine write SetShowLineNumbersAfterLastLine
-      default False;
-    property ShowBookmarks: Boolean read FShowBookmarks write SetShowBookmarks
-      default True;
-    property ShowBookmarkPanel: Boolean read FShowBookmarkPanel
-      write SetShowBookmarkPanel default True;
-    property UseFontStyle: Boolean read fUseFontStyle write SetUseFontStyle
-      default True;
+    property LeadingZeros: Boolean read fLeadingZeros write SetLeadingZeros default False;
+    property BookmarkPanelWidth: Integer read FBookmarkPanelWidth write SetBookmarkPanelWidth default 20;
+    property BookmarkPanelColor: TColor read FBookmarkPanelColor write SetBookmarkPanelColor;
+    property RightOffset: Integer read fRightOffset write SetRightOffset default 5;
+    // The following property is deprecated but stays here because some 3rd party components are using this property.
+    // For example devart's database components.
+    property LeftOffset: Integer read FLeftOffset write FLeftOffset default 0;
+    property RightOffsetColor: TColor read fRightOffsetColor write SetRightOffsetColor;
+    property ShowLineNumbers: Boolean read fShowLineNumbers write SetShowLineNumbers default False;
+    property ShowLineNumbersAfterLastLine: Boolean read FShowLineNumbersAfterLastLine
+      write SetShowLineNumbersAfterLastLine default False;
+    property ShowBookmarks: Boolean read FShowBookmarks write SetShowBookmarks default True;
+    property ShowBookmarkPanel: Boolean read FShowBookmarkPanel write SetShowBookmarkPanel default True;
+    property UseFontStyle: Boolean read fUseFontStyle write SetUseFontStyle default True;
     property Visible: Boolean read FVisible write SetVisible default True;
     property Width: Integer read GetWidth write SetWidth default 30;
-    property ZeroStart: Boolean read fZeroStart write SetZeroStart
-      default False;
-    property BorderColor: TColor read fBorderColor write SetBorderColor
-      default clWindow;
-    property LineNumberStart: Integer read fLineNumberStart
-      write SetLineNumberStart default 1;
+    property ZeroStart: Boolean read fZeroStart write SetZeroStart default False;
+    property BorderColor: TColor read fBorderColor write SetBorderColor default clWindow;
+    property LineNumberStart: Integer read fLineNumberStart write SetLineNumberStart default 1;
     property Gradient: Boolean read fGradient write SetGradient default False;
-    property GradientStartColor: TColor read fGradientStartColor
-      write SetGradientStartColor default clWindow;
-    property GradientEndColor: TColor read fGradientEndColor
-      write SetGradientEndColor default clBtnFace;
-    property GradientSteps: Integer read fGradientSteps write SetGradientSteps
-      default 48;
+    property GradientStartColor: TColor read fGradientStartColor write SetGradientStartColor default clWindow;
+    property GradientEndColor: TColor read fGradientEndColor write SetGradientEndColor default clBtnFace;
+    property GradientSteps: Integer read fGradientSteps write SetGradientSteps default 48;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
   end;
 
@@ -308,26 +292,18 @@ type
     procedure Assign(Source: TPersistent); override;
   published // ###mod formeditor
     property CaseSensitive: Boolean read fCaseSensitive write SetCaseSensitive;
-    property CollapsedCodeHint: Boolean read fCollapsedCodeHint
-      write SetCollapsedCodeHint default True;
-    property CollapsedLineColor: TColor read fCollapsedLineColor
-      write SetCollapsedLineColor default clDefault;
-    property CollapsingMarkStyle: TSynCollapsingMarkStyle
-      read fCollapsingMarkStyle write SetCollapsingMarkStyle default msSquare;
+    property CollapsedCodeHint: Boolean read fCollapsedCodeHint write SetCollapsedCodeHint default True;
+    property CollapsedLineColor: TColor read fCollapsedLineColor write SetCollapsedLineColor default clDefault;
+    property CollapsingMarkStyle: TSynCollapsingMarkStyle read fCollapsingMarkStyle write SetCollapsingMarkStyle
+      default msSquare;
     property Enabled: Boolean read fEnabled write SetEnabled default False;
     property FoldRegions: TFoldRegions read fFoldRegions;
-    property FolderBarColor: TColor read fFolderBarColor write SetFolderBarColor
-      default clDefault;
-    property FolderBarLinesColor: TColor read fFolderBarLinesColor
-      write SetFolderBarLinesColor default clDefault;
-    property HighlighterFoldRegions: Boolean read fHighlighterFoldRegions
-      write SetHighlighterFoldRegions default True;
-    property HighlightIndentGuides: Boolean read fHighlightIndentGuides
-      write SetHighlightIndentGuides default True;
-    property IndentGuides: Boolean read fIndentGuides write SetIndentGuides
-      default True;
-    property ShowCollapsedLine: Boolean read fShowCollapsedLine
-      write SetShowCollapsedLine default True;
+    property FolderBarColor: TColor read fFolderBarColor write SetFolderBarColor default clDefault;
+    property FolderBarLinesColor: TColor read fFolderBarLinesColor write SetFolderBarLinesColor default clDefault;
+    property HighlighterFoldRegions: Boolean read fHighlighterFoldRegions write SetHighlighterFoldRegions default True;
+    property HighlightIndentGuides: Boolean read fHighlightIndentGuides write SetHighlightIndentGuides default True;
+    property IndentGuides: Boolean read fIndentGuides write SetIndentGuides default True;
+    property ShowCollapsedLine: Boolean read fShowCollapsedLine write SetShowCollapsedLine default True;
     property OnChange: TCodeFoldingChangeEvent read fOnChange write fOnChange;
   end;
   // ### End Code Folding ###
@@ -351,14 +327,10 @@ type
     constructor Create(AOwner: TComponent);
     procedure Assign(Source: TPersistent); override;
   published
-    property BookmarkImages: TImageList read fBookmarkImages
-      write SetBookmarkImages;
-    property DrawBookmarksFirst: Boolean read fDrawBookmarksFirst
-      write SetDrawBookmarksFirst default True;
-    property EnableKeys: Boolean read fEnableKeys write fEnableKeys
-      default True;
-    property GlyphsVisible: Boolean read fGlyphsVisible write SetGlyphsVisible
-      default True;
+    property BookmarkImages: TImageList read fBookmarkImages write SetBookmarkImages;
+    property DrawBookmarksFirst: Boolean read fDrawBookmarksFirst write SetDrawBookmarksFirst default True;
+    property EnableKeys: Boolean read fEnableKeys write fEnableKeys default True;
+    property GlyphsVisible: Boolean read fGlyphsVisible write SetGlyphsVisible default True;
     property LeftMargin: Integer read fLeftMargin write SetLeftMargin default 2;
     property Xoffset: Integer read fXoffset write SetXOffset default 12;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
@@ -377,8 +349,7 @@ type
     function GetWidth: Integer;
     function GetHeight: Integer;
   public
-    constructor Create(aModule: THandle; const aName: string;
-      aMaskColor: TColor);
+    constructor Create(aModule: THandle; const aName: string; aMaskColor: TColor);
     destructor Destroy; override;
     procedure Assign(aSource: TPersistent); override;
     procedure Draw(aCanvas: TCanvas; aX, aY, aLineHeight: Integer);
@@ -386,8 +357,7 @@ type
     property Height: Integer read GetHeight;
   published
     property Glyph: TBitmap read fGlyph write SetGlyph;
-    property MaskColor: TColor read fMaskColor write SetMaskColor
-      default clNone;
+    property MaskColor: TColor read fMaskColor write SetMaskColor default clNone;
     property Visible: Boolean read FVisible write SetVisible default True;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
   end;
@@ -395,8 +365,7 @@ type
   { TSynMethodChain }
 
   ESynMethodChain = class(Exception);
-  TSynExceptionEvent = procedure(Sender: TObject; E: Exception;
-    var DoContinue: Boolean) of object;
+  TSynExceptionEvent = procedure(Sender: TObject; E: Exception; var DoContinue: Boolean) of object;
 
   TSynMethodChain = class(TObject)
   private
@@ -405,8 +374,7 @@ type
   protected
     procedure DoFire(const AEvent: TMethod); virtual; abstract;
     function DoHandleException(E: Exception): Boolean; virtual;
-    property ExceptionHandler: TSynExceptionEvent read FExceptionHandler
-      write FExceptionHandler;
+    property ExceptionHandler: TSynExceptionEvent read FExceptionHandler write FExceptionHandler;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -439,15 +407,13 @@ type
     fHeight: Integer;
     fCount: Integer;
 
-    function CreateBitmapFromInternalList(aModule: THandle;
-      const Name: string): TBitmap;
+    function CreateBitmapFromInternalList(aModule: THandle; const Name: string): TBitmap;
     procedure FreeBitmapFromInternalList;
   public
     constructor Create(aModule: THandle; const Name: string; Count: Integer);
     destructor Destroy; override;
     procedure Draw(aCanvas: TCanvas; Number, X, Y, LineHeight: Integer);
-    procedure DrawTransparent(aCanvas: TCanvas;
-      Number, X, Y, LineHeight: Integer; TransparentColor: TColor);
+    procedure DrawTransparent(aCanvas: TCanvas; Number, X, Y, LineHeight: Integer; TransparentColor: TColor);
   end;
 
   { TSynHotKey }
@@ -467,8 +433,7 @@ type
 {$ENDIF}
   THKModifier = (hkShift, hkCtrl, hkAlt);
   THKModifiers = set of THKModifier;
-  THKInvalidKey = (hcNone, hcShift, hcCtrl, hcAlt, hcShiftCtrl, hcShiftAlt,
-    hcCtrlAlt, hcShiftCtrlAlt);
+  THKInvalidKey = (hcNone, hcShift, hcCtrl, hcAlt, hcShiftCtrl, hcShiftAlt, hcCtrlAlt, hcShiftCtrlAlt);
   THKInvalidKeys = set of THKInvalidKey;
 
   TSynHotKey = class(TCustomControl)
@@ -497,8 +462,7 @@ type
     procedure DoExit; override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
-    procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
-      X, Y: Integer); override;
+    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure Paint; override;
 {$IFDEF SYN_CLX}
     function WidgetFlags: Integer; override;
@@ -506,14 +470,10 @@ type
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property BorderStyle: TSynBorderStyle read fBorderStyle write SetBorderStyle
-      default bsSingle;
-    property HotKey: TShortCut read FHotKey write SetHotKey
-      default $0041; { Alt+A }
-    property InvalidKeys: THKInvalidKeys read FInvalidKeys write SetInvalidKeys
-      default [hcNone, hcShift];
-    property Modifiers: THKModifiers read FModifiers write SetModifiers
-      default [hkAlt];
+    property BorderStyle: TSynBorderStyle read fBorderStyle write SetBorderStyle default bsSingle;
+    property HotKey: TShortCut read FHotKey write SetHotKey default $0041; { Alt+A }
+    property InvalidKeys: THKInvalidKeys read FInvalidKeys write SetInvalidKeys default [hcNone, hcShift];
+    property Modifiers: THKModifiers read FModifiers write SetModifiers default [hkAlt];
   end;
 
   TSynEditSearchCustom = class(TComponent)
@@ -527,12 +487,12 @@ type
     function GetResultCount: Integer; virtual; abstract;
     procedure SetOptions(const Value: TSynSearchOptions); virtual; abstract;
   public
-    function FindAll(const NewText: UnicodeString): Integer; virtual; abstract;
-    function Replace(const aOccurrence, aReplacement: UnicodeString): UnicodeString; virtual; abstract;
+    function FindAll(const NewText: unicodestring): Integer; virtual; abstract;
+    function Replace(const aOccurrence, aReplacement: unicodestring): unicodestring; virtual; abstract;
     property ResultCount: Integer read GetResultCount;
     property Results[aIndex: Integer]: Integer read GetResult;
     property Lengths[aIndex: Integer]: Integer read GetLength;
-    property Pattern: UnicodeString read GetPattern write SetPattern;
+    property Pattern: unicodestring read GetPattern write SetPattern;
     property Options: TSynSearchOptions write SetOptions;
   end;
 
@@ -551,7 +511,7 @@ type
     procedure Assign(Source: TPersistent); override;
   published
     property Visible: Boolean read FVisible write SetVisible;
-    property Color: TColor Read fColor write SetColor;
+    property Color: TColor read fColor write SetColor;
     property Style: TPenStyle read FStyle write SetStyle;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
   end;
@@ -601,7 +561,7 @@ type
     property MouseMove: Boolean read FMouseMove write SetMouseMove;
     property Visible: Boolean read FVisible write SetVisible;
     property Position: Integer read FPosition write SetPosition;
-    property Color: TColor Read fColor write SetColor;
+    property Color: TColor read fColor write SetColor;
     property Style: TPenStyle read FStyle write SetStyle;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
   end;
@@ -633,10 +593,8 @@ type
   end;
 
   TSynScrollBars = class;
-  TGetScrollInfoEvent = function(var ScrollInfo: TScrollInfo)
-    : Boolean of object;
-  TSetScrollInfoEvent = function(const ScrollInfo: TScrollInfo; Redraw: Boolean)
-    : Integer of object;
+  TGetScrollInfoEvent = function(var ScrollInfo: TScrollInfo): Boolean of object;
+  TSetScrollInfoEvent = function(const ScrollInfo: TScrollInfo; Redraw: Boolean): Integer of object;
   TShowScrollBarEvent = function(const sbShow: Boolean): Boolean of object;
   TEnabledScrollBarEvent = function(const sbArrows: Integer): Boolean of object;
 
@@ -651,19 +609,14 @@ type
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     function DoGetScrollInfo(var ScrollInfo: TScrollInfo): Boolean;
-    function DoSetScrollInfo(const ScrollInfo: TScrollInfo;
-      Redraw: Boolean): Integer;
+    function DoSetScrollInfo(const ScrollInfo: TScrollInfo; Redraw: Boolean): Integer;
     function DoShowScrollBar(const sbShow: Boolean): Boolean;
     function DoEnabledScrollBar(const sbArrows: Integer): Boolean;
   published
-    property OnGetScrollInfo: TGetScrollInfoEvent read FOnGetScrollInfo
-      write FOnGetScrollInfo;
-    property OnSetScrollInfo: TSetScrollInfoEvent read FOnSetScrollInfo
-      write FOnSetScrollInfo;
-    property OnShowScrollBar: TShowScrollBarEvent read FOnShowScrollBar
-      write FOnShowScrollBar;
-    property OnEnabledScrollBar: TEnabledScrollBarEvent read FOnEnabledScrollBar
-      write FOnEnabledScrollBar;
+    property OnGetScrollInfo: TGetScrollInfoEvent read FOnGetScrollInfo write FOnGetScrollInfo;
+    property OnSetScrollInfo: TSetScrollInfoEvent read FOnSetScrollInfo write FOnSetScrollInfo;
+    property OnShowScrollBar: TShowScrollBarEvent read FOnShowScrollBar write FOnShowScrollBar;
+    property OnEnabledScrollBar: TEnabledScrollBarEvent read FOnEnabledScrollBar write FOnEnabledScrollBar;
   end;
 
   TScrollBarsStyle = (sbsRegular, sbsEncarta, sbsFlat, sbsCustom);
@@ -687,16 +640,12 @@ type
     procedure AfterConstruction; override;
     procedure Assign(Source: TPersistent); override;
   published
-    property ScrollBars: System.UITypes.TScrollStyle read FScrollBars
-      write SetScrollBars default ssBoth;
-    property Style: TScrollBarsStyle read FStyle write SetStyle
-      default sbsRegular;
+    property ScrollBars: System.UITypes.TScrollStyle read FScrollBars write SetScrollBars default ssBoth;
+    property Style: TScrollBarsStyle read FStyle write SetStyle default sbsRegular;
     property Horizontal: TSynEditScrollBar read FHorizontal write SetHorizontal;
     property Vertical: TSynEditScrollBar read FVertical write SetVertical;
-    property HintColor: TColor read fHintColor write fHintColor
-      default clInfoBk;
-    property HintFormat: TScrollHintFormat read fHintFormat write fHintFormat
-      default shfTopLineOnly;
+    property HintColor: TColor read fHintColor write fHintColor default clInfoBk;
+    property HintFormat: TScrollHintFormat read fHintFormat write fHintFormat default shfTopLineOnly;
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
   end;
 
@@ -720,8 +669,7 @@ type
     property OnChange: TNotifyEvent read fOnChange write fOnChange;
   published
     property Visible: Boolean read FVisible write SetVisible;
-    property RepeatMode: TSynBackgroundRepeatMode read FRepeatMode
-      write SetRepeatMode;
+    property RepeatMode: TSynBackgroundRepeatMode read FRepeatMode write SetRepeatMode;
     property Background: TBitmap read FBackground write SetBackground;
   end;
 
@@ -1371,15 +1319,14 @@ end;
 
 { TSynGlyph }
 
-constructor TSynGlyph.Create(aModule: THandle; const aName: string;
-  aMaskColor: TColor);
+constructor TSynGlyph.Create(aModule: THandle; const aName: string; aMaskColor: TColor);
 begin
   inherited Create;
 
   if aName <> '' then
   begin
     fInternalGlyph := TBitmap.Create;
-    //fInternalGlyph.LoadFromResourceName(aModule, aName);
+    // fInternalGlyph.LoadFromResourceName(aModule, aName);
     fInternalGlyph.Handle := LoadBitmap(aModule, PWideChar(aName));
     fInternalMaskColor := aMaskColor;
   end
@@ -1409,7 +1356,7 @@ begin
   if Assigned(aSource) and (aSource is TSynGlyph) then
   begin
     vSrc := TSynGlyph(aSource);
-    If vSrc.fInternalGlyph <> nil then
+    if vSrc.fInternalGlyph <> nil then
       fInternalGlyph.Assign(vSrc.fInternalGlyph);
     fInternalMaskColor := vSrc.fInternalMaskColor;
     FVisible := vSrc.FVisible;
@@ -1513,8 +1460,7 @@ end;
 procedure TSynMethodChain.Add(AEvent: TMethod);
 begin
   if not Assigned(@AEvent) then
-    raise ESynMethodChain.CreateFmt
-      ('%s.Entry : the parameter `AEvent'' must be specified.', [ClassName]);
+    raise ESynMethodChain.CreateFmt('%s.Entry : the parameter `AEvent'' must be specified.', [ClassName]);
 
   with FNotifyProcs, AEvent do
   begin
@@ -1544,8 +1490,7 @@ begin
       Result := True;
       FExceptionHandler(Self, E, Result);
     except
-      raise ESynMethodChain.CreateFmt
-        ('%s.DoHandleException : MUST NOT occur any kind of exception in ' +
+      raise ESynMethodChain.CreateFmt('%s.DoHandleException : MUST NOT occur any kind of exception in ' +
         'ExceptionHandler', [ClassName]);
     end;
 end;
@@ -1579,8 +1524,7 @@ var
   i: Integer;
 begin
   if not Assigned(@AEvent) then
-    raise ESynMethodChain.CreateFmt
-      ('%s.Remove: the parameter `AEvent'' must be specified.', [ClassName]);
+    raise ESynMethodChain.CreateFmt('%s.Remove: the parameter `AEvent'' must be specified.', [ClassName]);
 
   with FNotifyProcs, AEvent do
   begin
@@ -1637,11 +1581,10 @@ type
 var
   InternalResources: TList;
 
-constructor TSynInternalImage.Create(aModule: THandle; const Name: string;
-  Count: Integer);
+constructor TSynInternalImage.Create(aModule: THandle; const Name: string; Count: Integer);
 begin
   inherited Create;
-  fImages := CreateBitmapFromInternalList(aModule, Name);
+  fImages := CreateBitmapFromInternalList(aModule, name);
   FWidth := (fImages.Width + Count shr 1) div Count;
   fHeight := fImages.Height;
   fCount := Count;
@@ -1655,8 +1598,7 @@ begin
   inherited Destroy;
 end;
 
-function TSynInternalImage.CreateBitmapFromInternalList(aModule: THandle;
-  const Name: string): TBitmap;
+function TSynInternalImage.CreateBitmapFromInternalList(aModule: THandle; const Name: string): TBitmap;
 var
   idx: Integer;
   newIntRes: TInternalResource;
@@ -1667,7 +1609,7 @@ begin
 
   { Search the list for the needed resource }
   for idx := 0 to InternalResources.Count - 1 do
-    if (TInternalResource(InternalResources[idx]).Name = UpperCase(Name)) then
+    if (TInternalResource(InternalResources[idx]).Name = UpperCase(name)) then
       with TInternalResource(InternalResources[idx]) do
       begin
         UsageCount := UsageCount + 1;
@@ -1677,12 +1619,12 @@ begin
 
   { There is no loaded resource in the list so let's create a new one }
   Result := TBitmap.Create;
-  //Result.LoadFromResourceName(aModule, Name);
-  Result.Handle := LoadBitmap(aModule, PWideChar(Name));
+  // Result.LoadFromResourceName(aModule, Name);
+  Result.Handle := LoadBitmap(aModule, PWideChar(name));
   { Add the new resource to our list }
   newIntRes := TInternalResource.Create;
   newIntRes.UsageCount := 1;
-  newIntRes.Name := UpperCase(Name);
+  newIntRes.Name := UpperCase(name);
   newIntRes.Bitmap := Result;
   InternalResources.Add(newIntRes);
 end;
@@ -1729,8 +1671,7 @@ begin
   end;
 end;
 
-procedure TSynInternalImage.Draw(aCanvas: TCanvas;
-  Number, X, Y, LineHeight: Integer);
+procedure TSynInternalImage.Draw(aCanvas: TCanvas; Number, X, Y, LineHeight: Integer);
 var
   rcSrc, rcDest: TRect;
 begin
@@ -1752,8 +1693,8 @@ begin
   end;
 end;
 
-procedure TSynInternalImage.DrawTransparent(aCanvas: TCanvas;
-  Number, X, Y, LineHeight: Integer; TransparentColor: TColor);
+procedure TSynInternalImage.DrawTransparent(aCanvas: TCanvas; Number, X, Y, LineHeight: Integer;
+  TransparentColor: TColor);
 var
   rcSrc, rcDest: TRect;
 begin
@@ -1784,9 +1725,8 @@ end;
 
 function KeySameAsShiftState(Key: Word; Shift: TShiftState): Boolean;
 begin
-  Result := (Key = SYNEDIT_SHIFT) and (ssShift in Shift) or
-    (Key = SYNEDIT_CONTROL) and (ssCtrl in Shift) or (Key = SYNEDIT_MENU) and
-    (ssAlt in Shift);
+  Result := (Key = SYNEDIT_SHIFT) and (ssShift in Shift) or (Key = SYNEDIT_CONTROL) and (ssCtrl in Shift) or
+    (Key = SYNEDIT_MENU) and (ssAlt in Shift);
 end;
 
 function ModifiersToShiftState(Modifiers: THKModifiers): TShiftState;
@@ -1987,8 +1927,7 @@ begin
   end;
 end;
 
-procedure TSynHotKey.MouseDown(Button: TMouseButton; Shift: TShiftState;
-  X, Y: Integer);
+procedure TSynHotKey.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   inherited;
   SetFocus;
@@ -2063,7 +2002,7 @@ end;
 
 procedure TSynHotKey.WMGetDlgCode(var Message: TMessage);
 begin
-  Message.Result := DLGC_WANTTAB or DLGC_WANTARROWS;
+  message.Result := DLGC_WANTTAB or DLGC_WANTARROWS;
 end;
 
 procedure TSynHotKey.WMKillFocus(var Msg: TWMKillFocus);
@@ -2108,7 +2047,7 @@ end;
 
 procedure TSynRightEdge.DoChange;
 begin
-  IF Assigned(fOnChange) then
+  if Assigned(fOnChange) then
     fOnChange(Self);
 end;
 
@@ -2187,7 +2126,7 @@ end;
 
 procedure TSynActiveLine.DoChange(Sender: TObject);
 begin
-  IF Assigned(fOnChange) then
+  if Assigned(fOnChange) then
     fOnChange(Sender);
 end;
 
@@ -2248,7 +2187,7 @@ end;
 
 procedure TSynLineDivider.DoChange;
 begin
-  IF Assigned(fOnChange) then
+  if Assigned(fOnChange) then
     fOnChange(Self);
 end;
 
@@ -2371,8 +2310,7 @@ begin
   if not Relative then
     Delete(S, 1, 1);
   TempKey := 0;
-  Result := RegOpenKeyEx(GetBaseKey(Relative), PChar(S), 0, KEY_READ, TempKey)
-    = ERROR_SUCCESS;
+  Result := RegOpenKeyEx(GetBaseKey(Relative), PChar(S), 0, KEY_READ, TempKey) = ERROR_SUCCESS;
   if Result then
   begin
     if (CurrentKey <> 0) and Relative then
@@ -2387,7 +2325,7 @@ end; { TBetterRegistry.OpenKeyReadOnly }
 
 procedure TSynEditScrollBar.Assign(Source: TPersistent);
 begin
-  IF Source is TSynEditScrollBar then
+  if Source is TSynEditScrollBar then
   begin
     with TSynEditScrollBar(Source) do
     begin
@@ -2403,11 +2341,11 @@ end;
 
 destructor TSynEditScrollBar.Destroy;
 begin
-  If FScrollBars <> nil then
+  if FScrollBars <> nil then
   begin
-    If FScrollBars.FHorizontal = Self then
+    if FScrollBars.FHorizontal = Self then
       FScrollBars.FHorizontal := nil;
-    If FScrollBars.FVertical = Self then
+    if FScrollBars.FVertical = Self then
       FScrollBars.FVertical := nil;
   end;
   inherited;
@@ -2420,16 +2358,14 @@ begin
     Result := FOnEnabledScrollBar(sbArrows)
 end;
 
-function TSynEditScrollBar.DoGetScrollInfo(var ScrollInfo: TScrollInfo)
-  : Boolean;
+function TSynEditScrollBar.DoGetScrollInfo(var ScrollInfo: TScrollInfo): Boolean;
 begin
   Result := False;
   if Assigned(FOnGetScrollInfo) then
     Result := FOnGetScrollInfo(ScrollInfo)
 end;
 
-function TSynEditScrollBar.DoSetScrollInfo(const ScrollInfo: TScrollInfo;
-  Redraw: Boolean): Integer;
+function TSynEditScrollBar.DoSetScrollInfo(const ScrollInfo: TScrollInfo; Redraw: Boolean): Integer;
 begin
   Result := 0;
   if Assigned(FOnSetScrollInfo) then
@@ -2452,8 +2388,7 @@ begin
     FHorizontal.FScrollBars := Self;
 end;
 
-procedure TSynScrollBars.SetScrollBars(const Value
-  : System.UITypes.TScrollStyle);
+procedure TSynScrollBars.SetScrollBars(const Value: System.UITypes.TScrollStyle);
 begin
   if FScrollBars <> Value then
   begin
@@ -2486,7 +2421,7 @@ end;
 
 procedure TSynScrollBars.Assign(Source: TPersistent);
 begin
-  IF Source is TSynScrollBars then
+  if Source is TSynScrollBars then
   begin
     with TSynScrollBars(Source) do
     begin
@@ -2620,8 +2555,7 @@ begin
     fOnChange(fcRefresh);
 end;
 
-procedure TSynCodeFolding.SetCollapsingMarkStyle(const Value
-  : TSynCollapsingMarkStyle);
+procedure TSynCodeFolding.SetCollapsingMarkStyle(const Value: TSynCollapsingMarkStyle);
 begin
   fCollapsingMarkStyle := Value;
 
@@ -2833,7 +2767,7 @@ end;
 
 procedure TSynEditBackground.Assign(Source: TPersistent);
 begin
-  IF Source is TSynEditBackground then
+  if Source is TSynEditBackground then
   begin
     with TSynScrollBars(Source) do
     begin
@@ -2859,8 +2793,7 @@ begin
     OnChange(Self);
 end;
 
-procedure TSynEditBackground.Draw(Canvas: TCanvas; AbsRect, DestRect: TRect;
-  Back: TColor);
+procedure TSynEditBackground.Draw(Canvas: TCanvas; AbsRect, DestRect: TRect; Back: TColor);
 var
   A: TBitmap;
   R1, R2, R3, R4, R5: TRect;
@@ -2977,7 +2910,7 @@ begin
               R5.Right := FBackground.Width;
             end;
             OffsetRect(R3, 0, (R2.Bottom - R2.Top));
-            If R3.Bottom > R1.Bottom then
+            if R3.Bottom > R1.Bottom then
               R3.Bottom := R1.Bottom;
             if R2.Bottom = FBackground.Height then
               R2.Top := 0
@@ -3002,8 +2935,7 @@ begin
   end;
 end;
 
-procedure TSynEditBackground.SetRepeatMode(const Value
-  : TSynBackgroundRepeatMode);
+procedure TSynEditBackground.SetRepeatMode(const Value: TSynBackgroundRepeatMode);
 begin
   if FRepeatMode <> Value then
   begin
