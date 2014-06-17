@@ -208,8 +208,7 @@ begin
     Reset;
 end;
 
-function TSynWordWrapPlugin.DisplayToBufferPos(
-  const aPos: TDisplayCoord): TBufferCoord;
+function TSynWordWrapPlugin.DisplayToBufferPos(const aPos: TDisplayCoord): TBufferCoord;
 var
   cLine: integer;
   cRow: integer;

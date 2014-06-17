@@ -1233,10 +1233,10 @@ end;
 
 function TCustomSynEdit.PixelsToNearestRowColumn(aX, aY: Integer): TDisplayCoord;
 // Result is in display coordinates
-var
-  f: Single;
+//var
+//  f: Single;
 begin
-  f := (aX - fGutter.Width - 2) / fCharWidth;
+  //f := (aX - fGutter.Width - 2) / fCharWidth;
   // don't return a partially visible last line
   if aY >= fLinesInWindow * LineHeight then
   begin
@@ -1244,7 +1244,8 @@ begin
     if aY < 0 then
       aY := 0;
   end;
-  Result.Column := Max(1, LeftChar + Round(f));
+  //Result.Column := Max(1, LeftChar + Round(f));
+  Result.Column := Max(1, LeftChar + ((aX - fGutter.Width - 2) div fCharWidth));
   Result.Row := Max(1, TopLine + (aY div LineHeight));
 end;
 
@@ -1281,7 +1282,10 @@ begin
     fScrollTimer.Enabled := False;
     Exit;
   end;
-  iScrollBounds := Bounds(0, 0, fCharsInWindow * fCharWidth, fLinesInWindow * LineHeight);
+  iScrollBounds := Bounds(0, 0, fCharsInWindow * fCharWidth + FGutter.Width + 4, fLinesInWindow * LineHeight);
+
+  if FGutter.Visible then
+    iScrollBounds.Left := FGutter.Width;
 
   DeflateMinimapRect(iScrollBounds);
 
@@ -2666,7 +2670,7 @@ begin
       Cursor := crHSplit
     else
       Cursor := crIBeam;
-    If fRightEdgeMoving then
+    if fRightEdgeMoving then
     begin
       if X <> fMoveRightEdgePosition then
         DrawRightEdgeMove(X, fMoveRightEdgePosition);
@@ -13412,8 +13416,7 @@ begin //
       Result := fWordWrapPlugin.BufferToDisplayPos(TBufferCoord(Result));
   end;
 
-  function TCustomSynEdit.DisplayToBufferPos(const p: TDisplayCoord)
-    : TBufferCoord;
+  function TCustomSynEdit.DisplayToBufferPos(const p: TDisplayCoord): TBufferCoord;
   // DisplayToBufferPos takes a position on screen and transfrom it
   // into position of text
   var
@@ -13427,6 +13430,7 @@ begin //
       Result := fWordWrapPlugin.DisplayToBufferPos(p)
     else
       Result := TBufferCoord(p);
+
     if Result.Line <= Lines.Count then
     begin
       S := Lines[Result.Line - 1];
@@ -13439,10 +13443,10 @@ begin //
         Inc(I);
         if (I <= l) and (S[I] = TSynTabChar) then
           Inc(X, TabWidth - (X mod TabWidth))
-        else if I <= l then
+        else
+        if I <= l then
         begin
-          CountOfAvgGlyphs := CeilOfIntDiv(fTextDrawer.TextWidth(S[I]),
-            fCharWidth);
+          CountOfAvgGlyphs := CeilOfIntDiv(fTextDrawer.TextWidth(S[I]), fCharWidth);
           Inc(X, CountOfAvgGlyphs);
         end
         else
