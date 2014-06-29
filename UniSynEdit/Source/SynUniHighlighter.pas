@@ -78,13 +78,13 @@ type
     { End Of Line indentifier }
     fEol: boolean;
     fPrEol: boolean;
-    fLine: PWideChar;
-    fLineNumber: Integer;
-    Run: LongInt;
-    fTokenPos: Integer;
+    //fLine: PWideChar;
+    //fLineNumber: Integer;
+   // Run: LongInt;
+    //fTokenPos: Integer;
     fCurrToken: TSynSymbol;
     fCurrentRule: TSynRange;
-    SymbolList: array [char] of TAbstractSymbol;
+    SymbolList: array [WideChar] of TAbstractSymbol;
     fPrepared: boolean;
 
     { List of color shemes defined in highlighting scheme }
@@ -127,7 +127,7 @@ type
     { Reset current range to MainRules }
     procedure ResetRange; override;
     { Set current line in SynEdit for highlighting }
-    procedure SetLine(const NewValue: string; LineNumber: Integer); override;
+    procedure DoSetLine(const Value: UnicodeString; LineNumber: Integer); override;
     procedure SetRange(Value: Pointer); override;
     { Reset of SynUniSyn is Reset of SynUniSyn.MainRules }
     procedure Reset;
@@ -236,7 +236,7 @@ begin
   inherited;
 end;
 
-procedure TSynUniSyn.SetLine(const NewValue: string; LineNumber: Integer);
+procedure TSynUniSyn.DoSetLine(const Value: UnicodeString; LineNumber: Integer);
 
   function HaveNodeAnyStart(Node: TSymbolNode): boolean;
   var
@@ -270,7 +270,7 @@ begin
     (* {{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{
       !!!!!!! Это я писал и это зачем-то нужно !!!!!!!!!!!!!!!!!!!!!!!! *)
     for i := 0 to 255 do
-      if (SymbolList[char(i)] <> nil) { temp } and (TSymbols(SymbolList[WideChar(i)]).HeadNode <> nil) { /temp } then
+      if (SymbolList[WideChar(i)] <> nil) { temp } and (TSymbols(SymbolList[WideChar(i)]).HeadNode <> nil) { /temp } then
         fCurrentRule.HasNodeAnyStart[WideChar(i)] :=
           HaveNodeAnyStart(TSymbols(SymbolList[fCurrentRule.CaseFunct(WideChar(i))]).HeadNode);
     (* }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} *)
@@ -283,14 +283,16 @@ begin
     for i := 0 to l do
     fLine[i] := fCurrentRule.CaseFunct(fTrueLine[i]);
   }
-  fLine := PWideChar(NewValue); // : Current string of SynEdit
+  //fLine := PWideChar(Value); // : Current string of SynEdit
+
   { end } // Vitalik 2004
-  Run := 0; // : Set Position of "parser" at the first char of string
+  //Run := 0; // : Set Position of "parser" at the first char of string
   fTokenPos := 0; // : Set Position of current token at the first char of string
-  fLineNumber := LineNumber; // : Number of current line in SynEdit
+  //fLineNumber := LineNumber; // : Number of current line in SynEdit
   fEol := False; // : ???
   fPrEol := False; // : ???
-  Next; // : Find first token in the line
+  //Next; // : Find first token in the line
+  inherited;
 end;
 
 procedure TSynUniSyn.Next;

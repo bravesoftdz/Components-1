@@ -47,7 +47,6 @@ uses
 
 type
   { Set of symbols }
-  { Set of symbols }
   TSymbSet = set of AnsiChar;
 
   { Class with information about highlighting scheme }

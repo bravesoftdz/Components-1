@@ -4384,8 +4384,7 @@ var
             FHighlighter.ResetRange
           else
             FHighlighter.SetRange(TSynEditStringList(Lines).Ranges[nLine - 2]);
-          FHighlighter.SetLineExpandedAtWideGlyphs(sLine,
-            sLineExpandedAtWideGlyphs, nLine - 1);
+          FHighlighter.SetLineExpandedAtWideGlyphs(sLine, sLineExpandedAtWideGlyphs, nLine - 1);
           // Try to concatenate as many tokens as possible to minimize the count
           // of ExtTextOutW calls necessary. This depends on the selection state
           // or the line having special colors. For spaces the foreground color
