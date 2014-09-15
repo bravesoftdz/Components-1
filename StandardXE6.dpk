@@ -9,7 +9,7 @@ package StandardXE6;
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
-{$LOCALSYMBOLS OFF}
+{$LOCALSYMBOLS ON}
 {$LONGSTRINGS ON}
 {$OPENSTRINGS ON}
 {$OPTIMIZATION ON}
@@ -23,7 +23,7 @@ package StandardXE6;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DEFINE RELEASE}
+{$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
 {$IMPLICITBUILD ON}
 
@@ -45,7 +45,8 @@ requires
   xmlrtl,
   SynEdit_RXE6,
   dac200,
-  odac200;
+  odac200,
+  EhLib200;
 
 contains
   HelpSystem in 'HelpSystem\HelpSystem.pas',
@@ -71,12 +72,13 @@ contains
   BCControls.ProgressBar in 'Controls\BCControls.ProgressBar.pas',
   BCControls.StyleHooks in 'Controls\BCControls.StyleHooks.pas',
   BCControls.ColorComboBox in 'Controls\BCControls.ColorComboBox.pas',
-  BCControls.DBGrid in 'Controls\BCControls.DBGrid.pas',
   BCControls.OraSynEdit in 'Controls\BCControls.OraSynEdit.pas',
   BCControls.ButtonedEdit in 'Controls\BCControls.ButtonedEdit.pas',
   BCControls.GroupBox in 'Controls\BCControls.GroupBox.pas',
   BCControls.LayoutController in 'Controls\BCControls.LayoutController.pas',
   BCControls.LayoutPanel in 'Controls\BCControls.LayoutPanel.pas',
-  BCControls.RadioButton in 'Controls\BCControls.RadioButton.pas';
+  BCControls.RadioButton in 'Controls\BCControls.RadioButton.pas',
+  BCControls.Ribbon in 'Controls\BCControls.Ribbon.pas',
+  BCControls.DBGrid in 'Controls\BCControls.DBGrid.pas';
 
 end.

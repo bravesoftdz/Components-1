@@ -134,7 +134,7 @@ begin
     begin
       if UpperCase(Copy(FSaveDialog.FileName, Length(FSaveDialog.FileName) - 2, 3)) <> UpperCase(Ext) then
         FSaveDialog.FileName := FSaveDialog.FileName + '.' + Ext;
-      SaveDBGridEhToExportFile(ExpClass, Self, FSaveDialog.FileName, False);
+      SaveDBGridEhToExportFile(ExpClass, Self, FSaveDialog.FileName, True);
     end;
   end;
 end;
