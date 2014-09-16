@@ -11,9 +11,12 @@ type
     { Private declarations }
     FPopupMenu: TPopupMenu;
     FSaveDialog: TSaveDialog;
+    procedure FreePopupItems;
     procedure OnClickSelectAll(Sender: TObject);
     procedure OnClickUnselectAll(Sender: TObject);
     procedure OnClickSaveAs(Sender: TObject);
+  protected
+    procedure LayoutChanged; override;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -33,12 +36,44 @@ begin
 end;
 
 constructor TBCDBGrid.Create(AOwner: TComponent);
-var
-  MenuItem: TMenuItem;
 begin
   inherited Create(AOwner);
 
   FPopupMenu := TPopupMenu.Create(Self);
+
+  IndicatorTitle.ShowDropDownSign := True;
+  IndicatorTitle.TitleButton := True;
+  IndicatorTitle.UseGlobalMenu := False;
+  IndicatorTitle.DropdownMenu := FPopupMenu;
+
+  FSaveDialog := TSaveDialog.Create(Self);
+  FSaveDialog.FileName := 'data';
+  FSaveDialog.Filter :=
+      'Text files (*.txt)|*.TXT|Comma separated values (*.csv)|*.CSV|HTML file (*.htm)|*.HTM|Rich Text Format (*.rtf)' +
+      '|*.RTF|Microsoft Excel Workbook (*.xls)|*.XLS';
+end;
+
+destructor TBCDBGrid.Destroy;
+begin
+  FreePopupItems;
+  FPopupMenu.Free;
+  FSaveDialog.Free;
+  inherited;
+end;
+
+procedure TBCDBGrid.FreePopupItems;
+begin
+  while FPopupMenu.Items.Count > 0 do
+    FPopupMenu.Items[0].Free;
+end;
+
+procedure TBCDBGrid.LayoutChanged;
+var
+  MenuItem: TMenuItem;
+begin
+  inherited;
+  FreePopupItems;
+
   if gioShowRowselCheckboxesEh in IndicatorOptions then
   begin
     { Select all }
@@ -61,26 +96,6 @@ begin
   MenuItem.Caption := 'Save as...';
   MenuItem.OnClick := OnClickSaveAs;
   FPopupMenu.Items.Add(MenuItem);
-
-  IndicatorTitle.ShowDropDownSign := True;
-  IndicatorTitle.TitleButton := True;
-  IndicatorTitle.UseGlobalMenu := False;
-  IndicatorTitle.DropdownMenu := FPopupMenu;
-
-  FSaveDialog := TSaveDialog.Create(Self);
-  FSaveDialog.FileName := 'data';
-  FSaveDialog.Filter :=
-      'Text files (*.txt)|*.TXT|Comma separated values (*.csv)|*.CSV|HTML file (*.htm)|*.HTM|Rich Text Format (*.rtf)' +
-      '|*.RTF|Microsoft Excel Workbook (*.xls)|*.XLS';
-end;
-
-destructor TBCDBGrid.Destroy;
-begin
-  while FPopupMenu.Items.Count > 0 do
-    FPopupMenu.Items[0].Free;
-  FPopupMenu.Free;
-  FSaveDialog.Free;
-  inherited;
 end;
 
 procedure TBCDBGrid.OnClickSelectAll(Sender: TObject);
