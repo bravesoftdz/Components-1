@@ -5,7 +5,7 @@
   * <a href="http://code.google.com/p/bonecode-bceditor/">bonecode-bceditor</a> (Upcoming)
   * <a href="http://www.devart.com/odac/">Oracle Data Access Components</a> (commercial)
   * <a href="http://www.ehlib.com">EhLib</a> (commercial)
-  * <a href="https://code.google.com/p/virtual-treeview/">Virtual Treeview</a>
+  * <a href="https://github.com/Virtual-TreeView/">Virtual Treeview</a>
 
 <h3>Component packages</h3>
 
