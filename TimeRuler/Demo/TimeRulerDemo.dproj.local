@@ -1,8 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<BorlandProject>
-	<Transactions>
-    <Transaction>1899.12.30 00:00:00.000.768,D:\Bonecode\ETDPlayer\components\TimeRuler\Demo\UTimeRuler.pas=D:\Bonecode\ETDPlayer\components\TimeRuler\Demo\Main.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.768,D:\Bonecode\ETDPlayer\components\TimeRuler\Demo\UTimeRuler.dfm=D:\Bonecode\ETDPlayer\components\TimeRuler\Demo\Main.dfm</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.118,D:\Bonecode\ETDPlayer\components\TimeRuler\Demo\PTimeRuler.dproj=D:\Bonecode\ETDPlayer\components\TimeRuler\Demo\TimeRulerDemo.dproj</Transaction>
-  </Transactions>
-</BorlandProject>
