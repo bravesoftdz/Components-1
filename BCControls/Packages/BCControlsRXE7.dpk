@@ -1,0 +1,67 @@
+package BCControlsRXE7;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl,
+  vclx,
+  vclimg,
+  acntDelphiXE7_R,
+  xmlrtl,
+  vclactnband,
+  VirtualTreesR,
+  BCComponentsRXE7;
+
+contains
+  BCControls.GroupLabel in '..\Source\BCControls.GroupLabel.pas',
+  BCControls.ComboBox in '..\Source\BCControls.ComboBox.pas',
+  BCControls.CheckBox in '..\Source\BCControls.CheckBox.pas',
+  BCControls.RadioButton in '..\Source\BCControls.RadioButton.pas',
+  BCControls.ToolBar in '..\Source\BCControls.ToolBar.pas',
+  BCControls.Panel in '..\Source\BCControls.Panel.pas',
+  BCControls.StatusBar in '..\Source\BCControls.StatusBar.pas',
+  BCControls.Button in '..\Source\BCControls.Button.pas',
+  BCControls.SpeedButton in '..\Source\BCControls.SpeedButton.pas',
+  BCControls.Splitter in '..\Source\BCControls.Splitter.pas',
+  BCControls.Labels in '..\Source\BCControls.Labels.pas',
+  BCControls.PageControl in '..\Source\BCControls.PageControl.pas',
+  BCControls.FileControl in '..\Source\BCControls.FileControl.pas',
+  BCControls.Edit in '..\Source\BCControls.Edit.pas',
+  BCControls.ImageList in '..\Source\BCControls.ImageList.pas',
+  BCControls.Language in '..\Source\BCControls.Language.pas',
+  BCControls.Utils in '..\Source\BCControls.Utils.pas',
+  BCControls.ButtonedEdit in '..\Source\BCControls.ButtonedEdit.pas',
+  BCControls.ProgressBar in '..\Source\BCControls.ProgressBar.pas',
+  BCControls.ColorComboBox in '..\Source\BCControls.ColorComboBox.pas',
+  BCControls.GroupBox in '..\Source\BCControls.GroupBox.pas',
+  BCControls.ScrollBox in '..\Source\BCControls.ScrollBox.pas',
+  BCControls.DateEdit in '..\Source\BCControls.DateEdit.pas';
+
+end.

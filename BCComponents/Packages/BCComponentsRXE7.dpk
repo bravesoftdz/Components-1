@@ -1,0 +1,43 @@
+package BCComponentsRXE7;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  acntDelphiXE7_R;
+
+contains
+  BCComponents.MultiStringHolder in '..\Source\BCComponents.MultiStringHolder.pas',
+  BCComponents.SkinManager in '..\Source\BCComponents.SkinManager.pas',
+  BCComponents.TitleBar in '..\Source\BCComponents.TitleBar.pas',
+  BCComponents.SkinProvider in '..\Source\BCComponents.SkinProvider.pas',
+  BCComponents.DragDrop in '..\Source\BCComponents.DragDrop.pas',
+  BCComponents.WndProcHook in '..\Source\BCComponents.WndProcHook.pas';
+
+end.
