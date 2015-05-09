@@ -26,6 +26,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     function IsEmpty: Boolean;
+    property ValueInt: Integer read GetValueInt write SetValueInt;
   published
     property EnterToTab: Boolean read FEnterToTab write FEnterToTab;
     property OnlyNumbers: Boolean read FOnlyNum write FOnlyNum;
@@ -35,7 +36,6 @@ type
     property NumbersAllowNegative: Boolean read FNegativeNumbers write FNegativeNumbers;
     property OnValidate: TValidateEvent read FOnValidate write FOnValidate;
     property Editable: Boolean write SetEditable;
-    property ValueInt: Integer read GetValueInt write SetValueInt;
   end;
 
 implementation
@@ -86,15 +86,15 @@ end;
 
 procedure TBCEdit.DoExit;
 var
-  szText: string;
+  LText: string;
 begin
   if FOnlyNum then
     if FNegativeNumbers then
     begin
-      szText := Text;
+      LText := Text;
       if Pos('-', Text) > 1 then
-        Delete(szText, Pos('-', szText), 1);
-      Text := szText;
+        Delete(LText, Pos('-', LText), 1);
+      Text := LText;
     end;
   inherited;
 end;
