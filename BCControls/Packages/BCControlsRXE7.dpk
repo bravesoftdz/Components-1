@@ -62,6 +62,8 @@ contains
   BCControls.ColorComboBox in '..\Source\BCControls.ColorComboBox.pas',
   BCControls.GroupBox in '..\Source\BCControls.GroupBox.pas',
   BCControls.ScrollBox in '..\Source\BCControls.ScrollBox.pas',
-  BCControls.DateEdit in '..\Source\BCControls.DateEdit.pas';
+  BCControls.DateEdit in '..\Source\BCControls.DateEdit.pas',
+  BCControls.ProgressPanel in '..\Source\BCControls.ProgressPanel.pas',
+  BCControls.StringGrid in '..\Source\BCControls.StringGrid.pas';
 
 end.

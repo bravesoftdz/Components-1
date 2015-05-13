@@ -148,6 +148,8 @@
         <DCCReference Include="..\Source\BCControls.GroupBox.pas"/>
         <DCCReference Include="..\Source\BCControls.ScrollBox.pas"/>
         <DCCReference Include="..\Source\BCControls.DateEdit.pas"/>
+        <DCCReference Include="..\Source\BCControls.ProgressPanel.pas"/>
+        <DCCReference Include="..\Source\BCControls.StringGrid.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
