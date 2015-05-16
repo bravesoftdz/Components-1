@@ -144,7 +144,6 @@
         <DCCReference Include="..\Source\BCControls.Utils.pas"/>
         <DCCReference Include="..\Source\BCControls.ButtonedEdit.pas"/>
         <DCCReference Include="..\Source\BCControls.ProgressBar.pas"/>
-        <DCCReference Include="..\Source\BCControls.ColorComboBox.pas"/>
         <DCCReference Include="..\Source\BCControls.GroupBox.pas"/>
         <DCCReference Include="..\Source\BCControls.ScrollBox.pas"/>
         <DCCReference Include="..\Source\BCControls.DateEdit.pas"/>

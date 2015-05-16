@@ -6,7 +6,7 @@ uses
   System.Classes, BCControls.GroupLabel, BCControls.ComboBox, BCControls.CheckBox,
   BCControls.RadioButton, BCControls.ToolBar, BCControls.Panel, BCControls.StatusBar, BCControls.Button,
   BCControls.SpeedButton, BCControls.Splitter, BCControls.Labels, BCControls.PageControl, BCControls.FileControl,
-  BCControls.Edit, BCControls.ImageList, BCControls.ButtonedEdit, BCControls.ProgressBar, BCControls.ColorComboBox,
+  BCControls.Edit, BCControls.ImageList, BCControls.ButtonedEdit, BCControls.ProgressBar,
   BCControls.GroupBox, BCControls.ScrollBox, BCControls.DateEdit, BCControls.ProgressPanel, BCControls.StringGrid;
 
 procedure Register;

@@ -59,7 +59,6 @@ contains
   BCControls.Utils in '..\Source\BCControls.Utils.pas',
   BCControls.ButtonedEdit in '..\Source\BCControls.ButtonedEdit.pas',
   BCControls.ProgressBar in '..\Source\BCControls.ProgressBar.pas',
-  BCControls.ColorComboBox in '..\Source\BCControls.ColorComboBox.pas',
   BCControls.GroupBox in '..\Source\BCControls.GroupBox.pas',
   BCControls.ScrollBox in '..\Source\BCControls.ScrollBox.pas',
   BCControls.DateEdit in '..\Source\BCControls.DateEdit.pas',
