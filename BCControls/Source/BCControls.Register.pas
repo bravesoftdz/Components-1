@@ -3,7 +3,7 @@ unit BCControls.Register;
 interface
 
 uses
-  System.Classes, BCControls.GroupLabel, BCControls.ComboBox, BCControls.CheckBox,
+  System.Classes, BCControls.GroupLabel, BCControls.ComboBox,
   BCControls.RadioButton, BCControls.ToolBar, BCControls.Panel, BCControls.StatusBar, BCControls.Button,
   BCControls.SpeedButton, BCControls.Splitter, BCControls.Labels, BCControls.PageControl, BCControls.FileControl,
   BCControls.Edit, BCControls.ImageList, BCControls.ButtonedEdit, BCControls.ProgressBar,
@@ -15,7 +15,7 @@ implementation
 
 procedure Register;
 begin
-  RegisterComponents('BCControls', [TBCGroupLabel, TBCComboBox, TBCFontComboBox, TBCCheckBox, TBCRadioButton,
+  RegisterComponents('BCControls', [TBCGroupLabel, TBCComboBox, TBCFontComboBox, TBCRadioButton,
     TBCToolBar, TBCPanel, TBCStatusBar, TBCButton, TBCSpeedButton, TBCSplitter, TBCLabel, TBCLabelFX, TBCPageControl,
     TBCDriveComboBox, TBCFileTypeComboBox, TBCFileTreeView, TBCEdit, TBCImageList, TBCButtonedEdit, TBCProgressBar,
     TBCColorComboBox, TBCGroupBox, TBCScrollBox, TBCDateEdit, TBCProgressPanel, TBCStringGrid]);

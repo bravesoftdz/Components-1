@@ -42,7 +42,6 @@ requires
 contains
   BCControls.GroupLabel in '..\Source\BCControls.GroupLabel.pas',
   BCControls.ComboBox in '..\Source\BCControls.ComboBox.pas',
-  BCControls.CheckBox in '..\Source\BCControls.CheckBox.pas',
   BCControls.RadioButton in '..\Source\BCControls.RadioButton.pas',
   BCControls.ToolBar in '..\Source\BCControls.ToolBar.pas',
   BCControls.Panel in '..\Source\BCControls.Panel.pas',

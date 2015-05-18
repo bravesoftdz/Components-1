@@ -17,7 +17,7 @@ type
     constructor Create(AOwner: TComponent); override;
   end;
 
-    TBCColorComboBox = class(TsColorBox)
+  TBCColorComboBox = class(TsColorBox)
   private
     function GetText: string;
     procedure SetText(const Value: string);

@@ -127,7 +127,6 @@
         <DCCReference Include="BCComponentsRXE7.dcp"/>
         <DCCReference Include="..\Source\BCControls.GroupLabel.pas"/>
         <DCCReference Include="..\Source\BCControls.ComboBox.pas"/>
-        <DCCReference Include="..\Source\BCControls.CheckBox.pas"/>
         <DCCReference Include="..\Source\BCControls.RadioButton.pas"/>
         <DCCReference Include="..\Source\BCControls.ToolBar.pas"/>
         <DCCReference Include="..\Source\BCControls.Panel.pas"/>
