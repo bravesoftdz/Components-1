@@ -29,7 +29,6 @@ package BCComponentsRXE8;
 {$IMPLICITBUILD ON}
 
 requires
-  rtl,
   acntDelphiXE8_R;
 
 contains

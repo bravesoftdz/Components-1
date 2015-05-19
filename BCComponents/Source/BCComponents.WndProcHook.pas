@@ -52,22 +52,22 @@ procedure ReleaseObj(AObject: TObject);
 implementation
 
 type
-  PJvHookInfo = ^TBCHookInfo;
+  PBCHookInfo = ^TBCHookInfo;
 
   TBCHookInfo = record
     Hook: TBCControlHook;
-    Next: PJvHookInfo;
+    Next: PBCHookInfo;
   end;
 
   PHookInfoList = ^THookInfoList;
-  THookInfoList = array [0 .. MaxInt div SizeOf(Pointer) - 1] of PJvHookInfo;
+  THookInfoList = array [0 .. MaxInt div SizeOf(Pointer) - 1] of PBCHookInfo;
 
   TBCWndProcHook = class;
 
   TBCHookInfos = class(TObject)
   private
-    FFirst: array [TBCHookOrder] of PJvHookInfo;
-    FLast: array [TBCHookOrder] of PJvHookInfo;
+    FFirst: array [TBCHookOrder] of PBCHookInfo;
+    FLast: array [TBCHookOrder] of PBCHookInfo;
     FStack: PHookInfoList;
     FStackCapacity: Integer;
     FStackCount: Integer;
@@ -328,7 +328,7 @@ end;
 
 procedure TBCHookInfos.Add(const Order: TBCHookOrder; Hook: TBCControlHook);
 var
-  HookInfo: PJvHookInfo;
+  HookInfo: PBCHookInfo;
   I: Integer;
 begin
   New(HookInfo);
@@ -394,8 +394,8 @@ end;
 
 procedure TBCHookInfos.Delete(const Order: TBCHookOrder; Hook: TBCControlHook);
 var
-  HookInfo: PJvHookInfo;
-  PrevHookInfo: PJvHookInfo;
+  HookInfo: PBCHookInfo;
+  PrevHookInfo: PBCHookInfo;
   I: Integer;
 begin
   HookInfo := FFirst[Order];
@@ -437,7 +437,7 @@ end;
 
 destructor TBCHookInfos.Destroy;
 var
-  HookInfo: PJvHookInfo;
+  HookInfo: PBCHookInfo;
   Order: TBCHookOrder;
 begin
   Controller := nil;
@@ -521,7 +521,7 @@ end;
 
 procedure TBCHookInfos.WindowProc(var Msg: TMessage);
 var
-  TmpHookInfo: PJvHookInfo;
+  TmpHookInfo: PBCHookInfo;
   Index: Integer;
 begin
   Msg.Result := 0;
