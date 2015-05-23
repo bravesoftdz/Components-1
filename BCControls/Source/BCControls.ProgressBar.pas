@@ -3,10 +3,10 @@ unit BCControls.ProgressBar;
 interface
 
 uses
-  System.SysUtils, System.Classes, Vcl.Controls, Vcl.ComCtrls, Vcl.ExtCtrls, Vcl.Graphics, acProgressBar;
+  System.SysUtils, System.Classes, Vcl.Controls, Vcl.ComCtrls, Vcl.ExtCtrls, Vcl.Graphics, sGauge;
 
 type
-  TBCProgressBar = class(TsProgressBar)
+  TBCProgressBar = class(TsGauge)
   private
     FPosition: Integer;
     FCount: Integer;
@@ -32,7 +32,7 @@ uses
 
 procedure TBCProgressBar.StepIt;
 begin
-  Position := Trunc((FPosition / FCount) * 100);
+  Progress := Trunc((FPosition / FCount) * 100);
   Inc(FPosition);
   if Assigned(FOnStepChange) then
     FOnStepChange(nil);
