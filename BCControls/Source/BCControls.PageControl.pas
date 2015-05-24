@@ -91,7 +91,7 @@ begin
   // Result := TabIndex;   // to follow the original idea, uncomment this line and comment the next one
   Result := -1;
   LVisibleTabs := 0;
-  for i := 0 to PageCount-1 do
+  for i := 0 to PageCount - 1 do
   begin
     if Pages[i].TabVisible then
     begin
@@ -119,7 +119,7 @@ begin
       if PtInRect(TabRect, Point(X, Y)) then
       begin
         j := PageIndexFromTabIndex(i);
-        if j <> ActivePage.PageIndex then
+        if (j <> ActivePage.PageIndex) and (TsTabSheet(Pages[j]).TabType = ttTab) then
           ActivePage.PageIndex := j;
         Exit;
       end;
