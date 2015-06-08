@@ -402,6 +402,8 @@ end;
 
 procedure TBCCustomDriveComboBox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState);
 begin
+  if Index = -1 then
+    Exit;
   { ensure the correct highlite color is used }
   if Assigned(SkinData) and Assigned(SkinData.SkinManager) and SkinData.SkinManager.Active then
   begin
