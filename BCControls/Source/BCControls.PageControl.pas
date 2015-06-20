@@ -51,8 +51,18 @@ begin
 end;
 
 procedure TBCPageControl.SetActivePageCaption(Value: TCaption);
+var
+  LTabSheet: TsTabSheet;
+  rTab: TRect;
 begin
-  ActivePage.Caption := Value;
+  LTabSheet := ActivePage;
+  if Assigned(LTabSheet) then
+    if LTabSheet.Caption <> Value then
+    begin
+      LTabSheet.Caption := Value;
+      rTab := SkinTabRect(LTabSheet.TabIndex, True);
+      DrawTab(LTabSheet.TabIndex, rTab, True);
+    end;
 end;
 
 procedure TBCPageControl.WMRButtonDown(var Msg: TWMRButtonDown);

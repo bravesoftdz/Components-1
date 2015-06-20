@@ -4,7 +4,8 @@ interface
 
 uses
   System.SysUtils, System.Classes, Vcl.Controls, Vcl.Graphics, Vcl.StdCtrls, Winapi.Messages, System.Types,
-  Winapi.Windows, VirtualTrees, Vcl.ImgList, BCControls.Edit, Vcl.ExtCtrls, sCommonData, sComboBox;
+  Winapi.Windows, VirtualTrees, Vcl.ImgList, BCControls.Edit, Vcl.ExtCtrls, sCommonData, sComboBox,
+  System.UITypes;
 
 type
   TBCFileTreeView = class;
@@ -210,7 +211,7 @@ type
     procedure DoFreeNode(Node: PVirtualNode); override;
     procedure DoPaintNode(var PaintInfo: TVTPaintInfo); override;
     function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-      var Ghosted: Boolean; var Index: Integer): TCustomImageList; override;
+      var Ghosted: Boolean; var Index: System.UITypes.TImageIndex): TCustomImageList; override;
     function DoCompare(Node1, Node2: PVirtualNode; Column: TColumnIndex): Integer; override;
     function DoGetNodeWidth(Node: PVirtualNode; Column: TColumnIndex; Canvas: TCanvas = nil): Integer; override;
     function DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean; override;
@@ -262,7 +263,7 @@ implementation
 
 uses
   Vcl.Forms, Winapi.ShellAPI, Vcl.Dialogs, BCControls.Utils, BCControls.Language, BCControls.ImageList,
-  System.UITypes, Winapi.CommCtrl, VirtualTrees.Utils, sGraphUtils, sVCLUtils, sDefaults;
+  Winapi.CommCtrl, VirtualTrees.Utils, sGraphUtils, sVCLUtils, sDefaults;
 
 const
   FILE_ATTRIBUTES = FILE_ATTRIBUTE_READONLY or FILE_ATTRIBUTE_HIDDEN or FILE_ATTRIBUTE_SYSTEM or FILE_ATTRIBUTE_ARCHIVE or FILE_ATTRIBUTE_NORMAL or FILE_ATTRIBUTE_DIRECTORY;
@@ -323,7 +324,6 @@ begin
   ClearItems;
   Integer(Drives) := GetLogicalDrives;
 
-  FileIconInit(True);
   for lp1 := 0 to 25 do
   begin
     if (lp1 in Drives) then
@@ -363,9 +363,10 @@ begin
       if UpCase(NewDrive) = TDriveComboFile(FDriveComboFileList[Item]).Drive then
       begin
         ItemIndex := Item;
-        break;
+        Break;
       end;
-    FIconIndex := TDriveComboFile(FDriveComboFileList[ItemIndex]).IconIndex;
+    if ItemIndex <> -1 then
+      FIconIndex := TDriveComboFile(FDriveComboFileList[ItemIndex]).IconIndex;
     if Assigned(FFileTreeView) then
       FFileTreeView.DriveChange(NewDrive);
     Change;
@@ -396,8 +397,8 @@ begin
      Font.Color := SkinData.SkinManager.gd[SkinData.SkinIndex].Props[0].FontColor.Color;
   end;
 
-  BuildList;
-  SetDrive(FDrive);
+  //BuildList;
+  //SetDrive(FDrive);
 end;
 
 procedure TBCCustomDriveComboBox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState);
@@ -424,7 +425,7 @@ begin
     { draw the actual bitmap }
     FSystemIconsImageList.Draw(Canvas, Rect.Left + 3, Rect.Top, TDriveComboFile(FDriveComboFileList[Index]).IconIndex);
     { write the text }
-    Canvas.TextOut(Rect.Left + FSystemIconsImageList.width + 7, Rect.Top + 2,
+    Canvas.TextOut(Rect.Left + FSystemIconsImageList.Width + 7, Rect.Top + 2,
       TDriveComboFile(FDriveComboFileList[Index]).FileName);
   end;
 end;
@@ -713,12 +714,12 @@ begin
   FShowSystem := False;
   FShowOverlayIcons := True;
 
-  Images := TBCImageList.Create(Self);
+  Images := TImageList.Create(Self);
   SysImageList := GetSysImageList;
   if SysImageList <> 0 then
   begin
     Images.Handle := SysImageList;
-    Images.BkColor := ClNone;
+    Images.BkColor := clNone;
     Images.ShareImages := True;
   end;
 
@@ -981,9 +982,12 @@ begin
   FDriveComboBox.BuildList;
   FDriveComboBox.Drive := FDrive;
   FDefaultDirectoryPath := DirectoryPath;
-  FExcludeOtherBranches := ExcludeOtherBranches;
-  FRootDirectory := RootDirectory;
-  BuildTree(RootDirectory, ExcludeOtherBranches);
+  if (FRootDirectory <> RootDirectory) or (FExcludeOtherBranches <> ExcludeOtherBranches) then
+  begin
+    FRootDirectory := RootDirectory;
+    FExcludeOtherBranches := ExcludeOtherBranches;
+    BuildTree(RootDirectory, ExcludeOtherBranches);
+  end;
 
   {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
   TempPath := IncludeTrailingBackslash(Copy(DirectoryPath, 4, Length(DirectoryPath)));
@@ -1191,7 +1195,7 @@ begin
 end;
 
 function TBCFileTreeView.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-  var Ghosted: Boolean; var Index: Integer): TCustomImageList;
+  var Ghosted: Boolean; var Index: TImageIndex): TCustomImageList;
 var
   Data: PBCFileTreeNodeRec;
 begin

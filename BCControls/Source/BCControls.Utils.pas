@@ -39,6 +39,9 @@ implementation
 uses
   System.SysUtils, Winapi.ShellAPI;
 
+var
+  SysImageList: THandle;
+
 function CheckAccessToFile(const DesiredAccess: DWORD; const FileName: string): Boolean;
 const
   GenericFileMapping: TGenericMapping = (
@@ -114,13 +117,13 @@ begin
 end;
 
 function GetIconOverlayIndex(Filename: string): Integer;
-const
-  SHGFI_OVERLAYINDEX2 = $40;
 var
   SHFileInfo: TSHFileInfo;
 begin
   ZeroMemory(@SHFileInfo, SizeOf(SHFileInfo));
-  if SHGetFileInfo(PChar(Filename), 0, SHFileInfo, Sizeof(SHFileInfo), SHGFI_ICON or SHGFI_OVERLAYINDEX) = 0 then
+  { SHGFI_OVERLAYINDEX: Return the index of the overlay icon. The value of the overlay index is returned in the upper eight
+    bits of the iIcon member of the structure specified by psfi. This flag requires that the SHGFI_ICON be set as well. }
+  if SHGetFileInfo(PChar(Filename), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_ICON or SHGFI_OVERLAYINDEX) = 0 then
     Result := -1
   else
   begin
@@ -133,7 +136,6 @@ end;
 
 const
   IID_IImageList: TGUID = '{46EB5926-582E-4017-9FDF-E8998DAA0950}';
- // ImageListTypes: array[Boolean] of Integer = (SHIL_EXTRALARGE, SHIL_JUMBO);
 
 function BackfillSHGetImageList(Flags: Integer; const IID: TGUID; var ImageList: THandle): HRESULT; stdcall;
 var
@@ -149,19 +151,23 @@ end;
 
 function GetSysImageList: THandle;
 var
+  Handle: THandle;
   SHGetImageList: function (Flags: Integer; const IID: TGUID; var ImageList: THandle): HRESULT; stdcall;
 begin
-  FileIconInit(True);
-
-  SHGetImageList := GetProcAddress(GetModuleHandle('shell32.dll'), 'SHGetImageList');
-  if not Assigned(@SHGetImageList) then
+  if SysImageList = 0 then
   begin
-    SHGetImageList := GetProcAddress(GetModuleHandle('shell32.dll'), PChar(727));
-    if not Assigned(@SHGetImageList) then
-      SHGetImageList := BackfillSHGetImageList;
+    Handle := LoadLibrary('Shell32.dll');
+    if Handle <> S_OK then
+    begin
+      SHGetImageList := GetProcAddress(Handle, PChar(727));
+      if not Assigned(@SHGetImageList) then
+        SHGetImageList := BackfillSHGetImageList;
+      if Assigned(SHGetImageList) then
+        if SHGetImageList(SHIL_SYSSMALL, IID_IImageList, SysImageList) <> 0 then
+          Exit(0);
+    end;
   end;
-  if SHGetImageList(SHIL_SYSSMALL, IID_IImageList, Result) <> 0 then
-    Exit(0);
+  Result := SysImageList;
 end;
 
 function FileIconInit(FullInit: BOOL): BOOL; stdcall;
@@ -225,5 +231,10 @@ begin
   if Result then
     Result := RemoveDir(s);
 end;
+
+initialization
+
+  SysImageList := 0;
+  FileIconInit(True);
 
 end.

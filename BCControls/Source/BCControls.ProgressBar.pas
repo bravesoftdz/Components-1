@@ -42,6 +42,7 @@ procedure TBCProgressBar.Show;
 begin
   Visible := True;
   FPosition := 0;
+  Progress := 0;
   if Assigned(FOnShow) then
     FOnShow(nil);
 end;
