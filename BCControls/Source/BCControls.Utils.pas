@@ -39,9 +39,6 @@ implementation
 uses
   System.SysUtils, Winapi.ShellAPI;
 
-var
-  SysImageList: THandle;
-
 function CheckAccessToFile(const DesiredAccess: DWORD; const FileName: string): Boolean;
 const
   GenericFileMapping: TGenericMapping = (
@@ -154,20 +151,16 @@ var
   Handle: THandle;
   SHGetImageList: function (Flags: Integer; const IID: TGUID; var ImageList: THandle): HRESULT; stdcall;
 begin
-  if SysImageList = 0 then
+  Handle := LoadLibrary('Shell32.dll');
+  if Handle <> S_OK then
   begin
-    Handle := LoadLibrary('Shell32.dll');
-    if Handle <> S_OK then
-    begin
-      SHGetImageList := GetProcAddress(Handle, PChar(727));
-      if not Assigned(@SHGetImageList) then
-        SHGetImageList := BackfillSHGetImageList;
-      if Assigned(SHGetImageList) then
-        if SHGetImageList(SHIL_SYSSMALL, IID_IImageList, SysImageList) <> 0 then
-          Exit(0);
-    end;
+    SHGetImageList := GetProcAddress(Handle, PChar(727));
+    if not Assigned(@SHGetImageList) then
+      SHGetImageList := BackfillSHGetImageList;
+    if Assigned(SHGetImageList) then
+      if SHGetImageList(SHIL_SYSSMALL, IID_IImageList, Result) <> 0 then
+        Exit(0);
   end;
-  Result := SysImageList;
 end;
 
 function FileIconInit(FullInit: BOOL): BOOL; stdcall;
@@ -234,7 +227,6 @@ end;
 
 initialization
 
-  SysImageList := 0;
   FileIconInit(True);
 
 end.
