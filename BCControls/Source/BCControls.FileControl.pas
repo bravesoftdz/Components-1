@@ -223,7 +223,8 @@ type
     destructor Destroy; override;
 
     procedure CreateWnd; override;
-    procedure OpenPath(RootDirectory: string; DirectoryPath: string; ExcludeOtherBranches: Boolean);
+    procedure OpenPath(ARootDirectory: string; ADirectoryPath: string; AExcludeOtherBranches: Boolean;
+      ARefresh: Boolean = False);
     procedure RenameSelectedNode;
     procedure DeleteSelectedNode;
     property Drive: Char read GetDrive write SetDrive;
@@ -968,29 +969,30 @@ begin
     Result := Result + Data.Filename;
 end;
 
-procedure TBCFileTreeView.OpenPath(RootDirectory: string; DirectoryPath: string; ExcludeOtherBranches: Boolean);
+procedure TBCFileTreeView.OpenPath(ARootDirectory: string; ADirectoryPath: string; AExcludeOtherBranches: Boolean;
+  ARefresh: Boolean = False);
 var
   CurNode: PVirtualNode;
   Data: PBCFileTreeNodeRec;
   TempPath, Directory: string;
 begin
-  if not DirectoryExists(RootDirectory) then
+  if not DirectoryExists(ARootDirectory) then
     Exit;
-  if not DirectoryExists(ExtractFileDir(DirectoryPath)) then
+  if not DirectoryExists(ExtractFileDir(ADirectoryPath)) then
     Exit;
   BeginUpdate;
   FDriveComboBox.BuildList;
   FDriveComboBox.Drive := FDrive;
-  FDefaultDirectoryPath := DirectoryPath;
-  if (FRootDirectory <> RootDirectory) or (FExcludeOtherBranches <> ExcludeOtherBranches) then
+  FDefaultDirectoryPath := ADirectoryPath;
+  if ARefresh or (FRootDirectory <> ARootDirectory) or (FExcludeOtherBranches <> ExcludeOtherBranches) then
   begin
-    FRootDirectory := RootDirectory;
+    FRootDirectory := ARootDirectory;
     FExcludeOtherBranches := ExcludeOtherBranches;
-    BuildTree(RootDirectory, ExcludeOtherBranches);
+    BuildTree(ARootDirectory, ExcludeOtherBranches);
   end;
 
   {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
-  TempPath := IncludeTrailingBackslash(Copy(DirectoryPath, 4, Length(DirectoryPath)));
+  TempPath := IncludeTrailingBackslash(Copy(ADirectoryPath, 4, Length(ADirectoryPath)));
   {$WARNINGS ON}
   if ExcludeOtherBranches and (Pos('\', TempPath) > 0) then
     TempPath := Copy(TempPath, Pos('\', TempPath) + 1, Length(TempPath));
