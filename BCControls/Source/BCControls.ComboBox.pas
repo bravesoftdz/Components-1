@@ -25,7 +25,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property Text: string read GetText write SetText;
+    property ColorText: string read GetText write SetText;
   end;
 
 implementation
@@ -121,15 +121,17 @@ end;
 
 function TBCColorComboBox.GetText: string;
 begin
-  Result := ColorToString(Color);
+  Result := ColorToString(Selected);
 end;
 
 procedure TBCColorComboBox.SetText(const Value: string);
 begin
+  if Value = '' then
+    Exit;
   try
-    Color := StringToColor(Value);
+    Selected := StringToColor(Value);
   except
-    Color := clBlack;
+    Selected := clBlack;
   end;
 end;
 
