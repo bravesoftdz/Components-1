@@ -4,8 +4,8 @@ interface
 
 uses
   System.SysUtils, System.Classes, Vcl.Controls, Vcl.Graphics, Vcl.StdCtrls, Winapi.Messages, System.Types,
-  Winapi.Windows, VirtualTrees, Vcl.ImgList, BCControls.Edit, Vcl.ExtCtrls, sCommonData, sComboBox,
-  System.UITypes;
+  Winapi.Windows, VirtualTrees, Vcl.ImgList, BCControls.Edit, Vcl.ExtCtrls, {sCommonData,} sComboBox,
+  System.UITypes, sSkinManager;
 
 type
   TBCFileTreeView = class;
@@ -181,7 +181,7 @@ type
 
   TBCFileTreeView = class(TVirtualDrawTree)
   private
-    FCommonData: TsCtrlSkinData;
+    //FCommonData: TsCtrlSkinData;
     FDrive: Char;
     FDriveComboBox: TBCCustomDriveComboBox;
     FFileType: string;
@@ -193,6 +193,7 @@ type
     FRootDirectory: string;
     FDefaultDirectoryPath: string;
     FExcludeOtherBranches: Boolean;
+    FSkinManager: TsSkinManager;
     procedure DriveChange(NewDrive: Char);
     procedure SetDrive(Value: Char);
     procedure SetFileType(NewFileType: string);
@@ -210,8 +211,10 @@ type
     procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
     procedure DoFreeNode(Node: PVirtualNode); override;
     procedure DoPaintNode(var PaintInfo: TVTPaintInfo); override;
+    //function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+    //  var Ghosted: Boolean; var Index: System.UITypes.TImageIndex): TCustomImageList; override;
     function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-      var Ghosted: Boolean; var Index: System.UITypes.TImageIndex): TCustomImageList; override;
+      var Ghosted: Boolean; var Index: Integer): TCustomImageList; override;
     function DoCompare(Node1, Node2: PVirtualNode; Column: TColumnIndex): Integer; override;
     function DoGetNodeWidth(Node: PVirtualNode; Column: TColumnIndex; Canvas: TCanvas = nil): Integer; override;
     function DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean; override;
@@ -237,8 +240,9 @@ type
     property SelectedPath: string read GetSelectedPath;
     property SelectedFile: string read GetSelectedFile;
     property RootDirectory: string read FRootDirectory;
-  published
-    property SkinData: TsCtrlSkinData read FCommonData write FCommonData;
+  //published
+    property SkinManager: TsSkinManager read FSkinManager write FSkinManager;
+  //  property SkinData: TsCtrlSkinData read FCommonData write FCommonData;
   end;
 
   TEditLink = class(TInterfacedObject, IVTEditLink)
@@ -390,13 +394,14 @@ procedure TBCCustomDriveComboBox.CreateWnd;
 begin
   inherited CreateWnd;
 
- if HandleAllocated and SkinData.Skinned then begin
+ {if HandleAllocated and SkinData.Skinned then
+ begin
    if not SkinData.CustomColor then
      Color := SkinData.SkinManager.gd[SkinData.SkinIndex].Props[0].Color;
 
    if not SkinData.CustomFont then
      Font.Color := SkinData.SkinManager.gd[SkinData.SkinIndex].Props[0].FontColor.Color;
-  end;
+  end; }
 
   //BuildList;
   //SetDrive(FDrive);
@@ -698,7 +703,7 @@ var
 begin
   inherited Create(AOwner);
 
-  FCommonData := TsCtrlSkinData.Create(Self, True);
+  //FCommonData := TsCtrlSkinData.Create(Self, True);
 
   DragOperations := [];
   Header.Options := [];
@@ -731,7 +736,7 @@ end;
 procedure TBCFileTreeView.CreateWnd;
 begin
   inherited;
-  FCommonData.Loaded;
+  {FCommonData.Loaded;
 
   if HandleAllocated and FCommonData.Skinned then begin
     if not FCommonData.CustomColor then
@@ -739,14 +744,14 @@ begin
 
     if not FCommonData.CustomFont then
       Font.Color := FCommonData.SkinManager.gd[FCommonData.SkinIndex].Props[0].FontColor.Color;
-  end;
+  end;    }
 end;
 
 destructor TBCFileTreeView.Destroy;
 begin
   Images.Free;
-  if Assigned(FCommonData) then
-    FreeAndNil(FCommonData);
+  //if Assigned(FCommonData) then
+  //  FreeAndNil(FCommonData);
 
   inherited Destroy;
 end;
@@ -1148,17 +1153,17 @@ begin
 
     Canvas.Font.Style := [];
 
-   if Assigned(FCommonData) then
-     Canvas.Font.Color :=  FCommonData.SkinManager.GetActiveEditFontColor
+   if Assigned(SkinManager) then
+     Canvas.Font.Color :=  SkinManager.GetActiveEditFontColor
    else
      Canvas.Font.Color := clWindowText;
 
     if vsSelected in PaintInfo.Node.States then
     begin
-      if Assigned(SkinData) and Assigned(SkinData.SkinManager) and SkinData.SkinManager.Active then
+      if Assigned(SkinManager) and SkinManager.Active then
       begin
-        Canvas.Brush.Color := SkinData.SkinManager.GetHighLightColor;
-        Canvas.Font.Color := SkinData.SkinManager.GetHighLightFontColor
+        Canvas.Brush.Color := SkinManager.GetHighLightColor;
+        Canvas.Font.Color := SkinManager.GetHighLightFontColor
       end
       else
       begin
@@ -1170,7 +1175,7 @@ begin
     if (Data.FileType = ftDirectoryAccessDenied) or (Data.FileType = ftFileAccessDenied) then
     begin
       Canvas.Font.Style := [fsItalic];
-      if Assigned(FCommonData) then
+      if Assigned(SkinManager) then
         Canvas.Font.Color := MixColors(ColorToRGB(Font.Color), GetControlColor(Parent), DefDisabledBlend)
       else
         Canvas.Font.Color := clBtnFace;
@@ -1197,7 +1202,9 @@ begin
 end;
 
 function TBCFileTreeView.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-  var Ghosted: Boolean; var Index: TImageIndex): TCustomImageList;
+  var Ghosted: Boolean; var Index: Integer): TCustomImageList;
+//function TBCFileTreeView.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+//  var Ghosted: Boolean; var Index: TImageIndex): TCustomImageList;
 var
   Data: PBCFileTreeNodeRec;
 begin
