@@ -29,7 +29,7 @@ type
 implementation
 
 uses
-  Winapi.Windows, System.Types;
+  Winapi.Windows, System.Types, System.Math;
 
 constructor TBCProgressBar.Create(AOwner: TComponent);
 begin
@@ -39,6 +39,8 @@ end;
 
 procedure TBCProgressBar.StepIt;
 begin
+  if True then
+
   Progress := Trunc((FPosition / FCount) * 100);
   Inc(FPosition);
   if Assigned(FOnStepChange) then
@@ -49,7 +51,7 @@ procedure TBCProgressBar.Show(ACount: Integer);
 begin
   if not Visible then
   begin
-    FCount := ACount;
+    FCount := Max(ACount, 1);
     Visible := True;
     FPosition := 0;
     Progress := 0;
