@@ -8,17 +8,18 @@ uses
 type
   TBCProgressBar = class(TsGauge)
   private
+    FRefCount: Integer;
     FPosition: Integer;
     FCount: Integer;
     FOnStepChange: TNotifyEvent;
     FOnShow: TNotifyEvent;
     FOnHide: TNotifyEvent;
-    procedure SetCount(Value: Integer);
   public
+    constructor Create(AOwner: TComponent); override;
     procedure StepIt;
-    procedure Show;
+    procedure Show(ACount: Integer);
     procedure Hide;
-    property Count: Integer read FCount write SetCount;
+    property Count: Integer read FCount write FCount;
   published
     property OnStepChange: TNotifyEvent read FOnStepChange write FOnStepChange;
     property OnShow: TNotifyEvent read FOnShow write FOnShow;
@@ -30,6 +31,12 @@ implementation
 uses
   Winapi.Windows, System.Types;
 
+constructor TBCProgressBar.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FRefCount := 0;
+end;
+
 procedure TBCProgressBar.StepIt;
 begin
   Progress := Trunc((FPosition / FCount) * 100);
@@ -38,25 +45,31 @@ begin
     FOnStepChange(nil);
 end;
 
-procedure TBCProgressBar.Show;
+procedure TBCProgressBar.Show(ACount: Integer);
 begin
-  Visible := True;
-  FPosition := 0;
-  Progress := 0;
-  if Assigned(FOnShow) then
-    FOnShow(nil);
+  if not Visible then
+  begin
+    FCount := ACount;
+    Visible := True;
+    FPosition := 0;
+    Progress := 0;
+    if Assigned(FOnShow) then
+      FOnShow(nil);
+  end
+  else
+    Inc(FRefCount);
 end;
 
 procedure TBCProgressBar.Hide;
 begin
-  Visible := False;
-  if Assigned(FOnHide) then
-    FOnHide(nil);
-end;
-
-procedure TBCProgressBar.SetCount(Value: Integer);
-begin
-  FCount := Value;
+  if FRefCount = 0 then
+  begin
+    Visible := False;
+    if Assigned(FOnHide) then
+      FOnHide(nil);
+  end
+  else
+    Dec(FRefCount);
 end;
 
 end.

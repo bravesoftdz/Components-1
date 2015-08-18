@@ -38,7 +38,7 @@ begin
   SkinDirectory := 'Skins';
   Saturation := 10;
   InternalSkins := nil;
-  SkinName := 'MetroUI';
+  SkinName := 'Windows 10';
   SkinInfo := 'N/A';
   ThirdParty.ThirdEdits := ' '#13#10'TBCEditor'#13#10'TBCEditorPrintPreview'#13#10;
   ThirdParty.ThirdButtons := 'TButton'#13#10;
