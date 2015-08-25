@@ -438,6 +438,7 @@ end;
 
 procedure TBCCustomDriveComboBox.Change;
 begin
+  inherited;
   if ItemIndex >= 0 then
     if Assigned(FDriveComboFileList[ItemIndex]) then
       Drive := TDriveComboFile(FDriveComboFileList[ItemIndex]).Drive[1];
