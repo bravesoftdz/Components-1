@@ -40,7 +40,6 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure CreateWnd; override;
     procedure ClearItems;
     property Drive: Char read GetDrive write SetDrive;
     property FileTreeView: TBCFileTreeView read FFileTreeView write SetFileTreeView;
@@ -181,7 +180,6 @@ type
 
   TBCFileTreeView = class(TVirtualDrawTree)
   private
-    //FCommonData: TsCtrlSkinData;
     FDrive: Char;
     FDriveComboBox: TBCCustomDriveComboBox;
     FFileType: string;
@@ -240,9 +238,7 @@ type
     property SelectedPath: string read GetSelectedPath;
     property SelectedFile: string read GetSelectedFile;
     property RootDirectory: string read FRootDirectory;
-  //published
     property SkinManager: TsSkinManager read FSkinManager write FSkinManager;
-  //  property SkinData: TsCtrlSkinData read FCommonData write FCommonData;
   end;
 
   TEditLink = class(TInterfacedObject, IVTEditLink)
@@ -388,23 +384,6 @@ begin
     FFileTreeView.FDriveComboBox := Self;
     FFileTreeView.FreeNotification(Self);
   end;
-end;
-
-procedure TBCCustomDriveComboBox.CreateWnd;
-begin
-  inherited CreateWnd;
-
- {if HandleAllocated and SkinData.Skinned then
- begin
-   if not SkinData.CustomColor then
-     Color := SkinData.SkinManager.gd[SkinData.SkinIndex].Props[0].Color;
-
-   if not SkinData.CustomFont then
-     Font.Color := SkinData.SkinManager.gd[SkinData.SkinIndex].Props[0].FontColor.Color;
-  end; }
-
-  //BuildList;
-  //SetDrive(FDrive);
 end;
 
 procedure TBCCustomDriveComboBox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState);

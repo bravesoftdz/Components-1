@@ -12,9 +12,9 @@ type
     FRightClickSelect: Boolean;
     FTabClosed: Boolean;
     FTabDragDrop: Boolean;
-    function GetActivePageCaption: TCaption;
+    //function GetActivePageCaption: TCaption;
     function PageIndexFromTabIndex(TabIndex: Integer): Integer;
-    procedure SetActivePageCaption(Value: TCaption);
+    //procedure SetActivePageCaption(Value: TCaption);
     procedure WMRButtonDown(var Msg: TWMRButtonDown); message WM_RBUTTONDOWN;
   protected
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X: Integer; Y: Integer); override;
@@ -25,7 +25,7 @@ type
     { Set TabClosed to True, when a tab is closed otherwise drag will begin and the cursor will be prohibited }
     property TabClosed: Boolean read FTabClosed write FTabClosed;
   published
-    property ActivePageCaption: TCaption read GetActivePageCaption write SetActivePageCaption;
+    //property ActivePageCaption: TCaption read GetActivePageCaption write SetActivePageCaption;
     property HoldShiftToDragDrop: Boolean read FHoldShiftToDragDrop write FHoldShiftToDragDrop;
     property RightClickSelect: Boolean read FRightClickSelect write FRightClickSelect default False;
     property TabDragDrop: Boolean read FTabDragDrop write FTabDragDrop;
@@ -45,7 +45,7 @@ begin
   ControlStyle := ControlStyle + [csClickEvents];
 end;
 
-function TBCPageControl.GetActivePageCaption: TCaption;
+{function TBCPageControl.GetActivePageCaption: TCaption;
 begin
   Result := Trim(ActivePage.Caption);
 end;
@@ -63,7 +63,7 @@ begin
       rTab := SkinTabRect(LTabSheet.TabIndex, True);
       DrawTab(LTabSheet.TabIndex, rTab, True);
     end;
-end;
+end;  }
 
 procedure TBCPageControl.WMRButtonDown(var Msg: TWMRButtonDown);
 var
