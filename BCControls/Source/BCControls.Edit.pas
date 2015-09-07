@@ -3,7 +3,8 @@ unit BCControls.Edit;
 interface
 
 uses
-  System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, sEdit;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  Vcl.StdCtrls, sEdit;
 
 type
   TValidateEvent = procedure(Sender: TObject; var Error: Boolean) of Object;
@@ -12,17 +13,23 @@ type
   private
     FEnterToTab: Boolean;
     FOnlyNum: Boolean;
-    FNumwDots: Boolean;
-    FNumwSpots: Boolean;
-    FNegativeNumbers: Boolean;
+    FNumbersWithDots: Boolean;
+    FNumbersWithSpots: Boolean;
+    FNumbersAllowMinus: Boolean;
+    FNumbersAllowPlus: Boolean;
     FErrorColor: TColor;
     FOnValidate: TValidateEvent;
     function GetValueInt: Integer;
     procedure SetEditable(Value: Boolean);
     procedure SetValueInt(Value: Integer);
+    procedure WMPaste(var Msg: TMessage); message WM_PASTE;
+    procedure WMSetText(var Msg: TWMSettext); message WM_SETTEXT;
+    procedure EMReplaceSel(var Msg: TWMSettext); message EM_REPLACESEL;
   protected
     procedure KeyPress(var Key: Char); override;
     procedure DoExit; override;
+    function IsCharValid(AChar: Char): Boolean;
+    function IsStringValid(const S: string): Boolean;
   public
     constructor Create(AOwner: TComponent); override;
     function IsEmpty: Boolean;
@@ -30,10 +37,15 @@ type
   published
     property EnterToTab: Boolean read FEnterToTab write FEnterToTab;
     property OnlyNumbers: Boolean read FOnlyNum write FOnlyNum;
-    property NumbersWithDots: Boolean read FNumwDots write FNumwDots;
-    property NumbersWithSpots: Boolean read FNumwSpots write FNumwSpots;
+    property NumbersWithDots: Boolean read FNumbersWithDots
+      write FNumbersWithDots;
+    property NumbersWithSpots: Boolean read FNumbersWithSpots
+      write FNumbersWithSpots;
     property ErrorColor: TColor read FErrorColor write FErrorColor;
-    property NumbersAllowNegative: Boolean read FNegativeNumbers write FNegativeNumbers;
+    property NumbersAllowMinus: Boolean read FNumbersAllowMinus
+      write FNumbersAllowMinus;
+    property NumbersAllowPlus: Boolean read FNumbersAllowPlus
+      write FNumbersAllowPlus;
     property OnValidate: TValidateEvent read FOnValidate write FOnValidate;
     property Editable: Boolean write SetEditable;
   end;
@@ -41,7 +53,7 @@ type
 implementation
 
 uses
-  System.UITypes;
+  System.UITypes, Vcl.Clipbrd;
 
 const
   clError = TColor($E1E1FF);
@@ -54,34 +66,76 @@ begin
   inherited Create(AOwner);
   FEnterToTab := False;
   FOnlyNum := False;
-  FNegativeNumbers := False;
+  FNumbersAllowMinus := False;
+  FNumbersAllowPlus := False;
   FErrorColor := clError;
 end;
 
-procedure TBCEdit.KeyPress(var Key: Char);
+function TBCEdit.IsCharValid(AChar: Char): Boolean;
 var
-  CharSet: set of AnsiChar;
+  LCharSet: set of AnsiChar;
 begin
-  inherited;
   if FOnlyNum then
   begin
-    CharSet := ['0'..'9'];
-    if FNumwDots then
-      CharSet := CharSet + ['.'];
-    if FNumwSpots then
-    begin
-      if Pos(',', text) = 0 then
-        CharSet := CharSet + [','];
-    end;
-    if FNegativeNumbers then
-      if Pos('-', text) = 0 then
-        CharSet := CharSet + ['-'];
-    if Pos('+', text) = 0 then
-      CharSet := CharSet + ['+'];
+    LCharSet := ['0' .. '9'];
+    if FNumbersWithDots then
+      LCharSet := LCharSet + ['.'];
+    if FNumbersWithSpots then
+      if Pos(',', Text) = 0 then
+        LCharSet := LCharSet + [','];
+    if FNumbersAllowMinus then
+      if Pos('-', Text) = 0 then
+        LCharSet := LCharSet + ['-'];
+    if FNumbersAllowPlus then
+      if Pos('+', Text) = 0 then
+        LCharSet := LCharSet + ['+'];
 
-    if (not (CharInSet(Key, CharSet))) and (not (Key = #8)) then
+    Result := CharInSet(AChar, LCharSet);
+  end
+  else
+    Result := True;
+end;
+
+procedure TBCEdit.KeyPress(var Key: Char);
+begin
+  if FOnlyNum then
+  begin
+    if not IsCharValid(Key) and not CharInSet(Key, [#8, ^C, ^V, ^X]) then
       Key := #0;
-  end;
+  end
+  else
+    inherited;
+end;
+
+procedure TBCEdit.EMReplaceSel(var Msg: TWMSettext);
+begin
+  if IsStringValid(Msg.Text) then
+    inherited;
+end;
+
+function TBCEdit.IsStringValid(const S: String): Boolean;
+var
+  i: Integer;
+begin
+  Result := True;
+  for i := 1 to Length(S) do
+    if not IsCharValid(S[i]) then
+    begin
+      Result := False;
+      Break;
+    end;
+end;
+
+procedure TBCEdit.WMPaste(var Msg: TMessage);
+begin
+  if IsStringValid(Clipboard.AsText) then
+    inherited;
+end;
+
+procedure TBCEdit.WMSetText(var Msg: TWMSettext);
+begin
+  if IsStringValid(Msg.Text) then
+    inherited;
 end;
 
 procedure TBCEdit.DoExit;
@@ -89,7 +143,7 @@ var
   LText: string;
 begin
   if FOnlyNum then
-    if FNegativeNumbers then
+    if FNumbersAllowMinus then
     begin
       LText := Text;
       if Pos('-', Text) > 1 then
