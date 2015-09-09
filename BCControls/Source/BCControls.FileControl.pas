@@ -258,6 +258,9 @@ type
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
     procedure ProcessMessage(var Message: TMessage); stdcall;
     procedure SetBounds(R: TRect); stdcall;
+    procedure Copy;
+    procedure Paste;
+    procedure Cut;
   end;
 
 implementation
@@ -1400,6 +1403,8 @@ begin
         FTree.EndEditNode;
         Key := #0;
       end;
+  else
+    inherited;
   end;
 end;
 
@@ -1518,6 +1523,21 @@ begin
     we have to set the edit's width explicitly to the width of the column. }
   FTree.Header.Columns.GetColumnBounds(FColumn, Dummy, R.Right);
   FEdit.BoundsRect := R;
+end;
+
+procedure TEditLink.Copy;
+begin
+  FEdit.CopyToClipboard;
+end;
+
+procedure TEditLink.Paste;
+begin
+  FEdit.PasteFromClipboard;
+end;
+
+procedure TEditLink.Cut;
+begin
+  FEdit.CutToClipboard;
 end;
 
 end.
