@@ -7,9 +7,19 @@ uses
   Vcl.Dialogs, sComboBoxes;
 
 type
+  TBCComboBoxMouseWheelEvent = procedure(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint) of object;
+
   TBCComboBox = class(TsCombobox)
+  private
+    FUseMouseWheel: Boolean;
+    FOnMouseWheel: TBCComboBoxMouseWheelEvent;
+  protected
+    function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
+  published
+    property UseMouseWheel: Boolean read FUseMouseWheel write FUseMouseWheel;
+    property OnMouseWheel: TBCComboBoxMouseWheelEvent read FOnMouseWheel write FOnMouseWheel;
   end;
 
   TBCFontComboBox = class(TsFontCombobox)
@@ -40,6 +50,17 @@ begin
   inherited Create(AOwner);
   BoundLabel.Indent := 4;
   BoundLabel.Layout := sclTopLeft;
+end;
+
+function TBCComboBox.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean;
+begin
+  if Assigned(FOnMouseWheel) then
+    FOnMouseWheel(Self, Shift, WheelDelta, MousePos);
+
+  if FUseMouseWheel then
+    Result := inherited
+  else
+    Result := True;
 end;
 
 { TBCFontComboBox }

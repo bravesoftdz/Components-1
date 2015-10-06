@@ -209,10 +209,12 @@ type
     procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
     procedure DoFreeNode(Node: PVirtualNode); override;
     procedure DoPaintNode(var PaintInfo: TVTPaintInfo); override;
-    //function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-    //  var Ghosted: Boolean; var Index: System.UITypes.TImageIndex): TCustomImageList; override;
     function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
       var Ghosted: Boolean; var Index: Integer): TCustomImageList; override;
+    //function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+    //  var Ghosted: Boolean; var Index: System.UITypes.TImageIndex): TCustomImageList; override;
+    //function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+    //  var Ghosted: Boolean; var Index: Integer): TCustomImageList; override;
     function DoCompare(Node1, Node2: PVirtualNode; Column: TColumnIndex): Integer; override;
     function DoGetNodeWidth(Node: PVirtualNode; Column: TColumnIndex; Canvas: TCanvas = nil): Integer; override;
     function DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean; override;
@@ -1186,6 +1188,8 @@ end;
 
 function TBCFileTreeView.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
   var Ghosted: Boolean; var Index: Integer): TCustomImageList;
+//function TBCFileTreeView.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+//  var Ghosted: Boolean; var Index: Integer): TCustomImageList;
 //function TBCFileTreeView.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
 //  var Ghosted: Boolean; var Index: TImageIndex): TCustomImageList;
 var
