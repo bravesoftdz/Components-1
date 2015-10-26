@@ -3,7 +3,7 @@ unit BCControls.ProgressBar;
 interface
 
 uses
-  System.SysUtils, System.Classes, Vcl.Controls, Vcl.ComCtrls, Vcl.ExtCtrls, Vcl.Graphics, sGauge;
+  System.SysUtils, System.Classes, Vcl.Controls, Vcl.ComCtrls, Vcl.Graphics, sGauge;
 
 type
   TBCProgressBar = class(TsGauge)

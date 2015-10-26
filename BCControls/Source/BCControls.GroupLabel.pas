@@ -28,7 +28,7 @@ type
 implementation
 
 uses
-  sGraphUtils, sVCLUtils, sDefaults, System.SysUtils;
+  System.SysUtils;
 
 { TBCGroupLabel }
 
