@@ -32,7 +32,7 @@ function GetIconOverlayIndex(Filename: string): Integer;
 function GetSysImageList: THandle;
 function FileIconInit(FullInit: BOOL): BOOL; stdcall;
 function IsExtInFileType(Ext: string; FileType: string): Boolean;
-function RemoveDirectory(const Directory: String): Boolean;
+function RemoveDirectory(const Directory: string): Boolean;
 
 implementation
 
@@ -198,9 +198,9 @@ begin
   Result := LowerCase(Ext) = LowerCase(FileTypes);
 end;
 
-function RemoveDirectory(const Directory: String): Boolean;
+function RemoveDirectory(const Directory: string): Boolean;
 var
-  s: String;
+  s: string;
   Rec: TSearchRec;
 begin
   Result := True;

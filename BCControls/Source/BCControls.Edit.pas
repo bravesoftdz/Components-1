@@ -113,7 +113,7 @@ begin
     inherited;
 end;
 
-function TBCEdit.IsStringValid(const S: String): Boolean;
+function TBCEdit.IsStringValid(const S: string): Boolean;
 var
   i: Integer;
 begin

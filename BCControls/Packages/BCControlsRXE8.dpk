@@ -42,7 +42,6 @@ requires
 contains
   BCControls.GroupLabel in '..\Source\BCControls.GroupLabel.pas',
   BCControls.ComboBox in '..\Source\BCControls.ComboBox.pas',
-  BCControls.CheckBox in '..\Source\BCControls.CheckBox.pas',
   BCControls.RadioButton in '..\Source\BCControls.RadioButton.pas',
   BCControls.ToolBar in '..\Source\BCControls.ToolBar.pas',
   BCControls.Panel in '..\Source\BCControls.Panel.pas',
@@ -59,7 +58,6 @@ contains
   BCControls.Utils in '..\Source\BCControls.Utils.pas',
   BCControls.ButtonedEdit in '..\Source\BCControls.ButtonedEdit.pas',
   BCControls.ProgressBar in '..\Source\BCControls.ProgressBar.pas',
-  BCControls.ColorComboBox in '..\Source\BCControls.ColorComboBox.pas',
   BCControls.GroupBox in '..\Source\BCControls.GroupBox.pas',
   BCControls.ScrollBox in '..\Source\BCControls.ScrollBox.pas',
   BCControls.DateEdit in '..\Source\BCControls.DateEdit.pas',

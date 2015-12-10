@@ -767,7 +767,7 @@ end;
 
 procedure TBCFileTreeView.SetFileType(NewFileType: string);
 begin
-  if UpperCase(NewFileType) <> UpperCase(FFileType) then
+  if AnsiUpperCase(NewFileType) <> AnsiUpperCase(FFileType) then
   begin
     FFileType := NewFileType;
     if not (csDesigning in ComponentState) then
@@ -832,6 +832,7 @@ var
   FileName: string;
   Data: PBCFileTreeNodeRec;
   DriveRemote: Boolean;
+  LRootDirectory: string;
 begin
   BeginUpdate;
   ANode := GetFirst;
@@ -840,13 +841,14 @@ begin
   NodeDataSize := SizeOf(TBCFileTreeNodeRec);
 
   DriveRemote := GetDriveRemote;
+  {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
+  LRootDirectory := IncludeTrailingBackslash(RootDirectory);
+  {$WARNINGS ON}
 
   if not ExcludeOtherBranches then
     FindFile := FindFirst(GetDrive + ':\*.*', faAnyFile, SR)
   else
-    {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
-    FindFile := FindFirst(IncludeTrailingBackslash(RootDirectory) + '*.*', faAnyFile, SR);
-    {$WARNINGS ON}
+    FindFile := FindFirst(LRootDirectory + '*.*', faAnyFile, SR);
 
   if FindFile = 0 then
   try
@@ -859,7 +861,7 @@ begin
           Continue;
       {$WARNINGS ON}
       if (SR.Name <> '.') and (SR.Name <> '..') then
-        if (SR.Attr and faDirectory <> 0) or (GetFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), GetFileType) then
+        if (SR.Attr and faDirectory <> 0) or (FFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), FFileType) then
         begin
           ANode := AddChild(nil);
 
@@ -868,7 +870,7 @@ begin
             FileName := GetDrive + ':\' + SR.Name
           else
             {$WARNINGS OFF}
-            FileName := IncludeTrailingBackslash(RootDirectory) + SR.Name;
+            FileName := LRootDirectory + SR.Name;
             {$WARNINGS ON}
           if (SR.Attr and faDirectory <> 0) then
           begin
@@ -883,9 +885,7 @@ begin
             if not ExcludeOtherBranches then
               Data.FullPath := GetDrive + ':\'
             else
-              {$WARNINGS OFF}
-              Data.FullPath := IncludeTrailingBackslash(RootDirectory);
-              {$WARNINGS ON}
+              Data.FullPath := LRootDirectory;
           end;
           if not DriveRemote then
             if not CheckAccessToFile(FILE_GENERIC_READ, Filename) then //Data.FullPath) then
@@ -988,7 +988,7 @@ begin
     TempPath := Copy(TempPath, Pos('\', TempPath) + 1, Length(TempPath));
 
   CurNode := GetFirst;
-  while TempPath <> '' do //Pos('\', TempPath) > 0 do
+  while TempPath <> '' do
   begin
     if Pos('\', TempPath) <> 0 then
       Directory := Copy(TempPath, 1, Pos('\', TempPath)-1)
@@ -1177,10 +1177,8 @@ begin
     if Length(S) > 0 then
     begin
       with R do
-      begin
         if (NodeWidth - 2 * Margin) > (Right - Left) then
           S := ShortenString(Canvas.Handle, S, Right - Left);
-      end;
       DrawTextW(Canvas.Handle, PWideChar(S), Length(S), R, DT_TOP or DT_LEFT or DT_VCENTER or DT_SINGLELINE);
     end;
   end;
@@ -1188,10 +1186,6 @@ end;
 
 function TBCFileTreeView.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
   var Ghosted: Boolean; var Index: Integer): TCustomImageList;
-//function TBCFileTreeView.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-//  var Ghosted: Boolean; var Index: Integer): TCustomImageList;
-//function TBCFileTreeView.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-//  var Ghosted: Boolean; var Index: TImageIndex): TCustomImageList;
 var
   Data: PBCFileTreeNodeRec;
 begin
@@ -1305,8 +1299,9 @@ var
   Data, ChildData: PBCFileTreeNodeRec;
   SR: TSearchRec;
   ChildNode: PVirtualNode;
-  FName: String;
+  FName: string;
   DriveRemote: Boolean;
+  LFullPath: string;
 begin
   Result := True;
 
@@ -1315,10 +1310,16 @@ begin
   DriveRemote := GetDriveRemote;
 
   {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
-  if FindFirst(IncludeTrailingBackslash(Data.FullPath) + '*.*', faAnyFile, SR) = 0 then
+  LFullPath := IncludeTrailingBackslash(Data.FullPath);
   {$WARNINGS OFF}
+  if FindFirst(LFullPath + '*.*', faAnyFile, SR) = 0 then
   begin
     Screen.Cursor := crHourGlass;
+
+    {TDirectory.GetDirectories
+    TDirectory.GetFiles
+    kts. BCCommon.FileUtils GetFiles  }
+
     try
       repeat
         {$WARNINGS OFF}
@@ -1326,11 +1327,11 @@ begin
           ((SR.Attr and faArchive <> 0) and not ShowArchiveFiles) or
           ((SR.Attr and faSysFile <> 0) and not ShowSystemFiles) then
           Continue;
-
-        FName := IncludeTrailingBackslash(Data.FullPath) + SR.Name; //StrPas(Win32FD.cFileName);
         {$WARNINGS ON}
+        FName := LFullPath + SR.Name;
+
         if (SR.Name <> '.') and (SR.Name <> '..') then
-          if (SR.Attr and faDirectory <> 0) or (GetFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), GetFileType) then
+          if (SR.Attr and faDirectory <> 0) or (FFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), FFileType) then
           begin
             ChildNode := AddChild(Node);
             ChildData := GetNodeData(ChildNode);
@@ -1346,7 +1347,7 @@ begin
             begin
               ChildData.FileType := ftFile;
               {$WARNINGS OFF}
-              ChildData.FullPath := IncludeTrailingBackslash(Data.FullPath);
+              ChildData.FullPath := LFullPath;
               {$WARNINGS ON}
             end;
             if not DriveRemote then
