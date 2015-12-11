@@ -1,4 +1,4 @@
-package BCControlsRXE8;
+package BCControls.Delphi.XE8.Runtime;
 
 {$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
@@ -37,7 +37,7 @@ requires
   xmlrtl,
   vclactnband,
   VirtualTreesR,
-  BCComponentsRXE8;
+  BCComponents.Delphi.XE8.Runtime;
 
 contains
   BCControls.GroupLabel in '..\Source\BCControls.GroupLabel.pas',

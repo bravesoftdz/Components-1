@@ -1,4 +1,4 @@
-package BCControlsDXE8;
+package BCControls.Delphi.XE8.Designtime;
 
 {$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
@@ -29,7 +29,7 @@ package BCControlsDXE8;
 
 requires
   rtl,
-  BCControlsRXE8;
+  BCControls.Delphi.XE8.Runtime;
 
 contains
   BCControls.Register in '..\Source\BCControls.Register.pas';

@@ -1,7 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{122E9405-2D03-4267-8BBE-45C64BC0E20D}</ProjectGuid>
-        <MainSource>BCControlsDXE8.dpk</MainSource>
+        <MainSource>BCControls.Delphi.XE8.Designtime.dpk</MainSource>
         <ProjectVersion>17.2</ProjectVersion>
         <FrameworkType>None</FrameworkType>
         <Base>True</Base>
@@ -70,7 +70,7 @@
         <VerInfo_Locale>1035</VerInfo_Locale>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
-        <SanitizedProjectName>BCControlsDXE8</SanitizedProjectName>
+        <SanitizedProjectName>BCControls_Delphi_XE8_Designtime</SanitizedProjectName>
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
         <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
@@ -151,7 +151,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
-        <DCCReference Include="BCControlsRXE8.dcp"/>
+        <DCCReference Include="BCControls.Delphi.XE8.Runtime.dcp"/>
         <DCCReference Include="..\Source\BCControls.Register.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
@@ -171,7 +171,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">BCControlsDXE8.dpk</Source>
+                    <Source Name="MainSource">BCControls.Delphi.XE8.Designtime.dpk</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclDataSnapFireDAC210.bpl">Embarcadero DataSnap FireDAC</Excluded_Packages>
@@ -200,9 +200,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\16.0\Bpl\BCControlsDXE8.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\16.0\Bpl\BCControls.Delphi.XE8.Designtime.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>BCControlsDXE8.bpl</RemoteName>
+                        <RemoteName>BCControls_Delphi_XE8_Designtime.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -524,13 +524,13 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
+                <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>
             </Deployment>
             <Platforms>
                 <Platform value="Android">False</Platform>
