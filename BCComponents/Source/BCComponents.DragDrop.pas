@@ -3,13 +3,12 @@ unit BCComponents.DragDrop;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, Winapi.ActiveX, System.Classes, System.WideStrings, Vcl.Controls;
+  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, Winapi.ActiveX, System.Classes, Vcl.Controls;
 
 type
   TBCDropEvent = procedure(Sender: TObject; Pos: TPoint; Value: TStrings) of object;
   TBCDropEffect = (deNone, deCopy, deMove, deLink, deScroll);
 
-  [ComponentPlatformsAttribute(pidWin32 or pidWin64)]
   TBCDragDrop = class(TComponent)
   private
     FAcceptDrag: Boolean;

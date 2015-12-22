@@ -11,7 +11,6 @@ type
 
   TBCHookOrder = (hoBeforeMsg, hoAfterMsg);
 
-  [ComponentPlatformsAttribute(pidWin32 or pidWin64)]
   TBCWindowHook = class(TComponent)
   private
     FActive: Boolean;
@@ -44,9 +43,7 @@ type
   end;
 
 function RegisterWndProcHook(AControl: TControl; Hook: TBCControlHook; const Order: TBCHookOrder): Boolean; overload;
-function RegisterWndProcHook(AHandle: THandle; Hook: TBCControlHook; const Order: TBCHookOrder): Boolean; overload;
 function UnRegisterWndProcHook(AControl: TControl; Hook: TBCControlHook; const Order: TBCHookOrder): Boolean; overload;
-function UnRegisterWndProcHook(AHandle: THandle; Hook: TBCControlHook; const Order: TBCHookOrder): Boolean; overload;
 procedure ReleaseObj(AObject: TObject);
 
 implementation
@@ -134,14 +131,14 @@ type
   end;
 
 var
-  GJvWndProcHook: TBCWndProcHook = nil;
+  GWndProcHook: TBCWndProcHook = nil;
   GReleaser: TBCReleaser = nil;
 
 function WndProcHook: TBCWndProcHook;
 begin
-  if GJvWndProcHook = nil then
-    GJvWndProcHook := TBCWndProcHook.Create(nil);
-  Result := GJvWndProcHook;
+  if GWndProcHook = nil then
+    GWndProcHook := TBCWndProcHook.Create(nil);
+  Result := GWndProcHook;
 end;
 
 function RegisterWndProcHook(AControl: TControl; Hook: TBCControlHook; const Order: TBCHookOrder): Boolean;
@@ -149,19 +146,9 @@ begin
   Result := WndProcHook.RegisterWndProc(AControl, Hook, Order);
 end;
 
-function RegisterWndProcHook(AHandle: THandle; Hook: TBCControlHook; const Order: TBCHookOrder): Boolean;
-begin
-  Result := WndProcHook.RegisterWndProc(AHandle, Hook, Order);
-end;
-
 function UnRegisterWndProcHook(AControl: TControl; Hook: TBCControlHook; const Order: TBCHookOrder): Boolean;
 begin
   Result := WndProcHook.UnRegisterWndProc(AControl, Hook, Order);
-end;
-
-function UnRegisterWndProcHook(AHandle: THandle; Hook: TBCControlHook; const Order: TBCHookOrder): Boolean;
-begin
-  Result := WndProcHook.UnRegisterWndProc(AHandle, Hook, Order);
 end;
 
 procedure ReleaseObj(AObject: TObject);
@@ -805,7 +792,8 @@ initialization
 finalization
 
   GReleaser.Free;
-  FreeAndNil(GJvWndProcHook);
+  if Assigned(GWndProcHook) then
+    FreeAndNil(GWndProcHook);
   GReleaser := nil;
 
 end.
