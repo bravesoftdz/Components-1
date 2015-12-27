@@ -1,7 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{12D47407-9F37-427C-ADA5-2EA423F58708}</ProjectGuid>
-        <MainSource>BCComponentsRXE7.dpk</MainSource>
+        <MainSource>BCComponentRXE7.dpk</MainSource>
         <ProjectVersion>17.2</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
@@ -63,7 +63,7 @@
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
-        <SanitizedProjectName>BCComponentsRXE7</SanitizedProjectName>
+        <SanitizedProjectName>BCComponentRXE7</SanitizedProjectName>
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
         <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
@@ -139,12 +139,12 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="acntDelphiXE7_R.dcp"/>
-        <DCCReference Include="..\Source\BCComponents.MultiStringHolder.pas"/>
-        <DCCReference Include="..\Source\BCComponents.SkinManager.pas"/>
-        <DCCReference Include="..\Source\BCComponents.TitleBar.pas"/>
-        <DCCReference Include="..\Source\BCComponents.SkinProvider.pas"/>
-        <DCCReference Include="..\Source\BCComponents.DragDrop.pas"/>
-        <DCCReference Include="..\Source\BCComponents.WndProcHook.pas"/>
+        <DCCReference Include="..\Source\BCComponent.MultiStringHolder.pas"/>
+        <DCCReference Include="..\Source\BCComponent.SkinManager.pas"/>
+        <DCCReference Include="..\Source\BCComponent.TitleBar.pas"/>
+        <DCCReference Include="..\Source\BCComponent.SkinProvider.pas"/>
+        <DCCReference Include="..\Source\BCComponent.DragDrop.pas"/>
+        <DCCReference Include="..\Source\BCComponent.WndProcHook.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -163,7 +163,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">BCComponentsRXE7.dpk</Source>
+                    <Source Name="MainSource">BCComponentRXE7.dpk</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclDataSnapFireDAC210.bpl">Embarcadero DataSnap FireDAC</Excluded_Packages>
@@ -182,9 +182,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\15.0\Bpl\BCComponentsRXE7.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\15.0\Bpl\BCComponentRXE7.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>BCComponentsRXE7.bpl</RemoteName>
+                        <RemoteName>BCComponentRXE7.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

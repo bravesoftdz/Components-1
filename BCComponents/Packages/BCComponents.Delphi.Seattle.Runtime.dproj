@@ -63,7 +63,7 @@
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
-        <SanitizedProjectName>BCComponents_Delphi_Seattle_Runtime</SanitizedProjectName>
+        <SanitizedProjectName>BCComponent_Delphi_Seattle_Runtime</SanitizedProjectName>
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
         <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
@@ -139,12 +139,12 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="acntDX10_R.dcp"/>
-        <DCCReference Include="..\Source\BCComponents.MultiStringHolder.pas"/>
-        <DCCReference Include="..\Source\BCComponents.SkinManager.pas"/>
-        <DCCReference Include="..\Source\BCComponents.TitleBar.pas"/>
-        <DCCReference Include="..\Source\BCComponents.SkinProvider.pas"/>
-        <DCCReference Include="..\Source\BCComponents.DragDrop.pas"/>
-        <DCCReference Include="..\Source\BCComponents.WndProcHook.pas"/>
+        <DCCReference Include="..\Source\BCComponent.MultiStringHolder.pas"/>
+        <DCCReference Include="..\Source\BCComponent.SkinManager.pas"/>
+        <DCCReference Include="..\Source\BCComponent.TitleBar.pas"/>
+        <DCCReference Include="..\Source\BCComponent.SkinProvider.pas"/>
+        <DCCReference Include="..\Source\BCComponent.DragDrop.pas"/>
+        <DCCReference Include="..\Source\BCComponent.WndProcHook.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -176,7 +176,7 @@
             <Deployment Version="2">
                 <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\17.0\Bpl\BCComponents.Delphi.Seattle.Runtime.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>BCComponents_Delphi_Seattle_Runtime.bpl</RemoteName>
+                        <RemoteName>BCComponent_Delphi_Seattle_Runtime.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

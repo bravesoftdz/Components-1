@@ -139,12 +139,24 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="acntDelphiXE8_R.dcp"/>
-        <DCCReference Include="..\Source\BCComponents.MultiStringHolder.pas"/>
-        <DCCReference Include="..\Source\BCComponents.SkinManager.pas"/>
-        <DCCReference Include="..\Source\BCComponents.TitleBar.pas"/>
-        <DCCReference Include="..\Source\BCComponents.SkinProvider.pas"/>
-        <DCCReference Include="..\Source\BCComponents.DragDrop.pas"/>
-        <DCCReference Include="..\Source\BCComponents.WndProcHook.pas"/>
+        <DCCReference Include="..\Source\BCComponent.MultiStringHolder.pas">
+            <ModuleName>BCComponent.MultiStringHolder</ModuleName>
+        </DCCReference>
+        <DCCReference Include="..\Source\BCComponent.SkinManager.pas">
+            <ModuleName>BCComponent.SkinManager</ModuleName>
+        </DCCReference>
+        <DCCReference Include="..\Source\BCComponent.TitleBar.pas">
+            <ModuleName>BCComponent.TitleBar</ModuleName>
+        </DCCReference>
+        <DCCReference Include="..\Source\BCComponent.SkinProvider.pas">
+            <ModuleName>BCComponent.SkinProvider</ModuleName>
+        </DCCReference>
+        <DCCReference Include="..\Source\BCComponent.DragDrop.pas">
+            <ModuleName>BCComponent.DragDrop</ModuleName>
+        </DCCReference>
+        <DCCReference Include="..\Source\BCComponent.WndProcHook.pas">
+            <ModuleName>BCComponent.WndProcHook</ModuleName>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -174,17 +186,17 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="1">
+                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\16.0\Bpl\BCComponents.Delphi.XE8.Runtime.bpl" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>BCComponent_Delphi_XE8_Runtime.bpl</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
                         <Overwrite>true</Overwrite>
                     </Platform>
                     <Platform Name="iOSSimulator">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\16.0\Bpl\BCComponents.Delphi.XE8.Runtime.bpl" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>BCComponents_Delphi_XE8_Runtime.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -511,8 +523,8 @@
                 <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME)"/>
             </Deployment>
             <Platforms>
                 <Platform value="Android">False</Platform>

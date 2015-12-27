@@ -32,6 +32,6 @@ requires
   BCComponents.Delphi.Seattle.Runtime;
 
 contains
-  BCComponents.Register in '..\Source\BCComponents.Register.pas';
+  BCComponent.Register in '..\Source\BCComponent.Register.pas';
 
 end.

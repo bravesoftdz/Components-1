@@ -32,11 +32,11 @@ requires
   acntDelphiXE7_R;
 
 contains
-  BCComponents.MultiStringHolder in '..\Source\BCComponents.MultiStringHolder.pas',
-  BCComponents.SkinManager in '..\Source\BCComponents.SkinManager.pas',
-  BCComponents.TitleBar in '..\Source\BCComponents.TitleBar.pas',
-  BCComponents.SkinProvider in '..\Source\BCComponents.SkinProvider.pas',
-  BCComponents.DragDrop in '..\Source\BCComponents.DragDrop.pas',
-  BCComponents.WndProcHook in '..\Source\BCComponents.WndProcHook.pas';
+  BCComponent.MultiStringHolder in '..\Source\BCComponent.MultiStringHolder.pas',
+  BCComponent.SkinManager in '..\Source\BCComponent.SkinManager.pas',
+  BCComponent.TitleBar in '..\Source\BCComponent.TitleBar.pas',
+  BCComponent.SkinProvider in '..\Source\BCComponent.SkinProvider.pas',
+  BCComponent.DragDrop in '..\Source\BCComponent.DragDrop.pas',
+  BCComponent.WndProcHook in '..\Source\BCComponent.WndProcHook.pas';
 
 end.

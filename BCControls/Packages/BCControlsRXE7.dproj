@@ -1,7 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{A8FB3250-904E-49B2-9112-BB20EE3C244A}</ProjectGuid>
-        <MainSource>BCControlsRXE7.dpk</MainSource>
+        <MainSource>BCControlRXE7.dpk</MainSource>
         <ProjectVersion>17.2</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
@@ -61,12 +61,12 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <DCC_UnitSearchPath>$(BONECODE_ROOT)\Components\BCComponents\Source;$(BONECODE_ROOT)\Components\VirtualTree\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>$(BONECODE_ROOT)\Components\BCComponent\Source;$(BONECODE_ROOT)\Components\VirtualTree\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1035</VerInfo_Locale>
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
-        <SanitizedProjectName>BCControlsRXE7</SanitizedProjectName>
+        <SanitizedProjectName>BCControlRXE7</SanitizedProjectName>
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
         <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
@@ -149,30 +149,30 @@
         <DCCReference Include="xmlrtl.dcp"/>
         <DCCReference Include="vclactnband.dcp"/>
         <DCCReference Include="VirtualTreesR.dcp"/>
-        <DCCReference Include="BCComponentsRXE7.dcp"/>
-        <DCCReference Include="..\Source\BCControls.GroupLabel.pas"/>
-        <DCCReference Include="..\Source\BCControls.ComboBox.pas"/>
-        <DCCReference Include="..\Source\BCControls.RadioButton.pas"/>
-        <DCCReference Include="..\Source\BCControls.ToolBar.pas"/>
-        <DCCReference Include="..\Source\BCControls.Panel.pas"/>
-        <DCCReference Include="..\Source\BCControls.StatusBar.pas"/>
-        <DCCReference Include="..\Source\BCControls.Button.pas"/>
-        <DCCReference Include="..\Source\BCControls.SpeedButton.pas"/>
-        <DCCReference Include="..\Source\BCControls.Splitter.pas"/>
-        <DCCReference Include="..\Source\BCControls.Labels.pas"/>
-        <DCCReference Include="..\Source\BCControls.PageControl.pas"/>
-        <DCCReference Include="..\Source\BCControls.FileControl.pas"/>
-        <DCCReference Include="..\Source\BCControls.Edit.pas"/>
-        <DCCReference Include="..\Source\BCControls.ImageList.pas"/>
-        <DCCReference Include="..\Source\BCControls.Language.pas"/>
-        <DCCReference Include="..\Source\BCControls.Utils.pas"/>
-        <DCCReference Include="..\Source\BCControls.ButtonedEdit.pas"/>
-        <DCCReference Include="..\Source\BCControls.ProgressBar.pas"/>
-        <DCCReference Include="..\Source\BCControls.GroupBox.pas"/>
-        <DCCReference Include="..\Source\BCControls.ScrollBox.pas"/>
-        <DCCReference Include="..\Source\BCControls.DateEdit.pas"/>
-        <DCCReference Include="..\Source\BCControls.ProgressPanel.pas"/>
-        <DCCReference Include="..\Source\BCControls.StringGrid.pas"/>
+        <DCCReference Include="BCComponentRXE7.dcp"/>
+        <DCCReference Include="..\Source\BCControl.GroupLabel.pas"/>
+        <DCCReference Include="..\Source\BCControl.ComboBox.pas"/>
+        <DCCReference Include="..\Source\BCControl.RadioButton.pas"/>
+        <DCCReference Include="..\Source\BCControl.ToolBar.pas"/>
+        <DCCReference Include="..\Source\BCControl.Panel.pas"/>
+        <DCCReference Include="..\Source\BCControl.StatusBar.pas"/>
+        <DCCReference Include="..\Source\BCControl.Button.pas"/>
+        <DCCReference Include="..\Source\BCControl.SpeedButton.pas"/>
+        <DCCReference Include="..\Source\BCControl.Splitter.pas"/>
+        <DCCReference Include="..\Source\BCControl.Labels.pas"/>
+        <DCCReference Include="..\Source\BCControl.PageControl.pas"/>
+        <DCCReference Include="..\Source\BCControl.FileControl.pas"/>
+        <DCCReference Include="..\Source\BCControl.Edit.pas"/>
+        <DCCReference Include="..\Source\BCControl.ImageList.pas"/>
+        <DCCReference Include="..\Source\BCControl.Language.pas"/>
+        <DCCReference Include="..\Source\BCControl.Utils.pas"/>
+        <DCCReference Include="..\Source\BCControl.ButtonedEdit.pas"/>
+        <DCCReference Include="..\Source\BCControl.ProgressBar.pas"/>
+        <DCCReference Include="..\Source\BCControl.GroupBox.pas"/>
+        <DCCReference Include="..\Source\BCControl.ScrollBox.pas"/>
+        <DCCReference Include="..\Source\BCControl.DateEdit.pas"/>
+        <DCCReference Include="..\Source\BCControl.ProgressPanel.pas"/>
+        <DCCReference Include="..\Source\BCControl.StringGrid.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -191,7 +191,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">BCControlsRXE7.dpk</Source>
+                    <Source Name="MainSource">BCControlRXE7.dpk</Source>
                 </Source>
                 <Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclDataSnapFireDAC210.bpl">Embarcadero DataSnap FireDAC</Excluded_Packages>
@@ -202,9 +202,9 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="1">
-                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\15.0\Bpl\BCControlsRXE7.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\15.0\Bpl\BCControlRXE7.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>BCControlsRXE7.bpl</RemoteName>
+                        <RemoteName>BCControlRXE7.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

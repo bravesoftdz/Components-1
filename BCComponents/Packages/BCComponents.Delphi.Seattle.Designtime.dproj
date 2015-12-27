@@ -69,7 +69,7 @@
         <VerInfo_Locale>1035</VerInfo_Locale>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
-        <SanitizedProjectName>BCComponents_Delphi_Seattle_Designtime</SanitizedProjectName>
+        <SanitizedProjectName>BCComponent_Delphi_Seattle_Designtime</SanitizedProjectName>
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
         <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
@@ -117,14 +117,14 @@
         <DCC_UsePackage>rtl;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_UsePackage>rtl;BCComponentsRXE7;BCComponentsRXE8;BCComponents.Delphi.Seattle.Runtime;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>rtl;BCComponentRXE7;BCComponentRXE8;BCComponents.Delphi.Seattle.Runtime;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_UsePackage>rtl;BCComponentsRXE8;BCComponents.Delphi.Seattle.Runtime;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>rtl;BCComponentRXE8;BCComponents.Delphi.Seattle.Runtime;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
@@ -151,7 +151,7 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="BCComponents.Delphi.Seattle.Runtime.dcp"/>
-        <DCCReference Include="..\Source\BCComponents.Register.pas"/>
+        <DCCReference Include="..\Source\BCComponent.Register.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -203,7 +203,7 @@
                 </DeployFile>
                 <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\17.0\Bpl\BCComponents.Delphi.Seattle.Designtime.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>BCComponents_Delphi_Seattle_Designtime.bpl</RemoteName>
+                        <RemoteName>BCComponent_Delphi_Seattle_Designtime.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
