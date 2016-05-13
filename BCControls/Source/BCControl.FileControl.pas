@@ -1157,7 +1157,7 @@ begin
     begin
       Canvas.Font.Style := [fsItalic];
       if Assigned(SkinManager) then
-        Canvas.Font.Color := MixColors(ColorToRGB(Font.Color), GetControlColor(Parent), DefDisabledBlend)
+        Canvas.Font.Color := BlendColors(ColorToRGB(Font.Color), GetControlColor(Parent), DefBlendDisabled)
       else
         Canvas.Font.Color := clBtnFace;
     end;
