@@ -1,0 +1,67 @@
+package BCControls.Delphi.Berlin.Runtime;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl,
+  vclx,
+  vclimg,
+  acntDX10Berlin_R,
+  xmlrtl,
+  vclactnband,
+  VirtualTreesR,
+  BCComponents.Delphi.Berlin.Runtime;
+
+contains
+  BCControl.GroupLabel in '..\Source\BCControl.GroupLabel.pas',
+  BCControl.ComboBox in '..\Source\BCControl.ComboBox.pas',
+  BCControl.RadioButton in '..\Source\BCControl.RadioButton.pas',
+  BCControl.ToolBar in '..\Source\BCControl.ToolBar.pas',
+  BCControl.Panel in '..\Source\BCControl.Panel.pas',
+  BCControl.StatusBar in '..\Source\BCControl.StatusBar.pas',
+  BCControl.Button in '..\Source\BCControl.Button.pas',
+  BCControl.SpeedButton in '..\Source\BCControl.SpeedButton.pas',
+  BCControl.Splitter in '..\Source\BCControl.Splitter.pas',
+  BCControl.Labels in '..\Source\BCControl.Labels.pas',
+  BCControl.PageControl in '..\Source\BCControl.PageControl.pas',
+  BCControl.FileControl in '..\Source\BCControl.FileControl.pas',
+  BCControl.Edit in '..\Source\BCControl.Edit.pas',
+  BCControl.ImageList in '..\Source\BCControl.ImageList.pas',
+  BCControl.Language in '..\Source\BCControl.Language.pas',
+  BCControl.Utils in '..\Source\BCControl.Utils.pas',
+  BCControl.ButtonedEdit in '..\Source\BCControl.ButtonedEdit.pas',
+  BCControl.ProgressBar in '..\Source\BCControl.ProgressBar.pas',
+  BCControl.GroupBox in '..\Source\BCControl.GroupBox.pas',
+  BCControl.ScrollBox in '..\Source\BCControl.ScrollBox.pas',
+  BCControl.DateEdit in '..\Source\BCControl.DateEdit.pas',
+  BCControl.ProgressPanel in '..\Source\BCControl.ProgressPanel.pas',
+  BCControl.StringGrid in '..\Source\BCControl.StringGrid.pas';
+
+end.
