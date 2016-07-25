@@ -1,4 +1,4 @@
-package BCComponents.Delphi.XE8.Runtime;
+package BCComponents.Delphi.Berlin.Runtime;
 
 {$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
@@ -29,7 +29,7 @@ package BCComponents.Delphi.XE8.Runtime;
 {$IMPLICITBUILD ON}
 
 requires
-  acntDelphiXE8_R;
+  acntDX10Berlin_R;
 
 contains
   BCComponent.MultiStringHolder in '..\Source\BCComponent.MultiStringHolder.pas',

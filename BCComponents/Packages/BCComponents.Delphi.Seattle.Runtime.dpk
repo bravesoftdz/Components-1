@@ -35,7 +35,6 @@ contains
   BCComponent.MultiStringHolder in '..\Source\BCComponent.MultiStringHolder.pas',
   BCComponent.SkinManager in '..\Source\BCComponent.SkinManager.pas',
   BCComponent.TitleBar in '..\Source\BCComponent.TitleBar.pas',
-  BCComponent.SkinProvider in '..\Source\BCComponent.SkinProvider.pas',
   BCComponent.DragDrop in '..\Source\BCComponent.DragDrop.pas',
   BCComponent.WndProcHook in '..\Source\BCComponent.WndProcHook.pas';
 

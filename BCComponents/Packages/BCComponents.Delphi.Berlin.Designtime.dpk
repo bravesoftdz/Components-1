@@ -1,4 +1,4 @@
-package BCComponents.Delphi.XE8.Runtime;
+package BCComponents.Delphi.Berlin.Designtime;
 
 {$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
@@ -25,17 +25,13 @@ package BCComponents.Delphi.XE8.Runtime;
 {$IMAGEBASE $400000}
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
-{$RUNONLY}
 {$IMPLICITBUILD ON}
 
 requires
-  acntDelphiXE8_R;
+  rtl,
+  BCComponents.Delphi.Berlin.Runtime;
 
 contains
-  BCComponent.MultiStringHolder in '..\Source\BCComponent.MultiStringHolder.pas',
-  BCComponent.SkinManager in '..\Source\BCComponent.SkinManager.pas',
-  BCComponent.TitleBar in '..\Source\BCComponent.TitleBar.pas',
-  BCComponent.DragDrop in '..\Source\BCComponent.DragDrop.pas',
-  BCComponent.WndProcHook in '..\Source\BCComponent.WndProcHook.pas';
+  BCComponent.Register in '..\Source\BCComponent.Register.pas';
 
 end.

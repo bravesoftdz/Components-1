@@ -142,7 +142,6 @@
         <DCCReference Include="..\Source\BCComponent.MultiStringHolder.pas"/>
         <DCCReference Include="..\Source\BCComponent.SkinManager.pas"/>
         <DCCReference Include="..\Source\BCComponent.TitleBar.pas"/>
-        <DCCReference Include="..\Source\BCComponent.SkinProvider.pas"/>
         <DCCReference Include="..\Source\BCComponent.DragDrop.pas"/>
         <DCCReference Include="..\Source\BCComponent.WndProcHook.pas"/>
         <BuildConfiguration Include="Release">

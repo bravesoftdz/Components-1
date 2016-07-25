@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{AC2D0316-17BD-4A32-8B5D-A1985D2CC1D7}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="BCComponents.Delphi.Berlin.Runtime.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="BCComponents.Delphi.Berlin.Designtime.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="BCComponents_Delphi_Berlin_Runtime">
+        <MSBuild Projects="BCComponents.Delphi.Berlin.Runtime.dproj"/>
+    </Target>
+    <Target Name="BCComponents_Delphi_Berlin_Runtime:Clean">
+        <MSBuild Projects="BCComponents.Delphi.Berlin.Runtime.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BCComponents_Delphi_Berlin_Runtime:Make">
+        <MSBuild Projects="BCComponents.Delphi.Berlin.Runtime.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="BCComponents_Delphi_Berlin_Designtime">
+        <MSBuild Projects="BCComponents.Delphi.Berlin.Designtime.dproj"/>
+    </Target>
+    <Target Name="BCComponents_Delphi_Berlin_Designtime:Clean">
+        <MSBuild Projects="BCComponents.Delphi.Berlin.Designtime.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BCComponents_Delphi_Berlin_Designtime:Make">
+        <MSBuild Projects="BCComponents.Delphi.Berlin.Designtime.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="BCComponents_Delphi_Berlin_Runtime;BCComponents_Delphi_Berlin_Designtime"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="BCComponents_Delphi_Berlin_Runtime:Clean;BCComponents_Delphi_Berlin_Designtime:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="BCComponents_Delphi_Berlin_Runtime:Make;BCComponents_Delphi_Berlin_Designtime:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
