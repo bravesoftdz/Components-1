@@ -1186,8 +1186,8 @@ function TBCFileTreeView.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind;
 var
   Data: PBCFileTreeNodeRec;
 begin
-  Result := inherited;
-  if not Assigned(Result) then
+  Result := Images;
+  if Assigned(Result) then
   begin
     Data := GetNodeData(Node);
     if Assigned(Data) then
@@ -1236,7 +1236,7 @@ begin
     if Data.SaturateImage then
     begin
       if DoOverlay then
-        GetImageIndex(PaintInfo, ikOverlay, iiOverlay, Images)
+        GetImageIndex(PaintInfo, ikOverlay, iiOverlay)
       else
         PaintInfo.ImageInfo[iiOverlay].Index := -1;
       with ImageInfo[ImageInfoIndex] do
