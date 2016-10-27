@@ -62,6 +62,7 @@ contains
   BCControl.ScrollBox in '..\Source\BCControl.ScrollBox.pas',
   BCControl.DateEdit in '..\Source\BCControl.DateEdit.pas',
   BCControl.ProgressPanel in '..\Source\BCControl.ProgressPanel.pas',
-  BCControl.StringGrid in '..\Source\BCControl.StringGrid.pas';
+  BCControl.StringGrid in '..\Source\BCControl.StringGrid.pas',
+  BCControl.ObjectInspector in '..\Source\BCControl.ObjectInspector.pas';
 
 end.

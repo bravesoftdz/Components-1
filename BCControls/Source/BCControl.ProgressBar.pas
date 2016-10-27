@@ -39,8 +39,6 @@ end;
 
 procedure TBCProgressBar.StepIt;
 begin
-  if True then
-
   Progress := Trunc((FPosition / FCount) * 100);
   Inc(FPosition);
   if Assigned(FOnStepChange) then
