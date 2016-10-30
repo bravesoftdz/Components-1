@@ -3,9 +3,8 @@ unit BCControl.FileControl;
 interface
 
 uses
-  System.SysUtils, System.Classes, Vcl.Controls, Vcl.Graphics, Vcl.StdCtrls, Winapi.Messages, System.Types,
-  Winapi.Windows, VirtualTrees, Vcl.ImgList, BCControl.Edit, Vcl.ExtCtrls, {sCommonData,} sComboBox,
-  System.UITypes, sSkinManager;
+  Winapi.Windows, Winapi.Messages, System.Classes, System.SysUtils, System.Types, System.UITypes, Vcl.Controls,
+  Vcl.Graphics, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.ImgList, VirtualTrees, BCControl.Edit, sComboBox, sSkinManager;
 
 type
   TBCFileTreeView = class;
@@ -22,29 +21,30 @@ type
     FIconIndex: Integer;
     FFileTreeView: TBCFileTreeView;
     FSystemIconsImageList: TImageList;
-    { Can't use Items.Objects because those objects can't be destroyed in destructor because control has no parent
+    { Can't use Items.Objects because those objects can't be destroyed in destructor - control has no parent
       window anymore. }
     FDriveComboFileList: TList;
-    procedure SetFileTreeView(Value: TBCFileTreeView);
+    function GetDrive: Char;
+    procedure CMFontChanged(var AMessage: TMessage); message CM_FONTCHANGED;
+    procedure CNDrawItem(var AMessage: TWMDrawItem); message CN_DRAWITEM;
     procedure GetSystemIcons;
     procedure ResetItemHeight;
-    function GetDrive: Char;
-    procedure SetDrive(NewDrive: Char);
-    procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
-    procedure CNDrawItem(var Message: TWMDrawItem); message CN_DRAWITEM;
+    procedure SetDrive(ANewDrive: Char);
+    procedure SetFileTreeView(AValue: TBCFileTreeView);
   protected
-    procedure DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState); override;
-    procedure Change; override;
     procedure BuildList; virtual;
+    procedure Change; override;
+    procedure DrawItem(AIndex: Integer; ARect: TRect; AState: TOwnerDrawState); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
     procedure ClearItems;
     property Drive: Char read GetDrive write SetDrive;
     property FileTreeView: TBCFileTreeView read FFileTreeView write SetFileTreeView;
-    property SystemIconsImageList: TImageList read FSystemIconsImageList;
     property IconIndex: Integer read FIconIndex;
+    property SystemIconsImageList: TImageList read FSystemIconsImageList;
   end;
 
   TBCDriveComboBox = class(TBCCustomDriveComboBox)
@@ -98,22 +98,23 @@ type
     FFileTreeView: TBCFileTreeView;
     FFileTreeViewUpdateTimer: TTimer;
     function GetFileType: string;
+    procedure CMFontChanged(var AMessage: TMessage); message CM_FONTCHANGED;
+    procedure CNDrawItem(var AMessage: TWMDrawItem); message CN_DRAWITEM;
     procedure ResetItemHeight;
-    procedure SetFileTreeView(Value: TBCFileTreeView);
+    procedure SetFileTreeView(AValue: TBCFileTreeView);
     procedure SetFileTreeViewUpdateDelay(Value: Integer);
-    procedure SetExtensions(Value: string);
-    procedure SetFileType(Value: string);
+    procedure SetExtensions(const AValue: string);
+    procedure SetFileType(const AValue: string);
     procedure UpdateVirtualTree;
-    procedure CMFontChanged(var Message: TMessage); message CM_FONTCHANGED;
     procedure OnFileTreeViewUpdateDelayTimer(Sender: TObject);
-    procedure CNDrawItem(var Message: TWMDrawItem); message CN_DRAWITEM;
   protected
     procedure Change; override;
-    procedure DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState); override;
+    procedure DrawItem(AIndex: Integer; ARect: TRect; AState: TOwnerDrawState); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
     property Extensions: string write SetExtensions;
     property FileTreeViewUpdateDelay: Integer read FFileTreeViewUpdateDelay write SetFileTreeViewUpdateDelay;
     property FileTreeView: TBCFileTreeView read FFileTreeView write SetFileTreeView;
@@ -168,62 +169,49 @@ type
     property OnStartDrag;
   end;
 
-  TBCFileType = (ftNone, ftDirectory, ftFile, ftDirectoryAccessDenied, ftFileAccessDenied);
-
-  PBCFileTreeNodeRec = ^TBCFileTreeNodeRec;
-  TBCFileTreeNodeRec = record
-    FileType: TBCFileType;
-    SaturateImage: Boolean;
-    FullPath, Filename: string;
-    ImageIndex, SelectedIndex, OverlayIndex: Integer;
-  end;
-
   TBCFileTreeView = class(TVirtualDrawTree)
   private
+    FDefaultDirectoryPath: string;
     FDrive: Char;
     FDriveComboBox: TBCCustomDriveComboBox;
+    FExcludeOtherBranches: Boolean;
     FFileType: string;
     FFileTypeComboBox: TBCCustomFileTypeComboBox;
-    FShowHidden: Boolean;
-    FShowSystem: Boolean;
-    FShowArchive: Boolean;
-    FShowOverlayIcons: Boolean;
     FRootDirectory: string;
-    FDefaultDirectoryPath: string;
-    FExcludeOtherBranches: Boolean;
+    FShowArchive: Boolean;
+    FShowHidden: Boolean;
+    FShowOverlayIcons: Boolean;
+    FShowSystem: Boolean;
     FSkinManager: TsSkinManager;
-    procedure DriveChange(NewDrive: Char);
-    procedure SetDrive(Value: Char);
-    procedure SetFileType(NewFileType: string);
     function GetAImageIndex(Path: string): Integer;
-    function GetSelectedIndex(Path: string): Integer;
-    function GetFileType: string;
     function GetDrive: Char;
-    procedure BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);
-    function GetSelectedPath: string;
-    function GetSelectedFile: string;
-    function IsDirectoryEmpty(const Directory: string): Boolean;
     function GetDriveRemote: Boolean;
+    function GetFileType: string;
+    function GetSelectedFile: string;
+    function GetSelectedIndex(Path: string): Integer;
+    function GetSelectedPath: string;
+    function IsDirectoryEmpty(const Directory: string): Boolean;
+    procedure BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);
+    procedure DriveChange(NewDrive: Char);
+    procedure SetDrive(AValue: Char);
+    procedure SetFileType(const AValue: string);
   protected
     function DeleteTreeNode(Node: PVirtualNode): Boolean;
-    procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
-    procedure DoFreeNode(Node: PVirtualNode); override;
-    procedure DoPaintNode(var PaintInfo: TVTPaintInfo); override;
-    function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-      var Ghosted: Boolean; var Index: TImageIndex): TCustomImageList; override;
     function DoCompare(Node1, Node2: PVirtualNode; Column: TColumnIndex): Integer; override;
+    function DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink; override;
+    function DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var Index: TImageIndex): TCustomImageList; override;
     function DoGetNodeWidth(Node: PVirtualNode; Column: TColumnIndex; Canvas: TCanvas = nil): Integer; override;
     function DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean; override;
-    function DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink; override;
+    procedure DoFreeNode(ANode: PVirtualNode); override;
+    procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
+    procedure DoPaintNode(var PaintInfo: TVTPaintInfo); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure PaintImage(var PaintInfo: TVTPaintInfo; ImageInfoIndex: TVTImageInfoIndex; DoOverlay: Boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure CreateWnd; override;
-    procedure OpenPath(ARootDirectory: string; ADirectoryPath: string; AExcludeOtherBranches: Boolean;
-      ARefresh: Boolean = False);
+    procedure OpenPath(ARootDirectory: string; ADirectoryPath: string; AExcludeOtherBranches: Boolean; ARefresh: Boolean = False);
     procedure RenameSelectedNode;
     procedure DeleteSelectedNode;
     property Drive: Char read GetDrive write SetDrive;
@@ -254,12 +242,25 @@ type
     function EndEdit: Boolean; stdcall;
     function GetBounds: TRect; stdcall;
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
-    procedure ProcessMessage(var Message: TMessage); stdcall;
-    procedure SetBounds(R: TRect); stdcall;
+    procedure ProcessMessage(var AMessage: TMessage); stdcall;
+    procedure SetBounds(ARect: TRect); stdcall;
     procedure Copy;
     procedure Paste;
     procedure Cut;
   end;
+
+  TBCFileType = (ftNone, ftDirectory, ftFile, ftDirectoryAccessDenied, ftFileAccessDenied);
+
+  TBCFileTreeNodeRecord = record
+    FileType: TBCFileType;
+    SaturateImage: Boolean;
+    FullPath: string;
+    Filename: string;
+    ImageIndex: Integer;
+    SelectedIndex: Integer;
+    OverlayIndex: Integer;
+  end;
+  PBCFileTreeNodeRecord = ^TBCFileTreeNodeRecord;
 
 implementation
 
@@ -272,30 +273,30 @@ const
 
 function GetItemHeight(Font: TFont): Integer;
 var
-  DC: HDC;
-  SaveFont: HFont;
-  Metrics: TTextMetric;
+  LDC: HDC;
+  LSaveFont: HFont;
+  LMetrics: TTextMetric;
 begin
-  DC := GetDC(0);
-  SaveFont := SelectObject(DC, Font.Handle);
-  GetTextMetrics(DC, Metrics);
-  SelectObject(DC, SaveFont);
-  ReleaseDC(0, DC);
-  Result := Metrics.tmHeight;
+  LDC := GetDC(0);
+  LSaveFont := SelectObject(LDC, Font.Handle);
+  GetTextMetrics(LDC, LMetrics);
+  SelectObject(LDC, LSaveFont);
+  ReleaseDC(0, LDC);
+  Result := LMetrics.tmHeight;
 end;
 
 { TBCCustomDriveComboBox }
 
 constructor TBCCustomDriveComboBox.Create(AOwner: TComponent);
 var
-  Temp: string;
+  LDirectory: string;
 begin
   inherited Create(AOwner);
   Autosize := False;
   Style := csOwnerDrawFixed;
   GetSystemIcons;
-  GetDir(0, Temp);
-  FDrive := Temp[1]; { make default drive selected }
+  GetDir(0, LDirectory);
+  FDrive := LDirectory[1]; { make default drive selected }
   if FDrive = '\' then
     FDrive := #0;
   ResetItemHeight;
@@ -315,32 +316,30 @@ end;
 
 procedure TBCCustomDriveComboBox.BuildList;
 var
-  Drives: set of 0..25;
-  SHFileInfo: TSHFileInfo;
-  lp1: Integer;
-  Drv: string;
-  DriveComboFile: TDriveComboFile;
+  LDrives: set of 0..25;
+  LSHFileInfo: TSHFileInfo;
+  LP1: Integer;
+  LDrive: string;
+  LDriveComboFile: TDriveComboFile;
 begin
   Items.BeginUpdate;
 
   ClearItems;
-  Integer(Drives) := GetLogicalDrives;
+  Integer(LDrives) := GetLogicalDrives;
 
-  for lp1 := 0 to 25 do
+  for LP1 := 0 to 25 do
+  if LP1 in LDrives then
   begin
-    if (lp1 in Drives) then
-    begin
-      Drv := chr(ord('A') + lp1) + ':\';
-      SHGetFileInfo(PChar(Drv), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_SYSICONINDEX or SHGFI_DISPLAYNAME or SHGFI_TYPENAME);
-      DriveComboFile := TDriveComboFile.Create;
-      DriveComboFile.Drive := chr(ord('A') + lp1);
-      DriveComboFile.IconIndex := SHFileInfo.iIcon;
-      DriveComboFile.FileName := StrPas(SHFileInfo.szDisplayName);
-      Items.Add(StrPas(SHFileInfo.szDisplayName));
-      FDriveComboFileList.Add(DriveComboFile);
-      { destroy the icon, we are only using the index }
-      DestroyIcon(SHFileInfo.hIcon);
-    end;
+    LDrive := chr(ord('A') + LP1) + ':\';
+    SHGetFileInfo(PChar(LDrive), 0, LSHFileInfo, SizeOf(LSHFileInfo), SHGFI_SYSICONINDEX or SHGFI_DISPLAYNAME or SHGFI_TYPENAME);
+    LDriveComboFile := TDriveComboFile.Create;
+    LDriveComboFile.Drive := chr(ord('A') + LP1);
+    LDriveComboFile.IconIndex := LSHFileInfo.iIcon;
+    LDriveComboFile.FileName := StrPas(LSHFileInfo.szDisplayName);
+    Items.Add(StrPas(LSHFileInfo.szDisplayName));
+    FDriveComboFileList.Add(LDriveComboFile);
+    { destroy the icon, we are only using the index }
+    DestroyIcon(LSHFileInfo.hIcon);
   end;
   Items.EndUpdate;
 end;
@@ -350,36 +349,36 @@ begin
   Result := FDrive;
 end;
 
-procedure TBCCustomDriveComboBox.SetDrive(NewDrive: Char);
+procedure TBCCustomDriveComboBox.SetDrive(ANewDrive: Char);
 var
-  Item: Integer;
+  LItem: Integer;
 begin
-  if (ItemIndex < 0) or (UpCase(NewDrive) <> UpCase(FDrive)) then
+  if (ItemIndex < 0) or (UpCase(ANewDrive) <> UpCase(FDrive)) then
   begin
-    FDrive := NewDrive;
-    if NewDrive = #0 then
+    FDrive := ANewDrive;
+    if ANewDrive = #0 then
       ItemIndex := -1
     else
     { change selected item }
-    for Item := 0 to Items.Count - 1 do
-      if UpCase(NewDrive) = TDriveComboFile(FDriveComboFileList[Item]).Drive then
+    for LItem := 0 to Items.Count - 1 do
+      if UpCase(ANewDrive) = TDriveComboFile(FDriveComboFileList[LItem]).Drive then
       begin
-        ItemIndex := Item;
+        ItemIndex := LItem;
         Break;
       end;
     if ItemIndex <> -1 then
       FIconIndex := TDriveComboFile(FDriveComboFileList[ItemIndex]).IconIndex;
     if Assigned(FFileTreeView) then
-      FFileTreeView.DriveChange(NewDrive);
+      FFileTreeView.DriveChange(ANewDrive);
     Change;
   end;
 end;
 
-procedure TBCCustomDriveComboBox.SetFileTreeView(Value: TBCFileTreeView);
+procedure TBCCustomDriveComboBox.SetFileTreeView(AValue: TBCFileTreeView);
 begin
   if Assigned(FFileTreeView) then
     FFileTreeView.FDriveComboBox := nil;
-  FFileTreeView := Value;
+  FFileTreeView := AValue;
   if Assigned(FFileTreeView) then
   begin
     FFileTreeView.FDriveComboBox := Self;
@@ -387,14 +386,14 @@ begin
   end;
 end;
 
-procedure TBCCustomDriveComboBox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState);
+procedure TBCCustomDriveComboBox.DrawItem(AIndex: Integer; ARect: TRect; AState: TOwnerDrawState);
 begin
-  if Index = -1 then
+  if AIndex = -1 then
     Exit;
   { ensure the correct highlite color is used }
   if Assigned(SkinData) and Assigned(SkinData.SkinManager) and SkinData.SkinManager.Active then
   begin
-    if odSelected in State then
+    if odSelected in AState then
     begin
       Canvas.Brush.Color := SkinData.SkinManager.GetHighLightColor;
       Canvas.Font.Color := SkinData.SkinManager.GetHighLightFontColor
@@ -405,14 +404,14 @@ begin
       Canvas.Font.Color := SkinData.SkinManager.GetActiveEditFontColor;
     end;
   end;
-  Canvas.FillRect(Rect);
+  Canvas.FillRect(ARect);
   if FDriveComboFileList.Count > 0 then
   begin
     { draw the actual bitmap }
-    FSystemIconsImageList.Draw(Canvas, Rect.Left + 3, Rect.Top, TDriveComboFile(FDriveComboFileList[Index]).IconIndex);
+    FSystemIconsImageList.Draw(Canvas, ARect.Left + 3, ARect.Top, TDriveComboFile(FDriveComboFileList[AIndex]).IconIndex);
     { write the text }
-    Canvas.TextOut(Rect.Left + FSystemIconsImageList.Width + 7, Rect.Top + 2,
-      TDriveComboFile(FDriveComboFileList[Index]).FileName);
+    Canvas.TextOut(ARect.Left + FSystemIconsImageList.Width + 7, ARect.Top + 2,
+      TDriveComboFile(FDriveComboFileList[AIndex]).FileName);
   end;
 end;
 
@@ -424,7 +423,7 @@ begin
       Drive := TDriveComboFile(FDriveComboFileList[ItemIndex]).Drive[1];
 end;
 
-procedure TBCCustomDriveComboBox.CMFontChanged(var Message: TMessage);
+procedure TBCCustomDriveComboBox.CMFontChanged(var AMessage: TMessage);
 begin
   inherited;
   ResetItemHeight;
@@ -433,12 +432,12 @@ end;
 
 procedure TBCCustomDriveComboBox.ResetItemHeight;
 var
-  nuHeight: Integer;
+  LHeight: Integer;
 begin
-  nuHeight := GetItemHeight(Font);
-  if nuHeight < FSystemIconsImageList.Height then
-    nuHeight := FSystemIconsImageList.Height;
-  ItemHeight := nuHeight;
+  LHeight := GetItemHeight(Font);
+  if LHeight < FSystemIconsImageList.Height then
+    LHeight := FSystemIconsImageList.Height;
+  ItemHeight := LHeight;
 end;
 
 procedure TBCCustomDriveComboBox.GetSystemIcons;
@@ -447,8 +446,7 @@ begin
   FSystemIconsImageList.Handle := GetSysImageList;
 end;
 
-procedure TBCCustomDriveComboBox.Notification(AComponent: TComponent;
-  Operation: TOperation);
+procedure TBCCustomDriveComboBox.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited Notification(AComponent, Operation);
   if (Operation = opRemove) and (AComponent = FFileTreeView) then
@@ -457,34 +455,34 @@ end;
 
 procedure TBCCustomDriveComboBox.ClearItems;
 var
-  i: Integer;
+  LIndex: Integer;
 begin
    if not (csDesigning in ComponentState) then
   begin
-    for i := 0 to FDriveComboFileList.Count - 1 do
-      TDriveComboFile(FDriveComboFileList.Items[i]).Free;
+    for LIndex := 0 to FDriveComboFileList.Count - 1 do
+      TDriveComboFile(FDriveComboFileList.Items[LIndex]).Free;
     FDriveComboFileList.Clear;
     if not (csDestroying in ComponentState) then
       Clear; // can't clear if the component is being destroyed or there is an exception, 'no parent window'
   end;
 end;
 
-procedure TBCCustomDriveComboBox.CNDrawItem(var Message: TWMDrawItem);
+procedure TBCCustomDriveComboBox.CNDrawItem(var AMessage: TWMDrawItem);
 var
-  State: TOwnerDrawState;
+  LDrawState: TOwnerDrawState;
 begin
   if csDesigning in ComponentState then
     Exit;
-  with Message.DrawItemStruct^ do
+  with AMessage.DrawItemStruct^ do
   begin
-    State := TOwnerDrawState(LoWord(itemState));
+    LDrawState := TOwnerDrawState(LoWord(itemState));
     if ItemState and ODS_COMBOBOXEDIT <> 0 then
-      Include(State, odComboBoxEdit);
+      Include(LDrawState, odComboBoxEdit);
     if ItemState and ODS_DEFAULT <> 0 then
-      Include(State, odDefault);
+      Include(LDrawState, odDefault);
     Canvas.Handle := hDC;
     Canvas.Font := Font;
-   
+
     if Assigned(SkinData) and Assigned(SkinData.SkinManager) and SkinData.SkinManager.Active then
     begin
       Canvas.Brush.Color := SkinData.SkinManager.gd[SkinData.SkinIndex].Props[0].Color;
@@ -495,7 +493,7 @@ begin
       Canvas.Brush := Brush;
       Canvas.Font.Color := clWindowText;
     end;
-    if (Integer(itemID) >= 0) and (odSelected in State) then
+    if (Integer(itemID) >= 0) and (odSelected in LDrawState) then
     begin
       if Assigned(SkinData) and Assigned(SkinData.SkinManager) and SkinData.SkinManager.Active then
       begin
@@ -509,7 +507,7 @@ begin
       end;
     end;
     if Integer(ItemID) >= 0 then
-      DrawItem(ItemID, rcItem, State)
+      DrawItem(ItemID, rcItem, LDrawState)
     else
       Canvas.FillRect(rcItem);
     //if odFocused in State then DrawFocusRect(hDC, rcItem);
@@ -546,11 +544,11 @@ begin
     FFileTreeView.FileType := Text;
 end;
 
-procedure TBCCustomFileTypeComboBox.SetFileTreeView(Value: TBCFileTreeView);
+procedure TBCCustomFileTypeComboBox.SetFileTreeView(AValue: TBCFileTreeView);
 begin
   if Assigned(FFileTreeView) then
     FFileTreeView.FFileTypeComboBox := nil;
-  FFileTreeView := Value;
+  FFileTreeView := AValue;
   if Assigned(FFileTreeView) then
   begin
     FFileTreeView.FFileTypeComboBox := Self;
@@ -565,7 +563,7 @@ begin
     FFileTreeViewUpdateTimer.Interval := Value;
 end;
 
-procedure TBCCustomFileTypeComboBox.CMFontChanged(var Message: TMessage);
+procedure TBCCustomFileTypeComboBox.CMFontChanged(var AMessage: TMessage);
 begin
   inherited;
   ResetItemHeight;
@@ -577,9 +575,9 @@ begin
   Result := Text;
 end;
 
-procedure TBCCustomFileTypeComboBox.SetFileType(Value: string);
+procedure TBCCustomFileTypeComboBox.SetFileType(const AValue: string);
 begin
-  Text := Value;
+  Text := AValue;
 end;
 
 procedure TBCCustomFileTypeComboBox.ResetItemHeight;
@@ -591,6 +589,7 @@ procedure TBCCustomFileTypeComboBox.Notification(AComponent: TComponent;
   Operation: TOperation);
 begin
   inherited Notification(AComponent, Operation);
+
   if (Operation = opRemove) and (AComponent = FFileTreeView) then
     FFileTreeView := nil;
 end;
@@ -611,41 +610,41 @@ begin
   UpdateVirtualTree;
 end;
 
-procedure TBCCustomFileTypeComboBox.SetExtensions(Value: string);
+procedure TBCCustomFileTypeComboBox.SetExtensions(const AValue: string);
 var
-  Temp: string;
+  LValue: string;
 begin
-  Temp := Value;
+  LValue := AValue;
   with Items do
   begin
     Clear;
-    while Pos('|', Temp) <> 0 do
+    while Pos('|', LValue) <> 0 do
     begin
-      Add(Copy(Temp, 1, Pos('|', Temp) - 1));
-      Temp := Copy(Temp, Pos('|', Temp) + 1, Length(Temp));
+      Add(Copy(LValue, 1, Pos('|', LValue) - 1));
+      LValue := Copy(LValue, Pos('|', LValue) + 1, Length(LValue));
     end;
   end;
 end;
 
-procedure TBCCustomFileTypeComboBox.DrawItem(Index: Integer; Rect: TRect; State: TOwnerDrawState);
+procedure TBCCustomFileTypeComboBox.DrawItem(AIndex: Integer; ARect: TRect; AState: TOwnerDrawState);
 begin
   { ensure the correct highlite color is used }
-  Canvas.FillRect(Rect);
+  Canvas.FillRect(ARect);
   { write the text }
-  Canvas.TextOut(Rect.Left, Rect.Top + 2, Items[Index]);
+  Canvas.TextOut(ARect.Left, ARect.Top + 2, Items[AIndex]);
 end;
 
-procedure TBCCustomFileTypeComboBox.CNDrawItem(var Message: TWMDrawItem);
+procedure TBCCustomFileTypeComboBox.CNDrawItem(var AMessage: TWMDrawItem);
 var
-  State: TOwnerDrawState;
+  LDrawState: TOwnerDrawState;
 begin
-  with Message.DrawItemStruct{$IFNDEF CLR}^{$ENDIF} do
+  with AMessage.DrawItemStruct{$IFNDEF CLR}^{$ENDIF} do
   begin
-    State := TOwnerDrawState(LoWord(itemState));
-    if itemState and ODS_COMBOBOXEDIT <> 0 then
-      Include(State, odComboBoxEdit);
-    if itemState and ODS_DEFAULT <> 0 then
-      Include(State, odDefault);
+    LDrawState := TOwnerDrawState(LoWord(itemState));
+    if ItemState and ODS_COMBOBOXEDIT <> 0 then
+      Include(LDrawState, odComboBoxEdit);
+    if ItemState and ODS_DEFAULT <> 0 then
+      Include(LDrawState, odDefault);
     Canvas.Handle := hDC;
     Canvas.Font := Font;
     Canvas.Brush := Brush;
@@ -654,7 +653,7 @@ begin
       Canvas.Font.Color := SkinData.SkinManager.GetActiveEditFontColor
     else
       Canvas.Font.Color := clWindowText;
-    if (Integer(itemID) >= 0) and (odSelected in State) then
+    if (Integer(itemID) >= 0) and (odSelected in LDrawState) then
     begin
       if Assigned(SkinData) and Assigned(SkinData.SkinManager) and SkinData.SkinManager.Active then
       begin
@@ -668,7 +667,7 @@ begin
       end;
     end;
     if Integer(itemID) >= 0 then
-      DrawItem(itemID, rcItem, State)
+      DrawItem(itemID, rcItem, LDrawState)
     else
       Canvas.FillRect(rcItem);
     //if odFocused in State then DrawFocusRect(hDC, rcItem);
@@ -680,11 +679,9 @@ end;
 
 constructor TBCFileTreeView.Create;
 var
-  SysImageList: THandle;
+  LSysImageList: THandle;
 begin
   inherited Create(AOwner);
-
-  //FCommonData := TsCtrlSkinData.Create(Self, True);
 
   DragOperations := [];
   Header.Options := [];
@@ -702,10 +699,10 @@ begin
   FShowOverlayIcons := True;
 
   Images := TImageList.Create(Self);
-  SysImageList := GetSysImageList;
-  if SysImageList <> 0 then
+  LSysImageList := GetSysImageList;
+  if LSysImageList <> 0 then
   begin
-    Images.Handle := SysImageList;
+    Images.Handle := LSysImageList;
     Images.BkColor := clNone;
     Images.ShareImages := True;
   end;
@@ -714,25 +711,9 @@ begin
   FFileType := '*.*';
 end;
 
-procedure TBCFileTreeView.CreateWnd;
-begin
-  inherited;
-  {FCommonData.Loaded;
-
-  if HandleAllocated and FCommonData.Skinned then begin
-    if not FCommonData.CustomColor then
-      Color := FCommonData.SkinManager.gd[FCommonData.SkinIndex].Props[0].Color;
-
-    if not FCommonData.CustomFont then
-      Font.Color := FCommonData.SkinManager.gd[FCommonData.SkinIndex].Props[0].FontColor.Color;
-  end;    }
-end;
-
 destructor TBCFileTreeView.Destroy;
 begin
   Images.Free;
-  //if Assigned(FCommonData) then
-  //  FreeAndNil(FCommonData);
 
   inherited Destroy;
 end;
@@ -761,11 +742,11 @@ begin
   end
 end;
 
-procedure TBCFileTreeView.SetFileType(NewFileType: string);
+procedure TBCFileTreeView.SetFileType(const AValue: string);
 begin
-  if AnsiUpperCase(NewFileType) <> AnsiUpperCase(FFileType) then
+  if AnsiUpperCase(AValue) <> AnsiUpperCase(FFileType) then
   begin
-    FFileType := NewFileType;
+    FFileType := AValue;
     if not (csDesigning in ComponentState) then
       OpenPath(FRootDirectory, SelectedPath, FExcludeOtherBranches);
   end
@@ -776,12 +757,12 @@ begin
   Result := FFileType;
 end;
 
-procedure TBCFileTreeView.SetDrive(Value: Char);
+procedure TBCFileTreeView.SetDrive(AValue: Char);
 begin
-  if (UpCase(Value) <> UpCase(FDrive)) then
+  if (UpCase(AValue) <> UpCase(FDrive)) then
   begin
-    FDrive := Value;
-    DriveChange(Value);
+    FDrive := AValue;
+    DriveChange(AValue);
   end;
 end;
 
@@ -822,87 +803,84 @@ end;
 
 procedure TBCFileTreeView.BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);
 var
-  FindFile: Integer;
-  ANode: PVirtualNode;
-  SR: TSearchRec;
-  FileName: string;
-  Data: PBCFileTreeNodeRec;
-  DriveRemote: Boolean;
+  LFindFile: Integer;
+  LPNode: PVirtualNode;
+  LSearchRec: TSearchRec;
+  LFileName: string;
+  LData: PBCFileTreeNodeRecord;
+  LDriveRemote: Boolean;
   LRootDirectory: string;
 begin
   BeginUpdate;
-  ANode := GetFirst;
-  if Assigned(ANode) then
-    Clear;
-  NodeDataSize := SizeOf(TBCFileTreeNodeRec);
+  Clear;
+  NodeDataSize := SizeOf(TBCFileTreeNodeRecord);
 
-  DriveRemote := GetDriveRemote;
+  LDriveRemote := GetDriveRemote;
   {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
   LRootDirectory := IncludeTrailingBackslash(RootDirectory);
   {$WARNINGS ON}
 
   if not ExcludeOtherBranches then
-    FindFile := FindFirst(GetDrive + ':\*.*', faAnyFile, SR)
+    LFindFile := FindFirst(GetDrive + ':\*.*', faAnyFile, LSearchRec)
   else
-    FindFile := FindFirst(LRootDirectory + '*.*', faAnyFile, SR);
+    LFindFile := FindFirst(LRootDirectory + '*.*', faAnyFile, LSearchRec);
 
-  if FindFile = 0 then
+  if LFindFile = 0 then
   try
     Screen.Cursor := crHourGlass;
     repeat
       {$WARNINGS OFF}
-      if ((SR.Attr and faHidden <> 0) and not ShowHiddenFiles) or
-          ((SR.Attr and faArchive <> 0) and not ShowArchiveFiles) or
-          ((SR.Attr and faSysFile <> 0) and not ShowSystemFiles) then
+      if ((LSearchRec.Attr and faHidden <> 0) and not ShowHiddenFiles) or
+          ((LSearchRec.Attr and faArchive <> 0) and not ShowArchiveFiles) or
+          ((LSearchRec.Attr and faSysFile <> 0) and not ShowSystemFiles) then
           Continue;
       {$WARNINGS ON}
-      if (SR.Name <> '.') and (SR.Name <> '..') then
-        if (SR.Attr and faDirectory <> 0) or (FFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), FFileType) then
+      if (LSearchRec.Name <> '.') and (LSearchRec.Name <> '..') then
+        if (LSearchRec.Attr and faDirectory <> 0) or (FFileType = '*.*') or IsExtInFileType(ExtractFileExt(LSearchRec.Name), FFileType) then
         begin
-          ANode := AddChild(nil);
-
-          Data := GetNodeData(ANode);
+          LPNode := AddChild(nil);
+          LData := GetNodeData(LPNode);
           if not ExcludeOtherBranches then
-            FileName := GetDrive + ':\' + SR.Name
+            LFileName := GetDrive + ':\' + LSearchRec.Name
           else
             {$WARNINGS OFF}
-            FileName := LRootDirectory + SR.Name;
+            LFileName := LRootDirectory + LSearchRec.Name;
             {$WARNINGS ON}
-          if (SR.Attr and faDirectory <> 0) then
+          if (LSearchRec.Attr and faDirectory <> 0) then
           begin
-            Data.FileType := ftDirectory;
+            LData.FileType := ftDirectory;
             {$WARNINGS OFF}
-            Data.FullPath := IncludeTrailingBackslash(FileName);
+            LData.FullPath := IncludeTrailingBackslash(LFileName);
             {$WARNINGS ON}
           end
           else
           begin
-            Data.FileType := ftFile;
+            LData.FileType := ftFile;
             if not ExcludeOtherBranches then
-              Data.FullPath := GetDrive + ':\'
+              LData.FullPath := GetDrive + ':\'
             else
-              Data.FullPath := LRootDirectory;
+              LData.FullPath := LRootDirectory;
           end;
-          if not DriveRemote then
-            if not CheckAccessToFile(FILE_GENERIC_READ, Filename) then //Data.FullPath) then
+          if not LDriveRemote then
+            if not CheckAccessToFile(FILE_GENERIC_READ, LFileName) then //Data.FullPath) then
             begin
-              if Data.FileType = ftDirectory then
-                Data.FileType := ftDirectoryAccessDenied
+              if LData.FileType = ftDirectory then
+                LData.FileType := ftDirectoryAccessDenied
               else
-                Data.FileType := ftFileAccessDenied;
+                LData.FileType := ftFileAccessDenied;
             end;
           {$WARNINGS OFF}
-          Data.SaturateImage := (SR.Attr and faHidden <> 0) or (SR.Attr and faSysFile <> 0) or
-            (Data.FileType = ftDirectoryAccessDenied) or (Data.FileType = ftFileAccessDenied);
+          LData.SaturateImage := (LSearchRec.Attr and faHidden <> 0) or (LSearchRec.Attr and faSysFile <> 0) or
+            (LData.FileType = ftDirectoryAccessDenied) or (LData.FileType = ftFileAccessDenied);
           {$WARNINGS ON}
-          Data.Filename := SR.Name;
-          Data.ImageIndex := GetAImageIndex(Filename);
-          Data.SelectedIndex := GetSelectedIndex(Filename);
-          Data.OverlayIndex := GetIconOverlayIndex(Filename);
+          LData.Filename := LSearchRec.Name;
+          LData.ImageIndex := GetAImageIndex(LFileName);
+          LData.SelectedIndex := GetSelectedIndex(LFileName);
+          LData.OverlayIndex := GetIconOverlayIndex(LFileName);
         end;
-    until FindNext(SR) <> 0;
+    until FindNext(LSearchRec) <> 0;
   finally
-    System.SysUtils.FindClose(SR);
+    System.SysUtils.FindClose(LSearchRec);
     Screen.Cursor := crDefault;
   end;
   Sort(nil, 0, sdAscending, False);
@@ -912,13 +890,13 @@ end;
 
 function TBCFileTreeView.GetSelectedPath: string;
 var
-  TreeNode: PVirtualNode;
-  Data: PBCFileTreeNodeRec;
+  LPNode: PVirtualNode;
+  LData: PBCFileTreeNodeRecord;
 begin
   Result := '';
 
-  TreeNode := GetFirstSelected;
-  if not Assigned(TreeNode) then
+  LPNode := GetFirstSelected;
+  if not Assigned(LPNode) then
   begin
     if not FExcludeOtherBranches then
       Result := Drive + ':\'
@@ -927,40 +905,40 @@ begin
   end
   else
   begin
-    Data := GetNodeData(TreeNode);
+    LData := GetNodeData(LPNode);
     {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
-    Result := IncludeTrailingBackslash(Data.FullPath);
+    Result := IncludeTrailingBackslash(LData.FullPath);
     {$WARNINGS ON}
   end;
 end;
 
 function TBCFileTreeView.GetSelectedFile: string;
 var
-  TreeNode: PVirtualNode;
-  Data: PBCFileTreeNodeRec;
+  LPNode: PVirtualNode;
+  LData: PBCFileTreeNodeRecord;
 begin
   Result := '';
-  TreeNode := GetFirstSelected;
-  if not Assigned(TreeNode) then
+  LPNode := GetFirstSelected;
+  if not Assigned(LPNode) then
     Exit;
 
-  Data := GetNodeData(TreeNode);
-  if Data.FileType = ftDirectory then
+  LData := GetNodeData(LPNode);
+  if LData.FileType = ftDirectory then
     Exit;
 
   {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
-  Result := IncludeTrailingBackslash(Data.FullPath);
+  Result := IncludeTrailingBackslash(LData.FullPath);
   {$WARNINGS ON}
-  if System.SysUtils.FileExists(Result + Data.Filename) then
-    Result := Result + Data.Filename;
+  if System.SysUtils.FileExists(Result + LData.Filename) then
+    Result := Result + LData.Filename;
 end;
 
 procedure TBCFileTreeView.OpenPath(ARootDirectory: string; ADirectoryPath: string; AExcludeOtherBranches: Boolean;
   ARefresh: Boolean = False);
 var
-  CurNode: PVirtualNode;
-  Data: PBCFileTreeNodeRec;
-  TempPath, Directory: string;
+  LPNode: PVirtualNode;
+  LData: PBCFileTreeNodeRecord;
+  LTempPath, LDirectory: string;
 begin
   if not DirectoryExists(ARootDirectory) then
     Exit;
@@ -978,99 +956,89 @@ begin
   end;
 
   {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
-  TempPath := IncludeTrailingBackslash(Copy(ADirectoryPath, 4, Length(ADirectoryPath)));
+  LTempPath := IncludeTrailingBackslash(Copy(ADirectoryPath, 4, Length(ADirectoryPath)));
   {$WARNINGS ON}
-  if ExcludeOtherBranches and (Pos('\', TempPath) > 0) then
-    TempPath := Copy(TempPath, Pos('\', TempPath) + 1, Length(TempPath));
+  if ExcludeOtherBranches and (Pos('\', LTempPath) > 0) then
+    LTempPath := Copy(LTempPath, Pos('\', LTempPath) + 1, Length(LTempPath));
 
-  CurNode := GetFirst;
-  while TempPath <> '' do
+  LPNode := GetFirst;
+  while LTempPath <> '' do
   begin
-    if Pos('\', TempPath) <> 0 then
-      Directory := Copy(TempPath, 1, Pos('\', TempPath)-1)
+    if Pos('\', LTempPath) <> 0 then
+      LDirectory := Copy(LTempPath, 1, Pos('\', LTempPath) - 1)
     else
-      Directory := TempPath;
+      LDirectory := LTempPath;
 
-    if Directory <> '' then
+    if LDirectory <> '' then
     begin
-      Data := GetNodeData(CurNode);
-      while Assigned(CurNode) and (AnsiCompareText(Directory, Data.Filename) <> 0) do
+      LData := GetNodeData(LPNode);
+      while Assigned(LPNode) and (AnsiCompareText(LDirectory, LData.Filename) <> 0) do
       begin
-        CurNode := CurNode.NextSibling;
-        Data := GetNodeData(CurNode);
+        LPNode := LPNode.NextSibling;
+        LData := GetNodeData(LPNode);
       end;
 
-      if Assigned(CurNode) then
+      if Assigned(LPNode) then
       begin
-        Selected[CurNode] := True;
-        Expanded[CurNode] := True;
-        ScrollIntoView(CurNode, True);
-        CurNode := CurNode.FirstChild;
+        Selected[LPNode] := True;
+        Expanded[LPNode] := True;
+        ScrollIntoView(LPNode, True);
+        LPNode := LPNode.FirstChild;
       end;
     end;
 
-    if Pos('\', TempPath) <> 0 then
-      TempPath := Copy(TempPath, Pos('\', TempPath) + 1, Length(TempPath))
+    if Pos('\', LTempPath) <> 0 then
+      LTempPath := Copy(LTempPath, Pos('\', LTempPath) + 1, Length(LTempPath))
     else
-      TempPath := '';
+      LTempPath := '';
   end;
   EndUpdate;
 end;
 
-function AddNullToStr(Path: string): string;
-begin
-  if Path = '' then
-    Exit('');
-  if Path[Length(Path)] <> #0 then
-    Result := Path + #0
-  else
-    Result := Path;
-end;
-
 procedure TBCFileTreeView.RenameSelectedNode;
 var
-  SelectedNode: PVirtualNode;
+  LPNode: PVirtualNode;
 begin
-  SelectedNode := GetFirstSelected;
-  if Assigned(SelectedNode) then
-    Self.EditNode(SelectedNode, -1)
+  LPNode := GetFirstSelected;
+  if Assigned(LPNode) then
+    Self.EditNode(LPNode, -1)
 end;
 
 function TBCFileTreeView.DeleteTreeNode(Node: PVirtualNode): Boolean;
 var
-  DelName: string;
-  PrevNode, SelectedNode: PVirtualNode;
-  Data: PBCFileTreeNodeRec;
+  LFileName: string;
+  LPreviousNode, LSelectedNode: PVirtualNode;
+  LData: PBCFileTreeNodeRecord;
 begin
   Result := False;
-  PrevNode := Node.Parent;
-  SelectedNode := GetFirstSelected;
+  LPreviousNode := Node.Parent;
+  LSelectedNode := GetFirstSelected;
   if Assigned(Node) then
   try
     Screen.Cursor := crHourGlass;
-    if Assigned(SelectedNode) then
+    if Assigned(LSelectedNode) then
     begin
-      Data := GetNodeData(SelectedNode);
-      if Data.FileType = ftDirectory then
-        DelName := SelectedPath
+      LData := GetNodeData(LSelectedNode);
+      if LData.FileType = ftDirectory then
+        LFileName := SelectedPath
       else
-        DelName := SelectedFile;
+        LFileName := SelectedFile;
 
-      if DelName = '' then
+      if LFileName = '' then
         Exit;
       {$WARNINGS OFF} { ExcludeTrailingBackslash is specific to a platform }
-      DelName := ExcludeTrailingBackslash(DelName);
+      LFileName := ExcludeTrailingBackslash(LFileName);
       {$WARNINGS ON}
 
-      if Data.FileType = ftDirectory then
-        Result := RemoveDirectory(DelName)
+      if LData.FileType = ftDirectory then
+        Result := RemoveDirectory(LFileName)
       else
-        Result := System.SysUtils.DeleteFile(DelName);
+        Result := System.SysUtils.DeleteFile(LFileName);
     end;
     if Result then
     begin
-      if Assigned(PrevNode) then
-        Selected[PrevNode] := True;
+      if Assigned(LPreviousNode) then
+        Selected[LPreviousNode] := True;
       DeleteNode(Node);
     end;
   finally
@@ -1080,56 +1048,56 @@ end;
 
 procedure TBCFileTreeView.DeleteSelectedNode;
 var
-  SelectedNode: PVirtualNode;
+  LPNode: PVirtualNode;
 begin
-  SelectedNode := GetFirstSelected;
-  if Assigned(SelectedNode) then
-    DeleteTreeNode(SelectedNode);
+  LPNode := GetFirstSelected;
+  if Assigned(LPNode) then
+    DeleteTreeNode(LPNode);
 end;
 
 function TBCFileTreeView.IsDirectoryEmpty(const Directory: string): Boolean;
 var
-  SearchRec: TSearchRec;
+  LSearchRec: TSearchRec;
 begin
   try
-    Result := (FindFirst(Directory + '\*.*', faAnyFile, SearchRec) = 0) and
-      (FindNext(SearchRec) = 0) and (FindNext(SearchRec) <> 0);
+    Result := (FindFirst(Directory + '\*.*', faAnyFile, LSearchRec) = 0) and
+      (FindNext(LSearchRec) = 0) and (FindNext(LSearchRec) <> 0);
   finally
-    System.SysUtils.FindClose(SearchRec);
+    System.SysUtils.FindClose(LSearchRec);
   end;
 end;
 
 procedure TBCFileTreeView.DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates);
 var
-  Data: PBCFileTreeNodeRec;
+  LData: PBCFileTreeNodeRecord;
 begin
   inherited;
-  Data := GetNodeData(Node);
-  if Data.FileType = ftDirectory then
-    if not IsDirectoryEmpty(Data.FullPath) then
+  LData := GetNodeData(Node);
+  if LData.FileType = ftDirectory then
+    if not IsDirectoryEmpty(LData.FullPath) then
       Include(InitStates, ivsHasChildren);
 end;
 
-procedure TBCFileTreeView.DoFreeNode(Node: PVirtualNode);
+procedure TBCFileTreeView.DoFreeNode(ANode: PVirtualNode);
 var
-  Data: PBCFileTreeNodeRec;
+  LData: PBCFileTreeNodeRecord;
 begin
-  Data := GetNodeData(Node);
-  Finalize(Data^);
+  LData := GetNodeData(ANode);
+  Finalize(LData^);
   inherited;
 end;
 
 procedure TBCFileTreeView.DoPaintNode(var PaintInfo: TVTPaintInfo);
 var
-  Data: PBCFileTreeNodeRec;
-  S: string;
-  R: TRect;
+  LData: PBCFileTreeNodeRecord;
+  LString: string;
+  LRect: TRect;
 begin
   inherited;
   with PaintInfo do
   begin
-    Data := GetNodeData(Node);
-    if not Assigned(Data) then
+    LData := GetNodeData(Node);
+    if not Assigned(LData) then
       Exit;
 
     Canvas.Font.Style := [];
@@ -1153,30 +1121,29 @@ begin
       end;
     end;
     Canvas.Font.Style := [];
-    if (Data.FileType = ftDirectoryAccessDenied) or (Data.FileType = ftFileAccessDenied) then
+    if (LData.FileType = ftDirectoryAccessDenied) or (LData.FileType = ftFileAccessDenied) then
     begin
       Canvas.Font.Style := [fsItalic];
       if Assigned(SkinManager) then
         Canvas.Font.Color := BlendColors(ColorToRGB(Font.Color), GetControlColor(Parent), DefBlendDisabled)
-      //  Canvas.Font.Color := MixColors(ColorToRGB(Font.Color), GetControlColor(Parent), DefDisabledBlend)
       else
         Canvas.Font.Color := clBtnFace;
     end;
 
     SetBKMode(Canvas.Handle, TRANSPARENT);
 
-    R := ContentRect;
-    InflateRect(R, -TextMargin, 0);
-    Dec(R.Right);
-    Dec(R.Bottom);
+    LRect := ContentRect;
+    InflateRect(LRect, -TextMargin, 0);
+    Dec(LRect.Right);
+    Dec(LRect.Bottom);
 
-    S := Data.Filename;
-    if Length(S) > 0 then
+    LString := LData.Filename;
+    if Length(LString) > 0 then
     begin
-      with R do
+      with LRect do
         if (NodeWidth - 2 * Margin) > (Right - Left) then
-          S := ShortenString(Canvas.Handle, S, Right - Left);
-      DrawTextW(Canvas.Handle, PWideChar(S), Length(S), R, DT_TOP or DT_LEFT or DT_VCENTER or DT_SINGLELINE);
+          LString := ShortenString(Canvas.Handle, LString, Right - Left);
+      DrawTextW(Canvas.Handle, PWideChar(LString), Length(LString), LRect, DT_TOP or DT_LEFT or DT_VCENTER or DT_SINGLELINE);
     end;
   end;
 end;
@@ -1184,25 +1151,25 @@ end;
 function TBCFileTreeView.DoGetImageIndex(Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
   var Ghosted: Boolean; var Index: TImageIndex): TCustomImageList;
 var
-  Data: PBCFileTreeNodeRec;
+  LData: PBCFileTreeNodeRecord;
 begin
   Result := Images;
   if Assigned(Result) then
   begin
-    Data := GetNodeData(Node);
-    if Assigned(Data) then
+    LData := GetNodeData(Node);
+    if Assigned(LData) then
     case Kind of
       ikNormal,
       ikSelected:
         begin
           if Expanded[Node] then
-            Index := Data.SelectedIndex
+            Index := LData.SelectedIndex
           else
-            Index := Data.ImageIndex;
+            Index := LData.ImageIndex;
         end;
       ikOverlay:
         if FShowOverlayIcons then
-          Index := Data.OverlayIndex
+          Index := LData.OverlayIndex
     end;
   end;
 end;
@@ -1212,28 +1179,28 @@ type
 
 procedure DrawSaturatedImage(ImageList: TCustomImageList; Canvas: TCanvas; X, Y, Index: Integer);
 var
-  Params: TImageListDrawParams;
+  LParams: TImageListDrawParams;
 begin
-  FillChar(Params, SizeOf(Params), 0);
-  Params.cbSize := SizeOf(Params);
-  Params.himl := ImageList.Handle;
-  Params.i := Index;
-  Params.hdcDst := Canvas.Handle;
-  Params.x := X;
-  Params.y := Y;
-  Params.fState := ILS_SATURATE;
-  ImageList_DrawIndirect(@Params);
+  FillChar(LParams, SizeOf(LParams), 0);
+  LParams.cbSize := SizeOf(LParams);
+  LParams.himl := ImageList.Handle;
+  LParams.i := Index;
+  LParams.hdcDst := Canvas.Handle;
+  LParams.x := X;
+  LParams.y := Y;
+  LParams.fState := ILS_SATURATE;
+  ImageList_DrawIndirect(@LParams);
 end;
 
 procedure TBCFileTreeView.PaintImage(var PaintInfo: TVTPaintInfo; ImageInfoIndex: TVTImageInfoIndex; DoOverlay: Boolean);
 var
-  Data: PBCFileTreeNodeRec;
+  LData: PBCFileTreeNodeRecord;
 begin
   with PaintInfo do
   begin
-    Data := GetNodeData(Node);
+    LData := GetNodeData(Node);
 
-    if Data.SaturateImage then
+    if LData.SaturateImage then
     begin
       if DoOverlay then
         GetImageIndex(PaintInfo, ikOverlay, iiOverlay)
@@ -1253,125 +1220,121 @@ end;
 
 function TBCFileTreeView.DoCompare(Node1, Node2: PVirtualNode; Column: TColumnIndex): Integer;
 var
-  Data1, Data2: PBCFileTreeNodeRec;
+  LData1, LData2: PBCFileTreeNodeRecord;
 begin
   Result := inherited;
 
   if Result = 0 then
   begin
-    Data1 := GetNodeData(Node1);
-    Data2 := GetNodeData(Node2);
+    LData1 := GetNodeData(Node1);
+    LData2 := GetNodeData(Node2);
 
     Result := -1;
 
-    if not Assigned(Data1) or not Assigned(Data2) then
+    if not Assigned(LData1) or not Assigned(LData2) then
       Exit;
 
-   if Data1.FileType <> Data2.FileType then
+   if LData1.FileType <> LData2.FileType then
     begin
-     if (Data1.FileType = ftDirectory) or (Data1.FileType = ftDirectoryAccessDenied) then
+     if (LData1.FileType = ftDirectory) or (LData1.FileType = ftDirectoryAccessDenied) then
        Result := -1
      else
        Result := 1;
     end
     else
-      Result := AnsiCompareText(Data1.Filename, Data2.Filename);
+      Result := AnsiCompareText(LData1.Filename, LData2.Filename);
   end;
 end;
 
 function TBCFileTreeView.DoGetNodeWidth(Node: PVirtualNode; Column: TColumnIndex; Canvas: TCanvas = nil): Integer;
 var
-  Data: PBCFileTreeNodeRec;
+  LData: PBCFileTreeNodeRecord;
 begin
   Result := inherited;
-  Data := GetNodeData(Node);
+  LData := GetNodeData(Node);
   if not Assigned(Canvas) then
     Canvas := Self.Canvas;
-  if Assigned(Data) then
-    Result := Canvas.TextWidth(Trim(Data.FileName)) + 2 * TextMargin;
+  if Assigned(LData) then
+    Result := Canvas.TextWidth(Trim(LData.FileName)) + 2 * TextMargin;
 end;
 
 function TBCFileTreeView.DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean;
 var
-  Data, ChildData: PBCFileTreeNodeRec;
-  SR: TSearchRec;
-  ChildNode: PVirtualNode;
-  FName: string;
-  DriveRemote: Boolean;
+  LData, LChildData: PBCFileTreeNodeRecord;
+  LSearchRec: TSearchRec;
+  LPChildNode: PVirtualNode;
+  LFileName: string;
+  LDriveRemote: Boolean;
   LFullPath: string;
 begin
   Result := True;
 
-  Data := GetNodeData(Node);
+  LData := GetNodeData(Node);
 
-  DriveRemote := GetDriveRemote;
+  LDriveRemote := GetDriveRemote;
 
   {$WARNINGS OFF} { IncludeTrailingBackslash is specific to a platform }
-  LFullPath := IncludeTrailingBackslash(Data.FullPath);
+  LFullPath := IncludeTrailingBackslash(LData.FullPath);
   {$WARNINGS OFF}
-  if FindFirst(LFullPath + '*.*', faAnyFile, SR) = 0 then
+  if FindFirst(LFullPath + '*.*', faAnyFile, LSearchRec) = 0 then
   begin
     Screen.Cursor := crHourGlass;
-
-    {TDirectory.GetDirectories
-    TDirectory.GetFiles
-    kts. BCCommon.FileUtils GetFiles  }
-
     try
       repeat
         {$WARNINGS OFF}
-        if ((SR.Attr and faHidden <> 0) and not ShowHiddenFiles) or
-          ((SR.Attr and faArchive <> 0) and not ShowArchiveFiles) or
-          ((SR.Attr and faSysFile <> 0) and not ShowSystemFiles) then
+        if ((LSearchRec.Attr and faHidden <> 0) and not ShowHiddenFiles) or
+          ((LSearchRec.Attr and faArchive <> 0) and not ShowArchiveFiles) or
+          ((LSearchRec.Attr and faSysFile <> 0) and not ShowSystemFiles) then
           Continue;
         {$WARNINGS ON}
-        FName := LFullPath + SR.Name;
+        LFileName := LFullPath + LSearchRec.Name;
 
-        if (SR.Name <> '.') and (SR.Name <> '..') then
-          if (SR.Attr and faDirectory <> 0) or (FFileType = '*.*') or IsExtInFileType(ExtractFileExt(SR.Name), FFileType) then
+        if (LSearchRec.Name <> '.') and (LSearchRec.Name <> '..') then
+          if (LSearchRec.Attr and faDirectory <> 0) or (FFileType = '*.*') or
+            IsExtInFileType(ExtractFileExt(LSearchRec.Name), FFileType) then
           begin
-            ChildNode := AddChild(Node);
-            ChildData := GetNodeData(ChildNode);
+            LPChildNode := AddChild(Node);
+            LChildData := GetNodeData(LPChildNode);
 
-            if (SR.Attr and faDirectory <> 0) then
+            if (LSearchRec.Attr and faDirectory <> 0) then
             begin
-              ChildData.FileType := ftDirectory;
+              LChildData.FileType := ftDirectory;
               {$WARNINGS OFF}
-              ChildData.FullPath := IncludeTrailingBackslash(FName);
+              LChildData.FullPath := IncludeTrailingBackslash(LFileName);
               {$WARNINGS ON}
             end
             else
             begin
-              ChildData.FileType := ftFile;
+              LChildData.FileType := ftFile;
               {$WARNINGS OFF}
-              ChildData.FullPath := LFullPath;
+              LChildData.FullPath := LFullPath;
               {$WARNINGS ON}
             end;
-            if not DriveRemote then
-              if not CheckAccessToFile(FILE_GENERIC_READ, FName) then
+            if not LDriveRemote then
+              if not CheckAccessToFile(FILE_GENERIC_READ, LFileName) then
               begin
-                if ChildData.FileType = ftDirectory then
-                  ChildData.FileType := ftDirectoryAccessDenied
+                if LChildData.FileType = ftDirectory then
+                  LChildData.FileType := ftDirectoryAccessDenied
                 else
-                  ChildData.FileType := ftFileAccessDenied;
+                  LChildData.FileType := ftFileAccessDenied;
               end;
             {$WARNINGS OFF}
-            ChildData.SaturateImage := (SR.Attr and faHidden <> 0) or (SR.Attr and faSysFile <> 0) or
-              (ChildData.FileType = ftFileAccessDenied) or (ChildData.FileType = ftDirectoryAccessDenied);
+            LChildData.SaturateImage := (LSearchRec.Attr and faHidden <> 0) or (LSearchRec.Attr and faSysFile <> 0) or
+              (LChildData.FileType = ftFileAccessDenied) or (LChildData.FileType = ftDirectoryAccessDenied);
             {$WARNINGS ON}
-            ChildData.Filename := SR.Name;
-            ChildData.ImageIndex := GetAImageIndex(FName);
-            ChildData.SelectedIndex := GetSelectedIndex(FName);
-            ChildData.OverlayIndex := GetIconOverlayIndex(FName);
+            LChildData.Filename := LSearchRec.Name;
+            LChildData.ImageIndex := GetAImageIndex(LFileName);
+            LChildData.SelectedIndex := GetSelectedIndex(LFileName);
+            LChildData.OverlayIndex := GetIconOverlayIndex(LFileName);
           end;
-      until FindNext(SR) <> 0;
+      until FindNext(LSearchRec) <> 0;
 
       ChildCount := Self.ChildCount[Node];
 
       if ChildCount > 0 then
         Sort(Node, 0, sdAscending, False);
     finally
-      System.SysUtils.FindClose(SR);
+      System.SysUtils.FindClose(LSearchRec);
       Screen.Cursor := crDefault;
     end;
   end;
@@ -1412,10 +1375,10 @@ end;
 
 function TEditLink.BeginEdit: Boolean;
 var
-  Data: PBCFileTreeNodeRec;
+  LData: PBCFileTreeNodeRecord;
 begin
-  Data := FTree.GetNodeData(FNode);
-  Result := (Data.FileType = ftDirectory) or (Data.FileType = ftFile);
+  LData := FTree.GetNodeData(FNode);
+  Result := (LData.FileType = ftDirectory) or (LData.FileType = ftFile);
   if Result then
   begin
     FEdit.Show;
@@ -1431,48 +1394,48 @@ end;
 
 function TEditLink.EndEdit: Boolean;
 var
-  Data: PBCFileTreeNodeRec;
-  Buffer: array[0..254] of Char;
-  S, OldDirName, NewDirName, FullPath: string;
+  LData: PBCFileTreeNodeRecord;
+  LBuffer: array[0..254] of Char;
+  LString, LOldDirName, LNewDirName, LFullPath: string;
 begin
   Result := True;
 
-  Data := FTree.GetNodeData(FNode);
+  LData := FTree.GetNodeData(FNode);
   try
-    GetWindowText(FEdit.Handle, Buffer, 255);
-    S := Buffer;
-    if (Length(S) = 0) or S.IsDelimiter('\*?/="<>|:,;+^', 0) then
+    GetWindowText(FEdit.Handle, LBuffer, 255);
+    LString := LBuffer;
+    if (Length(LString) = 0) or LString.IsDelimiter('\*?/="<>|:,;+^', 0) then
     begin
       MessageBeep(MB_ICONHAND);
-      if Length(S) > 0 then
-        MessageDlg(Format('%s: %s', [SBCControlFileControlEndEditInvalidName, S]), mtError, [mbOK], 0);
+      if Length(LString) > 0 then
+        MessageDlg(Format('%s: %s', [SBCControlFileControlEndEditInvalidName, LString]), mtError, [mbOK], 0);
       Exit;
     end;
 
-    if Data.FileType = ftDirectory then
+    if LData.FileType = ftDirectory then
     {$WARNINGS OFF}
-      FullPath := ExtractFilePath(ExcludeTrailingBackslash(Data.FullPath))
+      LFullPath := ExtractFilePath(ExcludeTrailingBackslash(LData.FullPath))
     {$WARNINGS ON}
     else
-      FullPath := Data.FullPath;
-    OldDirName := FullPath + Data.Filename;
-    NewDirName := FullPath + S;
-    if OldDirName = NewDirName then
+      LFullPath := LData.FullPath;
+    LOldDirName := LFullPath + LData.Filename;
+    LNewDirName := LFullPath + LString;
+    if LOldDirName = LNewDirName then
       Exit;
-    if MessageDlg(Format(SBCControlFileControlEndEditRename, [ExtractFileName(OldDirName),
-      ExtractFileName(NewDirName)]), mtConfirmation, [mbYes, mbNo], 0) = mrNo then
+    if MessageDlg(Format(SBCControlFileControlEndEditRename, [ExtractFileName(LOldDirName),
+      ExtractFileName(LNewDirName)]), mtConfirmation, [mbYes, mbNo], 0) = mrNo then
       Exit;
     FTree.SetFocus;
-    if System.SysUtils.RenameFile(OldDirName, NewDirName) then
+    if System.SysUtils.RenameFile(LOldDirName, LNewDirName) then
     begin
-      if S <> Data.FileName then
+      if LString <> LData.FileName then
       begin
-        Data.FileName := S;
+        LData.FileName := LString;
         FTree.InvalidateNode(FNode);
       end;
     end
     else
-      ShowMessage(Format(SBCControlFileControlEndEditRenameFailed, [OldDirName]));
+      ShowMessage(Format(SBCControlFileControlEndEditRenameFailed, [LOldDirName]));
   finally
     FEdit.Hide;
     FTree.SetFocus;
@@ -1486,7 +1449,7 @@ end;
 
 function TEditLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
-  Data: PBCFileTreeNodeRec;
+  LData: PBCFileTreeNodeRecord;
 begin
   Result := True;
   FTree := Tree as TBCFileTreeView;
@@ -1498,7 +1461,7 @@ begin
     FEdit.Free;
     FEdit := nil;
   end;
-  Data := FTree.GetNodeData(Node);
+  LData := FTree.GetNodeData(Node);
 
   FEdit := TBCEdit.Create(nil);
   with FEdit do
@@ -1507,24 +1470,24 @@ begin
     Parent := Tree;
     FEdit.Font.Name := FTree.Canvas.Font.Name;
     FEdit.Font.Size := FTree.Canvas.Font.Size;
-    Text := Data.FileName;
+    Text := LData.FileName;
     OnKeyPress := EditKeyPress;
   end;
 end;
 
-procedure TEditLink.ProcessMessage(var Message: TMessage);
+procedure TEditLink.ProcessMessage(var AMessage: TMessage);
 begin
-  FEdit.WindowProc(Message);
+  FEdit.WindowProc(AMessage);
 end;
 
-procedure TEditLink.SetBounds(R: TRect);
+procedure TEditLink.SetBounds(ARect: TRect);
 var
-  Dummy: Integer;
+  LDummy: Integer;
 begin
   { Since we don't want to activate grid extensions in the tree (this would influence how the selection is drawn)
     we have to set the edit's width explicitly to the width of the column. }
-  FTree.Header.Columns.GetColumnBounds(FColumn, Dummy, R.Right);
-  FEdit.BoundsRect := R;
+  FTree.Header.Columns.GetColumnBounds(FColumn, LDummy, ARect.Right);
+  FEdit.BoundsRect := ARect;
 end;
 
 procedure TEditLink.Copy;
