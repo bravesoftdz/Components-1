@@ -3,23 +3,32 @@ unit BCControl.ObjectInspector;
 interface
 
 uses
-  VirtualTrees, System.TypInfo;
+  System.Classes, System.TypInfo, VirtualTrees, sComboBox, sSkinManager;
 
 type
   TBCObjectInspector = class(TVirtualDrawTree)
   strict private
     FInspectedObject: TObject;
+    FSkinManager: TsSkinManager;
     function PropertyValueAsString(AInstance: TObject; APropertyInfo: PPropInfo): string;
     procedure DoObjectChange;
     procedure SetInspectedObject(const AValue: TObject);
+  protected
+    procedure DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean); override;
+    procedure DoFreeNode(ANode: PVirtualNode); override;
+    procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
+    procedure DoPaintNode(var PaintInfo: TVTPaintInfo); override;
   public
+    constructor Create(AOwner: TComponent); override;
+
     property InspectedObject: TObject read FInspectedObject write SetInspectedObject;
+    property SkinManager: TsSkinManager read FSkinManager write FSkinManager;
   end;
 
 implementation
 
 uses
-  System.Classes, System.SysUtils, System.Variants;
+  Winapi.Windows, System.Types, System.SysUtils, System.Variants, Vcl.Graphics;
 
 type
   TPropertyArray = array of PPropInfo;
@@ -33,6 +42,105 @@ type
     Instance: TObject;
   end;
   PBCObjectInspectorNodeRecord = ^TBCObjectInspectorNodeRecord;
+
+constructor TBCObjectInspector.Create;
+var
+  LColumn: TVirtualTreeColumn;
+begin
+  inherited Create(AOwner);
+
+  DragOperations := [];
+  Header.Options := [hoColumnResize];
+  { property column }
+  LColumn := Header.Columns.Add;
+  LColumn.Width := 160;
+  { value column }
+  Header.Columns.Add;
+
+  IncrementalSearch := isAll;
+  Indent := 20;
+  EditDelay := 0;
+
+  TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoChangeScale, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes];
+  TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick];
+  TreeOptions.PaintOptions := [toShowBackground, toShowButtons, toShowRoot, toThemeAware, toHideTreeLinesIfThemed];
+end;
+
+procedure TBCObjectInspector.DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+begin
+  Allowed := Column > 0;
+end;
+
+procedure TBCObjectInspector.DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates);
+var
+  LData: PBCObjectInspectorNodeRecord;
+begin
+  inherited;
+  LData := GetNodeData(Node);
+  if LData.HasChildren then
+    Include(InitStates, ivsHasChildren);
+end;
+
+procedure TBCObjectInspector.DoFreeNode(ANode: PVirtualNode);
+var
+  LData: PBCObjectInspectorNodeRecord;
+begin
+  LData := GetNodeData(ANode);
+  Finalize(LData^);
+  inherited;
+end;
+
+procedure TBCObjectInspector.DoPaintNode(var PaintInfo: TVTPaintInfo);
+var
+  LData: PBCObjectInspectorNodeRecord;
+  LString: string;
+  LRect: TRect;
+begin
+  inherited;
+  with PaintInfo do
+  begin
+    LData := GetNodeData(Node);
+    if not Assigned(LData) then
+      Exit;
+
+    Canvas.Font.Style := [];
+
+   if Assigned(SkinManager) then
+     Canvas.Font.Color := SkinManager.GetActiveEditFontColor
+   else
+     Canvas.Font.Color := clWindowText;
+
+    if vsSelected in PaintInfo.Node.States then
+    begin
+      if Assigned(SkinManager) and SkinManager.Active then
+      begin
+        Canvas.Brush.Color := SkinManager.GetHighLightColor;
+        Canvas.Font.Color := SkinManager.GetHighLightFontColor
+      end
+      else
+      begin
+        Canvas.Brush.Color := clHighlight;
+        Canvas.Font.Color := clHighlightText;
+      end;
+    end;
+    Canvas.Font.Style := [];
+
+    SetBKMode(Canvas.Handle, TRANSPARENT);
+
+    LRect := ContentRect;
+    InflateRect(LRect, -TextMargin, 0);
+    Dec(LRect.Right);
+    Dec(LRect.Bottom);
+
+    if PaintInfo.Column = 0 then
+      LString := LData.PropName
+    else
+      LString := LData.PropStrValue;
+
+    if Length(LString) > 0 then
+      DrawTextW(Canvas.Handle, PWideChar(LString), Length(LString), LRect, DT_TOP or DT_LEFT or DT_VCENTER or DT_SINGLELINE);
+  end;
+end;
 
 procedure TBCObjectInspector.SetInspectedObject(const AValue: TObject);
 begin

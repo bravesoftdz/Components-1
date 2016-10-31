@@ -1103,7 +1103,7 @@ begin
     Canvas.Font.Style := [];
 
    if Assigned(SkinManager) then
-     Canvas.Font.Color :=  SkinManager.GetActiveEditFontColor
+     Canvas.Font.Color := SkinManager.GetActiveEditFontColor
    else
      Canvas.Font.Color := clWindowText;
 
