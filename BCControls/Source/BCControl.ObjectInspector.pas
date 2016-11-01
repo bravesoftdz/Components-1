@@ -3,7 +3,7 @@ unit BCControl.ObjectInspector;
 interface
 
 uses
-  System.Classes, System.TypInfo, VirtualTrees, sComboBox, sSkinManager;
+  System.Classes, System.Types, System.TypInfo, Vcl.Graphics, VirtualTrees, sComboBox, sSkinManager;
 
 type
   TBCObjectInspector = class(TVirtualDrawTree)
@@ -14,6 +14,8 @@ type
     procedure DoObjectChange;
     procedure SetInspectedObject(const AValue: TObject);
   protected
+    procedure DoBeforeCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect); override;
     procedure DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean); override;
     procedure DoFreeNode(ANode: PVirtualNode); override;
     procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
@@ -28,7 +30,7 @@ type
 implementation
 
 uses
-  Winapi.Windows, System.Types, System.SysUtils, System.Variants, Vcl.Graphics;
+  Winapi.Windows, System.SysUtils, System.Variants;
 
 type
   TPropertyArray = array of PPropInfo;
@@ -50,20 +52,24 @@ begin
   inherited Create(AOwner);
 
   DragOperations := [];
-  Header.Options := [hoColumnResize];
+  Header.AutoSizeIndex := 1;
+  Header.Options := [hoAutoResize, hoColumnResize];
   { property column }
   LColumn := Header.Columns.Add;
   LColumn.Width := 160;
+  LColumn.Options := [coAllowClick, coEnabled, coParentBidiMode, coResizable, coVisible, coAllowFocus];
   { value column }
-  Header.Columns.Add;
+  LColumn := Header.Columns.Add;
+  LColumn.Options := [coAllowClick, coEnabled, coParentBidiMode, coResizable, coVisible, coAllowFocus, coEditable];
 
   IncrementalSearch := isAll;
-  Indent := 20;
+  Indent := 14;
   EditDelay := 0;
+  TextMargin := 4;
 
-  TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoChangeScale, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes];
-  TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick];
-  TreeOptions.PaintOptions := [toShowBackground, toShowButtons, toShowRoot, toThemeAware, toHideTreeLinesIfThemed];
+  TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoChangeScale, toAutoScrollOnExpand, toAutoTristateTracking];
+  TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toWheelPanning, toEditOnClick];
+  TreeOptions.PaintOptions := [toHideFocusRect, toShowRoot, toShowButtons, toThemeAware, toHideTreeLinesIfThemed];
 end;
 
 procedure TBCObjectInspector.DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
@@ -140,6 +146,18 @@ begin
     if Length(LString) > 0 then
       DrawTextW(Canvas.Handle, PWideChar(LString), Length(LString), LRect, DT_TOP or DT_LEFT or DT_VCENTER or DT_SINGLELINE);
   end;
+end;
+
+procedure TBCObjectInspector.DoBeforeCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+begin
+  inherited;
+
+  Canvas.Brush.Color := clWindow;
+  Canvas.FillRect(ContentRect);
+  Canvas.Pen.Color := clBtnShadow;
+  Canvas.MoveTo(ContentRect.Left, CellRect.Top);
+  Canvas.LineTo(ContentRect.Left, CellRect.Bottom);
 end;
 
 procedure TBCObjectInspector.SetInspectedObject(const AValue: TObject);
