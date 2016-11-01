@@ -57,10 +57,10 @@ begin
   { property column }
   LColumn := Header.Columns.Add;
   LColumn.Width := 160;
-  LColumn.Options := [coAllowClick, coEnabled, coParentBidiMode, coResizable, coVisible, coAllowFocus];
+  LColumn.Options := [coAllowClick, coParentColor, coEnabled, coParentBidiMode, coResizable, coVisible, coAllowFocus];
   { value column }
   LColumn := Header.Columns.Add;
-  LColumn.Options := [coAllowClick, coEnabled, coParentBidiMode, coResizable, coVisible, coAllowFocus, coEditable];
+  LColumn.Options := [coAllowClick, coParentColor, coEnabled, coParentBidiMode, coResizable, coVisible, coAllowFocus, coEditable];
 
   IncrementalSearch := isAll;
   Indent := 14;
@@ -150,12 +150,18 @@ end;
 
 procedure TBCObjectInspector.DoBeforeCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+var
+  LRect: TRect;
 begin
   inherited;
-
-  Canvas.Brush.Color := clWindow;
-  Canvas.FillRect(ContentRect);
-  Canvas.Pen.Color := clBtnShadow;
+  LRect := CellRect;
+  if Column = 0 then
+  begin
+    LRect.Right := Indent;
+    Canvas.Brush.Color := SysColorToSkin(clBtnFace);
+    Canvas.FillRect(LRect);
+  end;
+  Canvas.Pen.Color := SysColorToSkin(clBtnShadow);
   Canvas.MoveTo(ContentRect.Left, CellRect.Top);
   Canvas.LineTo(ContentRect.Left, CellRect.Bottom);
 end;
