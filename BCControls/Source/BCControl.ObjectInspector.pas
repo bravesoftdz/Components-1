@@ -3,7 +3,7 @@ unit BCControl.ObjectInspector;
 interface
 
 uses
-  System.Classes, System.Types, System.TypInfo, Vcl.Graphics, VirtualTrees, sComboBox, sSkinManager;
+  System.Classes, System.Types, System.UITypes, System.TypInfo, Vcl.Graphics, VirtualTrees, sComboBox, sSkinManager;
 
 type
   TBCObjectInspector = class(TVirtualDrawTree)
@@ -18,6 +18,7 @@ type
     procedure DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean); override;
     procedure DoFreeNode(ANode: PVirtualNode); override;
     procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
+    procedure DoNodeClick(const HitInfo: THitInfo); override;
     procedure DoPaintNode(var PaintInfo: TVTPaintInfo); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -433,6 +434,14 @@ begin
     tkInterface:
       Result := InterfaceAsString;
   end;
+end;
+
+procedure TBCObjectInspector.DoNodeClick(const HitInfo: THitInfo);
+begin
+  inherited;
+
+  if (HitInfo.HitColumn = 0) and not (hiOnItemButton in HitInfo.HitPositions) then
+    Expanded[HitInfo.HitNode] := not Expanded[HitInfo.HitNode];
 end;
 
 end.
