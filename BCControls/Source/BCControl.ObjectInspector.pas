@@ -15,8 +15,6 @@ type
     procedure SetInspectedObject(const AValue: TObject);
   protected
     function DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean; override;
-    procedure DoBeforeCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect); override;
     procedure DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean); override;
     procedure DoFreeNode(ANode: PVirtualNode); override;
     procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
@@ -56,13 +54,15 @@ begin
 
   DragOperations := [];
   Header.AutoSizeIndex := 1;
-  Header.Options := [hoAutoResize, hoColumnResize];
+  Header.Options := [hoAutoResize, hoColumnResize, hoVisible];
   { property column }
   LColumn := Header.Columns.Add;
+  LColumn.Text := 'Property';
   LColumn.Width := 160;
   LColumn.Options := [coAllowClick, coParentColor, coEnabled, coParentBidiMode, coResizable, coVisible, coAllowFocus];
   { value column }
   LColumn := Header.Columns.Add;
+  LColumn.Text := 'Value';
   LColumn.Options := [coAllowClick, coParentColor, coEnabled, coParentBidiMode, coResizable, coVisible, coAllowFocus, coEditable];
 
   IncrementalSearch := isAll;
@@ -72,7 +72,7 @@ begin
 
   TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoChangeScale, toAutoScrollOnExpand, toAutoTristateTracking];
   TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toWheelPanning, toEditOnClick];
-  TreeOptions.PaintOptions := [toHideFocusRect, toShowRoot, toShowButtons, toThemeAware, toHideTreeLinesIfThemed];
+  TreeOptions.PaintOptions := [toHideFocusRect, toShowRoot, toShowButtons, toThemeAware, toShowVertGridLines, toUseExplorerTheme];
 end;
 
 procedure TBCObjectInspector.DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
@@ -154,24 +154,6 @@ begin
     if Length(LString) > 0 then
       DrawTextW(Canvas.Handle, PWideChar(LString), Length(LString), LRect, DT_TOP or DT_LEFT or DT_VCENTER or DT_SINGLELINE);
   end;
-end;
-
-procedure TBCObjectInspector.DoBeforeCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
-var
-  LRect: TRect;
-begin
-  inherited;
-  LRect := CellRect;
-  if Column = 0 then
-  begin
-    LRect.Right := ContentRect.Left;
-    Canvas.Brush.Color := SysColorToSkin(clBtnFace);
-    Canvas.FillRect(LRect);
-  end;
-  Canvas.Pen.Color := SysColorToSkin(clBtnShadow);
-  Canvas.MoveTo(ContentRect.Left, CellRect.Top);
-  Canvas.LineTo(ContentRect.Left, CellRect.Bottom);
 end;
 
 procedure TBCObjectInspector.SetInspectedObject(const AValue: TObject);
