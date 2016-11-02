@@ -14,6 +14,7 @@ type
     procedure DoObjectChange;
     procedure SetInspectedObject(const AValue: TObject);
   protected
+    function DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean; override;
     procedure DoBeforeCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect); override;
     procedure DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean); override;
@@ -42,6 +43,8 @@ type
     PropStrValue: string;
     HasChildren: Boolean;
     Instance: TObject;
+    IsSetValue: Boolean;
+    SetIndex: Integer;
   end;
   PBCObjectInspectorNodeRecord = ^TBCObjectInspectorNodeRecord;
 
@@ -111,10 +114,15 @@ begin
 
     Canvas.Font.Style := [];
 
-   if Assigned(SkinManager) then
-     Canvas.Font.Color := SkinManager.GetActiveEditFontColor
-   else
-     Canvas.Font.Color := clWindowText;
+    case Column of
+      0:
+        if Assigned(SkinManager) then
+          Canvas.Font.Color := SkinManager.GetActiveEditFontColor
+        else
+          Canvas.Font.Color := clWindowText;
+      1:
+        Canvas.Font.Color := SysColorToSkin(clNavy);
+    end;
 
     if vsSelected in PaintInfo.Node.States then
     begin
@@ -157,7 +165,7 @@ begin
   LRect := CellRect;
   if Column = 0 then
   begin
-    LRect.Right := Indent;
+    LRect.Right := ContentRect.Left;
     Canvas.Brush.Color := SysColorToSkin(clBtnFace);
     Canvas.FillRect(LRect);
   end;
@@ -208,6 +216,94 @@ begin
   end;
 
   EndUpdate;
+end;
+
+function TBCObjectInspector.DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean;
+var
+  LIndex: Integer;
+  LData, LParentData, LNewData: PBCObjectInspectorNodeRecord;
+  LObject: TObject;
+  LCollection: TCollection;
+  LPNode: PVirtualNode;
+  LPropertyArray: TPropertyArray;
+  LPropertyCount: Integer;
+  LSetTypeData: PTypeData;
+  LSetAsIntValue: Longint;
+  LParentObject: TObject;
+begin
+  Result := True;
+
+  LData := GetNodeData(Node);
+
+  LParentData := GetNodeData(Node.Parent);
+  if Assigned(LParentData) then
+    LParentObject := LParentData.Instance
+  else
+    LParentObject := FInspectedObject;
+
+  if (LData.TypeInfo.Kind = tkClass) and (LData.PropStrValue <> '') then
+  begin
+    if LParentObject is TCollection then
+      LObject := LData.Instance
+    else
+      LObject := GetObjectProp(LParentObject, LData.PropInfo);
+
+    if LObject is TCollection then
+    begin
+      LCollection := LObject as TCollection;
+      for LIndex := 0 to LCollection.Count - 1 do
+      begin
+        LPNode := AddChild(Node);
+        LNewData := GetNodeData(LPNode);
+        LNewData.PropInfo := nil;
+        LNewData.TypeInfo := LCollection.ItemClass.ClassInfo;
+        LNewData.PropName := 'Item[' + IntToStr(LIndex) + ']';
+        LNewData.PropStrValue := '(' + LCollection.ItemClass.ClassName +')';
+        LNewData.HasChildren := True;
+        LNewData.Instance := LCollection.Items[LIndex];
+      end;
+    end
+    else
+    if Assigned(LObject) then
+    begin
+      LPropertyCount := GetPropList(LObject.ClassInfo, tkProperties, nil);
+      SetLength(LPropertyArray, LPropertyCount);
+      GetPropList(LObject.ClassInfo, tkProperties, PPropList(LPropertyArray));
+
+      for LIndex := 0 to LPropertyCount - 1 do
+      begin
+        LPNode := AddChild(Node);
+        LNewData := GetNodeData(LPNode);
+        LNewData.PropInfo := LPropertyArray[LIndex];
+        LNewData.TypeInfo := LNewData.PropInfo^.PropType^;
+        LNewData.PropName := string(LPropertyArray[LIndex].Name);
+        LNewData.PropStrValue := PropertyValueAsString(LObject, LPropertyArray[LIndex]);
+        LNewData.HasChildren := (LNewData.TypeInfo.Kind = tkSet) or ((LNewData.TypeInfo.Kind = tkClass) and (LNewData.PropStrValue <> ''));
+        if LNewData.TypeInfo.Kind = tkClass then
+          LNewData.Instance := GetObjectProp(LObject, LNewData.PropInfo);
+      end;
+    end;
+  end
+  else
+  if LData.TypeInfo.Kind = tkSet then
+  begin
+    LSetTypeData := GetTypeData(GetTypeData(LData.TypeInfo)^.CompType^);
+    LSetAsIntValue := GetOrdProp(LParentObject, LData.PropInfo);
+
+    for LIndex := LSetTypeData.MinValue to LSetTypeData.MaxValue do
+    begin
+      LPNode := AddChild(Node);
+      LNewData := GetNodeData(LPNode);
+      LNewData.PropInfo := nil;
+      LNewData.TypeInfo := nil;
+      LNewData.PropName := GetEnumName(GetTypeData(LData.TypeInfo)^.CompType^, LIndex);
+      LNewData.PropStrValue := BooleanIdents[LIndex in TIntegerSet(LSetAsIntValue)];
+      LNewData.HasChildren := False;
+      LNewData.IsSetValue := True;
+      LNewData.SetIndex := LIndex;
+    end;
+  end;
+  ChildCount := Self.ChildCount[Node];
 end;
 
 function TBCObjectInspector.PropertyValueAsString(AInstance: TObject; APropertyInfo: PPropInfo): string;
