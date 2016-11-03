@@ -3,7 +3,8 @@ unit BCControl.ObjectInspector;
 interface
 
 uses
-  System.Classes, System.Types, System.UITypes, System.TypInfo, Vcl.Graphics, VirtualTrees, sComboBox, sSkinManager;
+  Winapi.Messages, System.Classes, System.Types, System.UITypes, System.TypInfo, Vcl.Controls, Vcl.Graphics,
+  VirtualTrees, sComboBox, sSkinManager;
 
 type
   TBCObjectInspector = class(TVirtualDrawTree)
@@ -14,6 +15,7 @@ type
     procedure DoObjectChange;
     procedure SetInspectedObject(const AValue: TObject);
   protected
+    function DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink; override;
     function DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean; override;
     procedure DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean); override;
     procedure DoFreeNode(ANode: PVirtualNode); override;
@@ -27,6 +29,27 @@ type
     property SkinManager: TsSkinManager read FSkinManager write FSkinManager;
   end;
 
+  TBCObjectInspectorEditLink = class(TInterfacedObject, IVTEditLink)
+  private
+    FEditor: TWinControl;
+    FObjectInspector: TBCObjectInspector;
+    FNode: PVirtualNode;
+    FColumn: Integer;
+  protected
+    procedure EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure EditKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure EditExit(Sender: TObject);
+  public
+    destructor Destroy; override;
+    function BeginEdit: Boolean; stdcall;
+    function CancelEdit: Boolean; stdcall;
+    function EndEdit: Boolean; stdcall;
+    function GetBounds: TRect; stdcall;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
+    procedure ProcessMessage(var Message: TMessage); stdcall;
+    procedure SetBounds(R: TRect); stdcall;
+  end;
+
 implementation
 
 uses
@@ -36,16 +59,18 @@ type
   TPropertyArray = array of PPropInfo;
 
   TBCObjectInspectorNodeRecord = record
-    PropInfo: PPropInfo;
+    PropertyInfo: PPropInfo;
+    PropertyName: string;
+    PropertyValue: string;
+    PropertyObject: TObject;
     TypeInfo: PTypeInfo;
-    PropName: string;
-    PropStrValue: string;
     HasChildren: Boolean;
-    Instance: TObject;
     IsSetValue: Boolean;
     SetIndex: Integer;
   end;
   PBCObjectInspectorNodeRecord = ^TBCObjectInspectorNodeRecord;
+
+{ TBCObjectInspector }
 
 constructor TBCObjectInspector.Create;
 var
@@ -67,18 +92,13 @@ begin
   LColumn.Options := [coAllowClick, coParentColor, coEnabled, coParentBidiMode, coResizable, coVisible, coAllowFocus, coEditable];
 
   IncrementalSearch := isAll;
-  Indent := 14;
+  Indent := 16;
   EditDelay := 0;
   TextMargin := 4;
 
   TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoChangeScale, toAutoScrollOnExpand, toAutoTristateTracking];
   TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toWheelPanning, toEditOnClick];
   TreeOptions.PaintOptions := [toHideFocusRect, toShowRoot, toShowButtons, toThemeAware, toShowVertGridLines, toUseExplorerTheme];
-end;
-
-procedure TBCObjectInspector.DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
-begin
-  Allowed := Column > 0;
 end;
 
 procedure TBCObjectInspector.DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates);
@@ -148,9 +168,9 @@ begin
     Dec(LRect.Bottom);
 
     if PaintInfo.Column = 0 then
-      LString := LData.PropName
+      LString := LData.PropertyName
     else
-      LString := LData.PropStrValue;
+      LString := LData.PropertyValue;
 
     if Length(LString) > 0 then
       DrawTextW(Canvas.Handle, PWideChar(LString), Length(LString), LRect, DT_TOP or DT_LEFT or DT_VCENTER or DT_SINGLELINE);
@@ -189,13 +209,13 @@ begin
   begin
     LPNode := AddChild(nil);
     LData := GetNodeData(LPNode);
-    LData.PropInfo := LPropertyArray[LIndex];
-    LData.TypeInfo := LData.PropInfo^.PropType^;
-    LData.PropName := string(LPropertyArray[LIndex].Name);
-    LData.PropStrValue := PropertyValueAsString(FInspectedObject, LPropertyArray[LIndex]);
-    LData.HasChildren := (LData.TypeInfo.Kind = tkSet) or ((LData.TypeInfo.Kind = tkClass) and (LData.PropStrValue <> ''));
+    LData.PropertyInfo := LPropertyArray[LIndex];
+    LData.TypeInfo := LData.PropertyInfo^.PropType^;
+    LData.PropertyName := string(LPropertyArray[LIndex].Name);
+    LData.PropertyValue := PropertyValueAsString(FInspectedObject, LPropertyArray[LIndex]);
+    LData.HasChildren := (LData.TypeInfo.Kind = tkSet) or ((LData.TypeInfo.Kind = tkClass) and (LData.PropertyValue <> ''));
     if LData.TypeInfo.Kind = tkClass then
-      LData.Instance := GetObjectProp(FInspectedObject, LData.PropInfo);
+      LData.PropertyObject := GetObjectProp(FInspectedObject, LData.PropertyInfo);
   end;
 
   EndUpdate;
@@ -220,16 +240,16 @@ begin
 
   LParentData := GetNodeData(Node.Parent);
   if Assigned(LParentData) then
-    LParentObject := LParentData.Instance
+    LParentObject := LParentData.PropertyObject
   else
     LParentObject := FInspectedObject;
 
-  if (LData.TypeInfo.Kind = tkClass) and (LData.PropStrValue <> '') then
+  if (LData.TypeInfo.Kind = tkClass) and (LData.PropertyValue <> '') then
   begin
     if LParentObject is TCollection then
-      LObject := LData.Instance
+      LObject := LData.PropertyObject
     else
-      LObject := GetObjectProp(LParentObject, LData.PropInfo);
+      LObject := GetObjectProp(LParentObject, LData.PropertyInfo);
 
     if LObject is TCollection then
     begin
@@ -238,12 +258,12 @@ begin
       begin
         LPNode := AddChild(Node);
         LNewData := GetNodeData(LPNode);
-        LNewData.PropInfo := nil;
+        LNewData.PropertyInfo := nil;
+        LNewData.PropertyName := 'Item[' + IntToStr(LIndex) + ']';
+        LNewData.PropertyValue := '(' + LCollection.ItemClass.ClassName +')';
         LNewData.TypeInfo := LCollection.ItemClass.ClassInfo;
-        LNewData.PropName := 'Item[' + IntToStr(LIndex) + ']';
-        LNewData.PropStrValue := '(' + LCollection.ItemClass.ClassName +')';
         LNewData.HasChildren := True;
-        LNewData.Instance := LCollection.Items[LIndex];
+        LNewData.PropertyObject := LCollection.Items[LIndex];
       end;
     end
     else
@@ -257,13 +277,13 @@ begin
       begin
         LPNode := AddChild(Node);
         LNewData := GetNodeData(LPNode);
-        LNewData.PropInfo := LPropertyArray[LIndex];
-        LNewData.TypeInfo := LNewData.PropInfo^.PropType^;
-        LNewData.PropName := string(LPropertyArray[LIndex].Name);
-        LNewData.PropStrValue := PropertyValueAsString(LObject, LPropertyArray[LIndex]);
-        LNewData.HasChildren := (LNewData.TypeInfo.Kind = tkSet) or ((LNewData.TypeInfo.Kind = tkClass) and (LNewData.PropStrValue <> ''));
+        LNewData.PropertyInfo := LPropertyArray[LIndex];
+        LNewData.PropertyName := string(LPropertyArray[LIndex].Name);
+        LNewData.PropertyValue := PropertyValueAsString(LObject, LPropertyArray[LIndex]);
+        LNewData.TypeInfo := LNewData.PropertyInfo^.PropType^;
+        LNewData.HasChildren := (LNewData.TypeInfo.Kind = tkSet) or ((LNewData.TypeInfo.Kind = tkClass) and (LNewData.PropertyValue <> ''));
         if LNewData.TypeInfo.Kind = tkClass then
-          LNewData.Instance := GetObjectProp(LObject, LNewData.PropInfo);
+          LNewData.PropertyObject := GetObjectProp(LObject, LNewData.PropertyInfo);
       end;
     end;
   end
@@ -271,16 +291,16 @@ begin
   if LData.TypeInfo.Kind = tkSet then
   begin
     LSetTypeData := GetTypeData(GetTypeData(LData.TypeInfo)^.CompType^);
-    LSetAsIntValue := GetOrdProp(LParentObject, LData.PropInfo);
+    LSetAsIntValue := GetOrdProp(LParentObject, LData.PropertyInfo);
 
     for LIndex := LSetTypeData.MinValue to LSetTypeData.MaxValue do
     begin
       LPNode := AddChild(Node);
       LNewData := GetNodeData(LPNode);
-      LNewData.PropInfo := nil;
+      LNewData.PropertyInfo := nil;
+      LNewData.PropertyName := GetEnumName(GetTypeData(LData.TypeInfo)^.CompType^, LIndex);
+      LNewData.PropertyValue := BooleanIdents[LIndex in TIntegerSet(LSetAsIntValue)];
       LNewData.TypeInfo := nil;
-      LNewData.PropName := GetEnumName(GetTypeData(LData.TypeInfo)^.CompType^, LIndex);
-      LNewData.PropStrValue := BooleanIdents[LIndex in TIntegerSet(LSetAsIntValue)];
       LNewData.HasChildren := False;
       LNewData.IsSetValue := True;
       LNewData.SetIndex := LIndex;
@@ -399,17 +419,17 @@ var
   function InterfaceAsString: String;
   var
     LInterface: IInterface;
-    Value: TComponent;
-    SR: IInterfaceComponentReference;
+    LValue: TComponent;
+    LComponentReference: IInterfaceComponentReference;
   begin
     LInterface := GetInterfaceProp(AInstance, APropertyInfo);
     if not Assigned(LInterface) then
       Result := ''
     else
-    if Supports(LInterface, IInterfaceComponentReference, SR) then
+    if Supports(LInterface, IInterfaceComponentReference, LComponentReference) then
     begin
-      Value := SR.GetComponent;
-      Result := Value.Name;
+      LValue := LComponentReference.GetComponent;
+      Result := LValue.Name;
     end;
   end;
 
@@ -442,6 +462,164 @@ begin
 
   if (HitInfo.HitColumn = 0) and not (hiOnItemButton in HitInfo.HitPositions) then
     Expanded[HitInfo.HitNode] := not Expanded[HitInfo.HitNode];
+end;
+
+procedure TBCObjectInspector.DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+begin
+  Allowed := Column > 0;
+end;
+
+function TBCObjectInspector.DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink;
+begin
+  //inherited;
+  Result := TBCObjectInspectorEditLink.Create;
+end;
+
+{ TSTVirtualGridEditLink }
+
+destructor TBCObjectInspectorEditLink.Destroy;
+begin
+  if Assigned(FEditor) then
+    if FEditor.HandleAllocated then
+      PostMessage(FEditor.Handle, CM_RELEASE, 0, 0);
+  inherited;
+end;
+
+procedure TBCObjectInspectorEditLink.EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  LCanAdvance: Boolean;
+  LPNode: PVirtualNode;
+begin
+  case Key of
+    VK_ESCAPE:
+      begin
+        Key := 0;//ESC will be handled in EditKeyUp()
+      end;
+    VK_RETURN:
+      begin
+        Key := 0;
+        FObjectInspector.EndEditNode;
+      end;
+    VK_UP,
+    VK_DOWN:
+      begin
+        // Consider special cases before finishing edit mode.
+        LCanAdvance := Shift = [];
+        if FEditor is TsComboBox then
+          LCanAdvance := LCanAdvance and not TsComboBox(FEditor).DroppedDown;
+        if LCanAdvance then
+        begin
+          // Forward the keypress to the tree. It will asynchronously change the focused node.
+          with FObjectInspector do
+          begin
+            LPNode := FocusedNode;
+            Selected[FocusedNode] := False;
+            if Key = VK_UP then
+              FocusedNode := FocusedNode.PrevSibling
+            else
+            if Key = VK_DOWN then
+              FocusedNode := FocusedNode.NextSibling;
+            if not Assigned(FocusedNode) then
+              FocusedNode := LPNode;
+            Selected[FocusedNode] := True;
+            LPNode := GetFirstSelected;
+            if Assigned(LPNode) then
+              EditNode(LPNode, Header.Columns.ClickIndex);
+          end;
+          Key := 0;
+        end;
+      end;
+  end;
+end;
+
+procedure TBCObjectInspectorEditLink.EditExit(Sender: TObject);
+begin
+  FObjectInspector.EndEditNode;
+end;
+
+procedure TBCObjectInspectorEditLink.EditKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  case Key of
+    VK_ESCAPE:
+      begin
+        FObjectInspector.CancelEditNode;
+        Key := 0;
+      end;
+  end;
+end;
+
+function TBCObjectInspectorEditLink.BeginEdit: Boolean;
+begin
+  Result := True;
+  if Assigned(FEditor) then
+  begin
+    FEditor.Show;
+    FEditor.SetFocus;
+  end;
+end;
+
+function TBCObjectInspectorEditLink.CancelEdit: Boolean;
+begin
+  Result := True;
+  if Assigned(FEditor) then
+    FEditor.Hide;
+end;
+
+function TBCObjectInspectorEditLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
+var
+  LPNode: PBCObjectInspectorNodeRecord;
+begin
+  FObjectInspector := Tree as TBCObjectInspector;
+  FNode := Node;
+  FColumn := Column;
+
+  FEditor.Free;
+  FEditor := nil;
+
+  LPNode := FObjectInspector.GetNodeData(Node);
+
+  // TODO: Create FEditors depending on TypeKind
+end;
+
+function TBCObjectInspectorEditLink.EndEdit: Boolean;
+var
+  LPNode: PBCObjectInspectorNodeRecord;
+begin
+  Result := True;
+
+  LPNode := FObjectInspector.GetNodeData(FNode);
+
+  if not Assigned(FEditor) then
+    Exit;
+
+  // TODO: Get value from FEditor, set it to node, and update control
+
+  FEditor.Hide;
+end;
+
+function TBCObjectInspectorEditLink.GetBounds: TRect;
+begin
+  if Assigned(FEditor) then
+    Result := FEditor.BoundsRect
+  else
+    Result := Rect(0, 0, 0, 0);
+end;
+
+procedure TBCObjectInspectorEditLink.ProcessMessage(var Message: TMessage);
+begin
+  if Assigned(FEditor) then
+    FEditor.WindowProc(Message);
+end;
+
+procedure TBCObjectInspectorEditLink.SetBounds(R: TRect);
+var
+  LLeft: Integer;
+begin
+  // Since we don't want to activate grid extensions in the tree (this would influence how the selection is drawn)
+  // we have to set the edit's width explicitly to the width of the column.
+  FObjectInspector.Header.Columns.GetColumnBounds(FColumn, LLeft, R.Right);
+  if Assigned(FEditor) then
+    FEditor.BoundsRect := R;
 end;
 
 end.

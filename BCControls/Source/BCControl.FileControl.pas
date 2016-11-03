@@ -686,7 +686,7 @@ begin
   DragOperations := [];
   Header.Options := [];
   IncrementalSearch := isAll;
-  Indent := 20;
+  Indent := 16;
   EditDelay := 500;
 
   TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoChangeScale, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes];
