@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Messages, System.Classes, System.Types, System.UITypes, System.TypInfo, Vcl.Controls, Vcl.Graphics,
-  VirtualTrees, sComboBox, sSkinManager;
+  VirtualTrees, sSkinManager;
 
 type
   TBCObjectInspector = class(TVirtualDrawTree)
@@ -17,6 +17,8 @@ type
   protected
     function DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink; override;
     function DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean; override;
+    procedure Click; override;
+    procedure DoAfterCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect); override;
     procedure DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean); override;
     procedure DoFreeNode(ANode: PVirtualNode); override;
     procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
@@ -30,7 +32,7 @@ type
   end;
 
   TBCObjectInspectorEditLink = class(TInterfacedObject, IVTEditLink)
-  private
+  strict private
     FEditor: TWinControl;
     FObjectInspector: TBCObjectInspector;
     FNode: PVirtualNode;
@@ -53,7 +55,7 @@ type
 implementation
 
 uses
-  Winapi.Windows, System.SysUtils, System.Variants;
+  Winapi.Windows, System.SysUtils, System.Variants, sComboBox, sEdit;
 
 type
   TPropertyArray = array of PPropInfo;
@@ -96,9 +98,68 @@ begin
   EditDelay := 0;
   TextMargin := 4;
 
-  TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoChangeScale, toAutoScrollOnExpand, toAutoTristateTracking];
-  TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toWheelPanning, toEditOnClick];
-  TreeOptions.PaintOptions := [toHideFocusRect, toShowRoot, toShowButtons, toThemeAware, toShowVertGridLines, toUseExplorerTheme];
+  TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale];
+  TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toGridExtensions, toWheelPanning, toEditOnClick];
+  TreeOptions.PaintOptions := [toHideFocusRect, toShowButtons, toShowRoot, toShowVertGridLines, toThemeAware, toUseExplorerTheme];
+  TreeOptions.SelectionOptions := [toExtendedFocus];
+end;
+
+procedure TBCObjectInspector.Click;
+var
+  LPNode: PVirtualNode;
+  LData: PBCObjectInspectorNodeRecord;
+begin
+  LPNode := GetFirstSelected;
+  if Assigned(LPNode) then
+    EditNode(LPNode, Header.Columns.ClickIndex);
+  { Checkbox }
+  if Header.Columns.ClickIndex > -1 then
+    // Toggle
+end;
+
+procedure TBCObjectInspector.DoAfterCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
+var
+  TreeNodeRecord: PBCObjectInspectorNodeRecord;
+ // LStyle: TCustomStyleServices;
+ // LDetails: TThemedElementDetails;
+  LRect, BRect, MRect: TRect;
+  IsMouseInRect: Boolean;
+begin
+  inherited;
+  //LStyle := StyleServices;
+  LRect := CellRect;
+  Inc(LRect.Right);
+  Inc(LRect.Bottom, 2);
+  { Checkbox }
+ { TODO
+  if checkbox then
+  begin
+    TreeNodeRecord := GetNodeData(Node);
+    BRect := LRect;
+    Dec(BRect.Top);
+
+    MRect := CellRect;
+    MRect.Top := Integer(Node.Index) * MRect.Bottom;
+    MRect.Bottom := (Integer(Node.Index) + 1) * MRect.Bottom;
+    IsMouseInRect := PtInRect(MRect, ScreenToClient(Mouse.CursorPos));
+
+    if IsMouseInRect or IsChecked then
+      StyleServices.DrawElement(Canvas.Handle, StyleServices.GetElementDetails(thHeaderItemHot), BRect);
+
+    if IsChecked then
+    begin
+      if (FHoverIndex = Column) and IsMouseInRect then
+        ElementDetails := tbCheckBoxCheckedHot
+      else
+        ElementDetails := tbCheckBoxCheckedNormal
+    end
+    else
+    if (FHoverIndex = Column) and IsMouseInRect then
+      ElementDetails := tbCheckBoxUncheckedHot
+    else
+      ElementDetails := tbCheckBoxUncheckedNormal;
+    StyleServices.DrawElement(Canvas.Handle, StyleServices.GetElementDetails(ElementDetails), BRect);
+  end;   }
 end;
 
 procedure TBCObjectInspector.DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates);
@@ -569,15 +630,34 @@ function TBCObjectInspectorEditLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PV
 var
   LPNode: PBCObjectInspectorNodeRecord;
 begin
+  Result := True;
+
   FObjectInspector := Tree as TBCObjectInspector;
   FNode := Node;
   FColumn := Column;
 
-  FEditor.Free;
-  FEditor := nil;
+  if Assigned(FEditor) then
+  begin
+    FEditor.Free;
+    FEditor := nil;
+  end;
 
   LPNode := FObjectInspector.GetNodeData(Node);
 
+  case LPNode.TypeInfo.Kind of
+    tkInteger, tkInt64, tkChar, tkFloat, tkString, tkLString, tkWString, tkUString:
+      begin
+        FEditor := TsEdit.Create(nil);
+        with FEditor as TsEdit do
+        begin
+          Visible := False;
+          Parent := Tree;
+          Font.Name := FObjectInspector.Canvas.Font.Name;
+          Font.Size := FObjectInspector.Canvas.Font.Size;
+          Text := LPNode.PropertyValue;
+        end;
+      end;
+  end;
   // TODO: Create FEditors depending on TypeKind
 end;
 

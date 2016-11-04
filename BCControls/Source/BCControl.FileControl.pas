@@ -1452,6 +1452,7 @@ var
   LData: PBCFileTreeNodeRecord;
 begin
   Result := True;
+
   FTree := Tree as TBCFileTreeView;
   FNode := Node;
   FColumn := Column;
@@ -1477,7 +1478,8 @@ end;
 
 procedure TEditLink.ProcessMessage(var AMessage: TMessage);
 begin
-  FEdit.WindowProc(AMessage);
+  if Assigned(FEdit) then
+    FEdit.WindowProc(AMessage);
 end;
 
 procedure TEditLink.SetBounds(ARect: TRect);
