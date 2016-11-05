@@ -55,7 +55,7 @@ type
 implementation
 
 uses
-  Winapi.Windows, System.SysUtils, System.Variants, sComboBox, sEdit;
+  Winapi.Windows, Winapi.UxTheme, System.SysUtils, System.Math, System.Variants, Vcl.Themes, sComboBox, sEdit;
 
 type
   TPropertyArray = array of PPropInfo;
@@ -67,6 +67,7 @@ type
     PropertyObject: TObject;
     TypeInfo: PTypeInfo;
     HasChildren: Boolean;
+    IsBoolean: Boolean;
     IsSetValue: Boolean;
     SetIndex: Integer;
   end;
@@ -119,47 +120,43 @@ end;
 
 procedure TBCObjectInspector.DoAfterCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
 var
-  TreeNodeRecord: PBCObjectInspectorNodeRecord;
- // LStyle: TCustomStyleServices;
- // LDetails: TThemedElementDetails;
-  LRect, BRect, MRect: TRect;
-  IsMouseInRect: Boolean;
+  LCheckBoxRect: TRect;
+  LData: PBCObjectInspectorNodeRecord;
+  LSize: TSize;
+  LHandle: THandle;
 begin
   inherited;
-  //LStyle := StyleServices;
-  LRect := CellRect;
-  Inc(LRect.Right);
-  Inc(LRect.Bottom, 2);
+
+  if Column = 0 then
+    Exit;
+
   { Checkbox }
- { TODO
-  if checkbox then
+  LData := GetNodeData(Node);
+  if LData.IsBoolean then
   begin
-    TreeNodeRecord := GetNodeData(Node);
-    BRect := LRect;
-    Dec(BRect.Top);
+    LCheckBoxRect := CellRect;
+    Inc(LCheckBoxRect.Left, 2);
 
-    MRect := CellRect;
-    MRect.Top := Integer(Node.Index) * MRect.Bottom;
-    MRect.Bottom := (Integer(Node.Index) + 1) * MRect.Bottom;
-    IsMouseInRect := PtInRect(MRect, ScreenToClient(Mouse.CursorPos));
-
-    if IsMouseInRect or IsChecked then
-      StyleServices.DrawElement(Canvas.Handle, StyleServices.GetElementDetails(thHeaderItemHot), BRect);
-
-    if IsChecked then
+    if UseThemes then
     begin
-      if (FHoverIndex = Column) and IsMouseInRect then
-        ElementDetails := tbCheckBoxCheckedHot
-      else
-        ElementDetails := tbCheckBoxCheckedNormal
+      LHandle := OpenThemeData(Handle, 'BUTTON');
+      if LHandle <> 0 then
+      try
+        GetThemePartSize(LHandle, Canvas.Handle, BP_CHECKBOX, CBS_CHECKEDNORMAL, nil, TS_DRAW, LSize);
+        LCheckBoxRect.Right  := LCheckBoxRect.Left + LSize.cx;
+        DrawThemeBackground(LHandle, Canvas.Handle, BP_CHECKBOX, IfThen(CompareText(LData.PropertyValue, 'True') = 0,
+          CBS_CHECKEDNORMAL, CBS_UNCHECKEDNORMAL), LCheckBoxRect, nil);
+      finally
+        CloseThemeData(LHandle);
+      end;
     end
     else
-    if (FHoverIndex = Column) and IsMouseInRect then
-      ElementDetails := tbCheckBoxUncheckedHot
-    else
-      ElementDetails := tbCheckBoxUncheckedNormal;
-    StyleServices.DrawElement(Canvas.Handle, StyleServices.GetElementDetails(ElementDetails), BRect);
-  end;   }
+    begin
+      LCheckBoxRect.Right  := LCheckBoxRect.Left + GetSystemMetrics(SM_CXMENUCHECK);
+      DrawFrameControl(Canvas.Handle, LCheckBoxRect, DFC_BUTTON, IfThen(CompareText(LData.PropertyValue, 'True') = 0,
+        DFCS_CHECKED, DFCS_BUTTONCHECK));
+    end;
+  end;
 end;
 
 procedure TBCObjectInspector.DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates);
@@ -186,6 +183,8 @@ var
   LData: PBCObjectInspectorNodeRecord;
   LString: string;
   LRect: TRect;
+  LHandle: THandle;
+  LSize: TSize;
 begin
   inherited;
   with PaintInfo do
@@ -231,7 +230,26 @@ begin
     if PaintInfo.Column = 0 then
       LString := LData.PropertyName
     else
+    begin
+      if LData.IsBoolean then
+      begin
+        if UseThemes then
+        begin
+          LHandle := OpenThemeData(Handle, 'BUTTON');
+          if LHandle <> 0 then
+          try
+            GetThemePartSize(LHandle, Canvas.Handle, BP_CHECKBOX, CBS_CHECKEDNORMAL, nil, TS_DRAW, LSize);
+            Inc(LRect.Left, LSize.cx + 2);
+          finally
+            CloseThemeData(LHandle);
+          end;
+        end
+        else
+          Inc(LRect.Left, GetSystemMetrics(SM_CXMENUCHECK) + 2);
+      end;
+
       LString := LData.PropertyValue;
+    end;
 
     if Length(LString) > 0 then
       DrawTextW(Canvas.Handle, PWideChar(LString), Length(LString), LRect, DT_TOP or DT_LEFT or DT_VCENTER or DT_SINGLELINE);
@@ -245,6 +263,11 @@ begin
     FInspectedObject := AValue;
     DoObjectChange;
   end;
+end;
+
+function IsBooleanValue(const AValue: string): Boolean;
+begin
+  Result := (CompareText(AValue, 'True') = 0) or (CompareText(AValue, 'False') = 0);
 end;
 
 procedure TBCObjectInspector.DoObjectChange;
@@ -274,6 +297,7 @@ begin
     LData.TypeInfo := LData.PropertyInfo^.PropType^;
     LData.PropertyName := string(LPropertyArray[LIndex].Name);
     LData.PropertyValue := PropertyValueAsString(FInspectedObject, LPropertyArray[LIndex]);
+    LData.IsBoolean := (LData.TypeInfo.Kind = tkEnumeration) and IsBooleanValue(LData.PropertyValue);
     LData.HasChildren := (LData.TypeInfo.Kind = tkSet) or ((LData.TypeInfo.Kind = tkClass) and (LData.PropertyValue <> ''));
     if LData.TypeInfo.Kind = tkClass then
       LData.PropertyObject := GetObjectProp(FInspectedObject, LData.PropertyInfo);
@@ -342,6 +366,7 @@ begin
         LNewData.PropertyName := string(LPropertyArray[LIndex].Name);
         LNewData.PropertyValue := PropertyValueAsString(LObject, LPropertyArray[LIndex]);
         LNewData.TypeInfo := LNewData.PropertyInfo^.PropType^;
+        LNewData.IsBoolean := (LNewData.TypeInfo.Kind = tkEnumeration) and IsBooleanValue(LNewData.PropertyValue);
         LNewData.HasChildren := (LNewData.TypeInfo.Kind = tkSet) or ((LNewData.TypeInfo.Kind = tkClass) and (LNewData.PropertyValue <> ''));
         if LNewData.TypeInfo.Kind = tkClass then
           LNewData.PropertyObject := GetObjectProp(LObject, LNewData.PropertyInfo);
@@ -362,6 +387,7 @@ begin
       LNewData.PropertyName := GetEnumName(GetTypeData(LData.TypeInfo)^.CompType^, LIndex);
       LNewData.PropertyValue := BooleanIdents[LIndex in TIntegerSet(LSetAsIntValue)];
       LNewData.TypeInfo := nil;
+      LNewData.IsBoolean := IsBooleanValue(LNewData.PropertyValue);
       LNewData.HasChildren := False;
       LNewData.IsSetValue := True;
       LNewData.SetIndex := LIndex;
@@ -434,20 +460,20 @@ var
     Result := FloatToStr(LValue);
   end;
 
-  function Int64AsString: String;
+  {function Int64AsString: String;
   var
     LValue: Int64;
   begin
     LValue := GetInt64Prop(AInstance, APropertyInfo);
     Result := IntToStr(LValue);
-  end;
+  end;  }
 
   function StrAsString: String;
   begin
     Result := GetWideStrProp(AInstance, APropertyInfo);
   end;
 
-  function MethodAsString: String;
+  {function MethodAsString: String;
   var
     LValue: TMethod;
   begin
@@ -456,7 +482,7 @@ var
       Result := ''
     else
       Result := AInstance.MethodName(LValue.Code);
-  end;
+  end;  }
 
   function ObjectAsString: String;
   var
@@ -469,7 +495,7 @@ var
       Result := '(' + LValue.ClassName + ')';
   end;
 
-  function VariantAsString: String;
+  {function VariantAsString: String;
   var
     LValue: Variant;
   begin
@@ -492,7 +518,7 @@ var
       LValue := LComponentReference.GetComponent;
       Result := LValue.Name;
     end;
-  end;
+  end; }
 
 begin
   LPropertyType := APropertyInfo^.PropType^;
@@ -506,14 +532,14 @@ begin
       Result := StrAsString;
     tkClass:
       Result := ObjectAsString;
-    tkMethod:
+    {tkMethod:
       Result := MethodAsString;
     tkVariant:
       Result := VariantAsString;
     tkInt64:
       Result := Int64AsString;
     tkInterface:
-      Result := InterfaceAsString;
+      Result := InterfaceAsString;}
   end;
 end;
 
@@ -526,8 +552,11 @@ begin
 end;
 
 procedure TBCObjectInspector.DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+var
+  LData: PBCObjectInspectorNodeRecord;
 begin
-  Allowed := Column > 0;
+  LData := GetNodeData(Node);
+  Allowed := (Column > 0) and not LData.IsBoolean and not LData.IsSetValue and (LData.TypeInfo.Kind <> tkClass);
 end;
 
 function TBCObjectInspector.DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink;
