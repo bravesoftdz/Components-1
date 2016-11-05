@@ -180,16 +180,27 @@ end;
 
 procedure TBCObjectInspector.DoPaintNode(var PaintInfo: TVTPaintInfo);
 var
-  LData: PBCObjectInspectorNodeRecord;
+  LData, LDataParent: PBCObjectInspectorNodeRecord;
   LString: string;
   LRect: TRect;
   LHandle: THandle;
   LSize: TSize;
+  LParentPropertyObject: TObject;
 begin
   inherited;
   with PaintInfo do
   begin
     LData := GetNodeData(Node);
+    LParentPropertyObject := nil;
+    if Assigned(Node.Parent) then
+    begin
+      LDataParent := GetNodeData(Node.Parent);
+      if Assigned(LDataParent) then
+        LParentPropertyObject := LDataParent.PropertyObject;
+    end;
+    if not Assigned(LParentPropertyObject) then
+      LParentPropertyObject := FInspectedObject;
+
     if not Assigned(LData) then
       Exit;
 
@@ -202,7 +213,14 @@ begin
         else
           Canvas.Font.Color := clWindowText;
       1:
-        Canvas.Font.Color := SysColorToSkin(clNavy);
+        begin
+          Canvas.Font.Color := SysColorToSkin(clNavy);
+
+          if Assigned(LParentPropertyObject) and Assigned(LData.PropertyInfo) and
+            IsStoredProp(LParentPropertyObject, LData.PropertyInfo) then
+            if not IsDefaultPropertyValue(LParentPropertyObject, LData.PropertyInfo, nil) then
+              Canvas.Font.Style := [fsBold];
+        end;
     end;
 
     if vsSelected in PaintInfo.Node.States then
@@ -218,7 +236,6 @@ begin
         Canvas.Font.Color := clHighlightText;
       end;
     end;
-    Canvas.Font.Style := [];
 
     SetBKMode(Canvas.Handle, TRANSPARENT);
 
@@ -547,6 +564,8 @@ procedure TBCObjectInspector.DoNodeClick(const HitInfo: THitInfo);
 begin
   inherited;
 
+  ClearSelection;
+  Selected[HitInfo.HitNode] := True;
   if (HitInfo.HitColumn = 0) and not (hiOnItemButton in HitInfo.HitPositions) then
     Expanded[HitInfo.HitNode] := not Expanded[HitInfo.HitNode];
 end;
@@ -556,7 +575,8 @@ var
   LData: PBCObjectInspectorNodeRecord;
 begin
   LData := GetNodeData(Node);
-  Allowed := (Column > 0) and not LData.IsBoolean and not LData.IsSetValue and (LData.TypeInfo.Kind <> tkClass);
+  Allowed := (Column > 0) and not LData.IsBoolean and not LData.IsSetValue and (LData.TypeInfo.Kind <> tkClass) and
+    (LData.TypeInfo.Kind <> tkEnumeration);
 end;
 
 function TBCObjectInspector.DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink;
