@@ -14,6 +14,7 @@ type
     function PropertyValueAsString(AInstance: TObject; APropertyInfo: PPropInfo): string;
     procedure DoObjectChange;
     procedure SetInspectedObject(const AValue: TObject);
+    procedure SetValueAsString(ANode: PVirtualNode; const AValue: String);
   protected
     function DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink; override;
     function DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean; override;
@@ -118,16 +119,59 @@ begin
   { Checkbox }
   if Header.Columns.ClickIndex = 1 then
   begin
-    { Checkbox }
     LData := GetNodeData(LPNode);
     if LData.IsBoolean then
     begin
-      if CompareText(LData.PropertyValue, 'True') = 0 then
-        LData.PropertyValue := 'False'
+      if CompareText(LData.PropertyValue, BooleanIdents[True]) = 0 then
+        SetValueAsString(LPNode, BooleanIdents[False])
       else
-        LData.PropertyValue := 'True'
+        SetValueAsString(LPNode, BooleanIdents[True]);
     end;
   end;
+end;
+
+procedure TBCObjectInspector.SetValueAsString(ANode: PVirtualNode; const AValue: String);
+var
+  LIntegerSet: TIntegerSet;
+  LNewValue: Longint;
+  LData, LParentData: PBCObjectInspectorNodeRecord;
+  LParentObject: TObject;
+begin
+  LData := GetNodeData(ANode);
+
+  LParentData := GetNodeData(ANode.Parent);
+  if Assigned(LParentData) then
+    LParentObject := LParentData.PropertyObject
+  else
+    LParentObject := FInspectedObject;
+
+  if LData.IsSetValue then
+  begin
+    Integer(LIntegerSet) := StringToSet(LParentData.PropertyInfo, LParentData.PropertyValue);
+    if CompareText(AValue, BooleanIdents[True]) = 0 then
+      Include(LIntegerSet, LData.SetIndex)
+    else
+      Exclude(LIntegerSet, LData.SetIndex);
+    SetValueAsString(ANode.Parent, SetToString(LParentData.PropertyInfo, Integer(LIntegerSet)));
+  end
+  else
+  if LData.TypeInfo = System.TypeInfo(TColor) then
+  begin
+    if IdentToColor(AValue, LNewValue) then
+      SetPropValue(LParentObject, LData.PropertyName, LNewValue)
+    else
+      SetPropValue(LParentObject, LData.PropertyName, StrToInt(AValue))
+  end
+  else
+  if LData.TypeInfo.Kind in [tkInteger] then
+    SetPropValue(LParentObject, LData.PropertyName, StrToInt(AValue))
+  else
+  if  LData.TypeInfo.Kind in [tkFloat] then
+    SetPropValue(LParentObject, LData.PropertyName, StrToFloat(AValue))
+  else
+    SetPropValue(LParentObject,  LData.PropertyName, AValue);
+
+  LData.PropertyValue := AValue;
 end;
 
 procedure TBCObjectInspector.DoAfterCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
@@ -156,7 +200,7 @@ begin
       try
         GetThemePartSize(LHandle, Canvas.Handle, BP_CHECKBOX, CBS_CHECKEDNORMAL, nil, TS_DRAW, LSize);
         LRect.Right  := LRect.Left + LSize.cx;
-        DrawThemeBackground(LHandle, Canvas.Handle, BP_CHECKBOX, IfThen(CompareText(LData.PropertyValue, 'True') = 0,
+        DrawThemeBackground(LHandle, Canvas.Handle, BP_CHECKBOX, IfThen(CompareText(LData.PropertyValue, BooleanIdents[True]) = 0,
           CBS_CHECKEDNORMAL, CBS_UNCHECKEDNORMAL), LRect, nil);
       finally
         CloseThemeData(LHandle);
@@ -165,7 +209,7 @@ begin
     else
     begin
       LRect.Right  := LRect.Left + GetSystemMetrics(SM_CXMENUCHECK);
-      DrawFrameControl(Canvas.Handle, LRect, DFC_BUTTON, IfThen(CompareText(LData.PropertyValue, 'True') = 0,
+      DrawFrameControl(Canvas.Handle, LRect, DFC_BUTTON, IfThen(CompareText(LData.PropertyValue, BooleanIdents[True]) = 0,
         DFCS_CHECKED, DFCS_BUTTONCHECK));
     end;
   end;
@@ -319,7 +363,7 @@ end;
 
 function IsBooleanValue(const AValue: string): Boolean;
 begin
-  Result := (CompareText(AValue, 'True') = 0) or (CompareText(AValue, 'False') = 0);
+  Result := (CompareText(AValue, BooleanIdents[True]) = 0) or (CompareText(AValue, BooleanIdents[False]) = 0);
 end;
 
 procedure TBCObjectInspector.DoObjectChange;
