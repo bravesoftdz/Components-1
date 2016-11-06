@@ -9,9 +9,12 @@ uses
 type
   TBCObjectInspector = class(TVirtualDrawTree)
   strict private
+    FFirstNodeClick: Boolean;
     FInspectedObject: TObject;
+    FLastNode: PVirtualNode;
     FSkinManager: TsSkinManager;
     function PropertyValueAsString(AObject: TObject; APropertyInfo: PPropInfo): string;
+    procedure DoClick(const HitInfo: THitInfo; const AIsDblClick: Boolean);
     procedure DoObjectChange;
     procedure SetInspectedObject(const AValue: TObject);
   protected
@@ -23,6 +26,7 @@ type
     procedure DoFreeNode(ANode: PVirtualNode); override;
     procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
     procedure DoNodeClick(const HitInfo: THitInfo); override;
+    procedure DoNodeDblClick(const HitInfo: THitInfo); override;
     procedure DoPaintNode(var PaintInfo: TVTPaintInfo); override;
     procedure SetValueAsString(ANode: PVirtualNode; const AValue: String);
   public
@@ -38,9 +42,10 @@ type
     FObjectInspector: TBCObjectInspector;
     FNode: PVirtualNode;
     FColumn: Integer;
-    procedure DoComboChange(Sender: TObject);
+    procedure DoComboSelect(Sender: TObject);
+    procedure DoComboDblClick(Sender: TObject);
+    procedure SetValue;
   protected
-    procedure EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure EditKeyPress(Sender: TObject; var Key: Char);
     procedure EditExit(Sender: TObject);
   public
@@ -57,8 +62,8 @@ type
 implementation
 
 uses
-  Winapi.Windows, Winapi.UxTheme, System.SysUtils, System.Math, System.Variants, Vcl.Themes, sComboBox, sComboBoxes,
-  sEdit;
+  Winapi.Windows, Winapi.UxTheme, System.SysUtils, System.Math, System.Variants, Vcl.Themes, Vcl.StdCtrls, sComboBox, 
+  sComboBoxes, sEdit;
 
 type
   TPropertyArray = array of PPropInfo;
@@ -103,6 +108,8 @@ begin
   EditDelay := 0;
   TextMargin := 4;
 
+  FLastNode := nil;
+
   TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale];
   TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toGridExtensions, toWheelPanning, toEditOnClick];
   TreeOptions.PaintOptions := [toHideFocusRect, toShowButtons, toShowRoot, toShowVertGridLines, toThemeAware, toUseExplorerTheme];
@@ -118,7 +125,7 @@ begin
   if Assigned(LPNode) then
     EditNode(LPNode, Header.Columns.ClickIndex);
   { Checkbox }
-  if Header.Columns.ClickIndex = 1 then
+  if not FFirstNodeClick and (Header.Columns.ClickIndex = 1) then
   begin
     LData := GetNodeData(LPNode);
     if LData.IsBoolean then
@@ -158,6 +165,9 @@ begin
   else
   if LData.TypeInfo = System.TypeInfo(TColor) then
     SetPropValue(LParentObject, LData.PropertyName, StringToColor(AValue))
+  else
+  if LData.TypeInfo = System.TypeInfo(TCursor) then
+    SetPropValue(LParentObject, LData.PropertyName, StringToCursor(AValue))
   else
   if LData.TypeInfo.Kind in [tkInteger] then
     SetPropValue(LParentObject, LData.PropertyName, StrToInt(AValue))
@@ -592,13 +602,30 @@ begin
 end;
 
 procedure TBCObjectInspector.DoNodeClick(const HitInfo: THitInfo);
+begin
+  inherited;
+  DoClick(HitInfo, False);
+end;
+
+procedure TBCObjectInspector.DoNodeDblClick(const HitInfo: THitInfo);
+begin
+  inherited;
+  DoClick(HitInfo, True);
+  Click;
+end;
+
+procedure TBCObjectInspector.DoClick(const HitInfo: THitInfo; const AIsDblClick: Boolean);
 var
   LData: PBCObjectInspectorNodeRecord;
 begin
-  inherited;
-
+  if not AIsDblClick then
+    FFirstNodeClick := HitInfo.HitNode <> FLastNode
+  else
+    FFirstNodeClick := False;
   ClearSelection;
   Selected[HitInfo.HitNode] := True;
+  if not AIsDblClick then
+    FLastNode := HitInfo.HitNode;
 
   LData := GetNodeData(HitInfo.HitNode);
   if (HitInfo.HitColumn = 0) and not (hiOnItemButton in HitInfo.HitPositions) or
@@ -631,44 +658,6 @@ begin
   inherited;
 end;
 
-procedure TBCObjectInspectorEditLink.EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-var
-  LCanAdvance: Boolean;
-  LPNode: PVirtualNode;
-begin
-  case Key of
-    VK_UP,
-    VK_DOWN:
-      begin
-        // Consider special cases before finishing edit mode.
-        LCanAdvance := Shift = [];
-        if FEditor is TsComboBox then
-          LCanAdvance := LCanAdvance and not TsComboBox(FEditor).DroppedDown;
-        if LCanAdvance then
-        begin
-          // Forward the keypress to the tree. It will asynchronously change the focused node.
-          with FObjectInspector do
-          begin
-            LPNode := FocusedNode;
-            Selected[FocusedNode] := False;
-            if Key = VK_UP then
-              FocusedNode := FocusedNode.PrevSibling
-            else
-            if Key = VK_DOWN then
-              FocusedNode := FocusedNode.NextSibling;
-            if not Assigned(FocusedNode) then
-              FocusedNode := LPNode;
-            Selected[FocusedNode] := True;
-            LPNode := GetFirstSelected;
-            if Assigned(LPNode) then
-              EditNode(LPNode, Header.Columns.ClickIndex);
-          end;
-          Key := 0;
-        end;
-      end;
-  end;
-end;
-
 procedure TBCObjectInspectorEditLink.EditExit(Sender: TObject);
 begin
   FObjectInspector.EndEditNode;
@@ -689,7 +678,23 @@ begin
       end;
   else
     inherited;
-  end;
+  end
+end;
+
+procedure TBCObjectInspectorEditLink.DoComboDblClick(Sender: TObject);
+var
+  LIndex: Integer;
+  LEditor: TsComboBox;
+begin
+  LEditor := FEditor as TsComboBox; 
+  LIndex := LEditor.ItemIndex;
+  if LIndex = -1 then
+    LIndex := LEditor.Items.IndexOf(LEditor.Text);
+  Inc(LIndex);
+  if LIndex > LEditor.GetCount - 1 then
+    LIndex := 0;
+  LEditor.ItemIndex := LIndex;
+  SetValue;
 end;
 
 function TBCObjectInspectorEditLink.BeginEdit: Boolean;
@@ -722,7 +727,6 @@ var
       Parent := Tree;
       Font.Name := FObjectInspector.Canvas.Font.Name;
       Font.Size := FObjectInspector.Canvas.Font.Size;
-      OnKeyDown := EditKeyDown;
       OnKeyPress := EditKeyPress;
       Text := LData.PropertyValue;
     end;
@@ -742,9 +746,8 @@ var
       Font.Size := FObjectInspector.Canvas.Font.Size;
       Text := LData.PropertyValue;
       LTypeData := GetTypeData(LData.TypeInfo);
-      OnKeyDown := EditKeyDown;
-      OnKeyPress := EditKeyPress;
-      OnChange := DoComboChange;
+      OnSelect := DoComboSelect;
+      OnDblClick := DoComboDblClick;
 
       for LIndex := LTypeData.MinValue to LTypeData.MaxValue do
         Items.Add(GetEnumName(LData.TypeInfo, LIndex));
@@ -761,9 +764,7 @@ var
       Font.Name := FObjectInspector.Canvas.Font.Name;
       Font.Size := FObjectInspector.Canvas.Font.Size;
       Style := Style + [cbCustomColor];
-      OnKeyDown := EditKeyDown;
-      OnKeyPress := EditKeyPress;
-      OnChange := DoComboChange;
+      OnSelect := DoComboSelect;
       Selected := StringToColor(LData.PropertyValue);
     end;
   end;
@@ -787,7 +788,7 @@ begin
     CreateColorComboBox
   else
   if LData.TypeInfo = System.TypeInfo(TCursor) then
-    // TODO
+    CreateEdit // TODO: TCursor combobox
   else
   case LData.TypeInfo.Kind of
     tkInteger, tkInt64, tkChar, tkFloat, tkString, tkLString, tkWString, tkUString:
@@ -797,18 +798,16 @@ begin
   end;
 end;
 
-procedure TBCObjectInspectorEditLink.DoComboChange(Sender: TObject);
+procedure TBCObjectInspectorEditLink.DoComboSelect(Sender: TObject);
 begin
   FObjectInspector.EndEditNode;
 end;
 
-function TBCObjectInspectorEditLink.EndEdit: Boolean;
+procedure TBCObjectInspectorEditLink.SetValue;
 begin
-  Result := False;
-
   if not Assigned(FEditor) then
     Exit;
-
+    
   if FEditor is TsEdit then
     FObjectInspector.SetValueAsString(FNode, (FEditor as TsEdit).Text)
   else
@@ -817,7 +816,11 @@ begin
   else
   if FEditor is TsColorBox then
     FObjectInspector.SetValueAsString(FNode, ColorToString((FEditor as TsColorBox).Selected));
+end;
 
+function TBCObjectInspectorEditLink.EndEdit: Boolean;
+begin
+  SetValue;
   FEditor.Hide;
 
   Result := True;
