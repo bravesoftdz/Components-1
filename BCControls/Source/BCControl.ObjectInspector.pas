@@ -87,12 +87,12 @@ begin
 
   DragOperations := [];
   Header.AutoSizeIndex := 1;
-  Header.Options := [hoAutoResize, hoColumnResize, hoVisible];
+  Header.Options := [hoAutoResize, hoColumnResize];
   { property column }
   LColumn := Header.Columns.Add;
   LColumn.Text := 'Property';
   LColumn.Width := 160;
-  LColumn.Options := [coAllowClick, coParentColor, coEnabled, coParentBidiMode, coResizable, coVisible, coAllowFocus];
+  LColumn.Options := [coFixed, coAllowClick, coParentColor, coEnabled, coParentBidiMode, coResizable, coVisible, coAllowFocus];
   { value column }
   LColumn := Header.Columns.Add;
   LColumn.Text := 'Value';
@@ -157,12 +157,7 @@ begin
   end
   else
   if LData.TypeInfo = System.TypeInfo(TColor) then
-  begin
-    if IdentToColor(AValue, LNewValue) then
-      SetPropValue(LParentObject, LData.PropertyName, LNewValue)
-    else
-      SetPropValue(LParentObject, LData.PropertyName, StrToInt(AValue))
-  end
+    SetPropValue(LParentObject, LData.PropertyName, StringToColor(AValue))
   else
   if LData.TypeInfo.Kind in [tkInteger] then
     SetPropValue(LParentObject, LData.PropertyName, StrToInt(AValue))
@@ -219,8 +214,9 @@ begin
   begin
     Canvas.Brush.Color := StringToColor(LData.PropertyValue);
     LRect := CellRect;
-    InflateRect(LRect, -2, -2);
     Inc(LRect.Left, 2);
+    Inc(LRect.Top, 2);
+    Dec(LRect.Bottom, 3);
     LRect.Right := LRect.Left + (LRect.Bottom - LRect.Top);
     Canvas.FillRect(LRect);
     Canvas.Brush.Color := clBlack;
@@ -342,9 +338,9 @@ begin
 
       if LData.TypeInfo = System.TypeInfo(TColor) then
       begin
-        Inc(LRect.Left, (LRect.Bottom - LRect.Top) + 2);
+        Inc(LRect.Left, LRect.Bottom - LRect.Top);
         if not IdentToColor(LData.PropertyValue, LColor) then
-          LString := '$' + IntToHex(StrToInt(LData.PropertyValue), 8);
+          LString := ColorToString(StrToInt(LData.PropertyValue));
       end;
     end;
 
