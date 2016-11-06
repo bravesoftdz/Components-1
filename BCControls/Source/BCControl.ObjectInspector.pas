@@ -14,7 +14,6 @@ type
     function PropertyValueAsString(AInstance: TObject; APropertyInfo: PPropInfo): string;
     procedure DoObjectChange;
     procedure SetInspectedObject(const AValue: TObject);
-    procedure SetValueAsString(ANode: PVirtualNode; const AValue: String);
   protected
     function DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink; override;
     function DoInitChildren(Node: PVirtualNode; var ChildCount: Cardinal): Boolean; override;
@@ -25,6 +24,7 @@ type
     procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
     procedure DoNodeClick(const HitInfo: THitInfo); override;
     procedure DoPaintNode(var PaintInfo: TVTPaintInfo); override;
+    procedure SetValueAsString(ANode: PVirtualNode; const AValue: String);
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -38,6 +38,7 @@ type
     FObjectInspector: TBCObjectInspector;
     FNode: PVirtualNode;
     FColumn: Integer;
+    procedure DoComboChange(Sender: TObject);
   protected
     procedure EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure EditKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -49,8 +50,8 @@ type
     function EndEdit: Boolean; stdcall;
     function GetBounds: TRect; stdcall;
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
-    procedure ProcessMessage(var Message: TMessage); stdcall;
-    procedure SetBounds(R: TRect); stdcall;
+    procedure ProcessMessage(var AMessage: TMessage); stdcall;
+    procedure SetBounds(ARect: TRect); stdcall;
   end;
 
 implementation
@@ -169,9 +170,9 @@ begin
   if  LData.TypeInfo.Kind in [tkFloat] then
     SetPropValue(LParentObject, LData.PropertyName, StrToFloat(AValue))
   else
-    SetPropValue(LParentObject,  LData.PropertyName, AValue);
+    SetPropValue(LParentObject, LData.PropertyName, AValue);
 
-  LData.PropertyValue := AValue;
+  LData.PropertyValue := GetPropValue(LParentObject, LData.PropertyName);
 end;
 
 procedure TBCObjectInspector.DoAfterCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
@@ -740,6 +741,7 @@ var
       Font.Size := FObjectInspector.Canvas.Font.Size;
       Text := LData.PropertyValue;
       LTypeData := GetTypeData(LData.TypeInfo);
+      OnChange := DoComboChange;
 
       for LIndex := LTypeData.MinValue to LTypeData.MaxValue do
         Items.Add(GetEnumName(LData.TypeInfo, LIndex));
@@ -747,8 +749,6 @@ var
   end;
 
   procedure CreateColorComboBox;
-  var
-    LColor: Integer;
   begin
     FEditor := TsColorBox.Create(nil);
     with FEditor as TsColorBox do
@@ -758,6 +758,7 @@ var
       Font.Name := FObjectInspector.Canvas.Font.Name;
       Font.Size := FObjectInspector.Canvas.Font.Size;
       Style := Style + [cbCustomColor];
+      OnChange := DoComboChange;
       Selected := StringToColor(LData.PropertyValue);
     end;
   end;
@@ -781,7 +782,7 @@ begin
     CreateColorComboBox
   else
   if LData.TypeInfo = System.TypeInfo(TCursor) then
-
+    // TODO
   else
   case LData.TypeInfo.Kind of
     tkInteger, tkInt64, tkChar, tkFloat, tkString, tkLString, tkWString, tkUString:
@@ -791,20 +792,30 @@ begin
   end;
 end;
 
-function TBCObjectInspectorEditLink.EndEdit: Boolean;
-var
-  LPNode: PBCObjectInspectorNodeRecord;
+procedure TBCObjectInspectorEditLink.DoComboChange(Sender: TObject);
 begin
-  Result := True;
+  FObjectInspector.EndEditNode;
+end;
 
-  LPNode := FObjectInspector.GetNodeData(FNode);
+function TBCObjectInspectorEditLink.EndEdit: Boolean;
+begin
+  Result := False;
 
   if not Assigned(FEditor) then
     Exit;
 
-  // TODO: Get value from FEditor, set it to node, and update control
+  if FEditor is TsEdit then
+    FObjectInspector.SetValueAsString(FNode, (FEditor as TsEdit).Text)
+  else
+  if FEditor is TsComboBox then
+    FObjectInspector.SetValueAsString(FNode, (FEditor as TsComboBox).Text)
+  else
+  if FEditor is TsColorBox then
+    FObjectInspector.SetValueAsString(FNode, ColorToString((FEditor as TsColorBox).Selected));
 
   FEditor.Hide;
+
+  Result := True;
 end;
 
 function TBCObjectInspectorEditLink.GetBounds: TRect;
@@ -815,21 +826,21 @@ begin
     Result := Rect(0, 0, 0, 0);
 end;
 
-procedure TBCObjectInspectorEditLink.ProcessMessage(var Message: TMessage);
+procedure TBCObjectInspectorEditLink.ProcessMessage(var AMessage: TMessage);
 begin
   if Assigned(FEditor) then
-    FEditor.WindowProc(Message);
+    FEditor.WindowProc(AMessage);
 end;
 
-procedure TBCObjectInspectorEditLink.SetBounds(R: TRect);
+procedure TBCObjectInspectorEditLink.SetBounds(ARect: TRect);
 var
   LLeft: Integer;
 begin
   // Since we don't want to activate grid extensions in the tree (this would influence how the selection is drawn)
   // we have to set the edit's width explicitly to the width of the column.
-  FObjectInspector.Header.Columns.GetColumnBounds(FColumn, LLeft, R.Right);
+  FObjectInspector.Header.Columns.GetColumnBounds(FColumn, LLeft, ARect.Right);
   if Assigned(FEditor) then
-    FEditor.BoundsRect := R;
+    FEditor.BoundsRect := ARect;
 end;
 
 end.
