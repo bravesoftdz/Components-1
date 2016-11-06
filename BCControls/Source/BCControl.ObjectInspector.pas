@@ -483,29 +483,10 @@ var
     Result := FloatToStr(LValue);
   end;
 
-  {function Int64AsString: String;
-  var
-    LValue: Int64;
-  begin
-    LValue := GetInt64Prop(AInstance, APropertyInfo);
-    Result := IntToStr(LValue);
-  end;  }
-
   function StrAsString: String;
   begin
     Result := GetWideStrProp(AInstance, APropertyInfo);
   end;
-
-  {function MethodAsString: String;
-  var
-    LValue: TMethod;
-  begin
-    LValue := GetMethodProp(AInstance, APropertyInfo);
-    if LValue.Code = nil then
-      Result := ''
-    else
-      Result := AInstance.MethodName(LValue.Code);
-  end;  }
 
   function ObjectAsString: String;
   var
@@ -517,31 +498,6 @@ var
     else
       Result := '(' + LValue.ClassName + ')';
   end;
-
-  {function VariantAsString: String;
-  var
-    LValue: Variant;
-  begin
-    LValue := GetVariantProp(AInstance, APropertyInfo);
-    Result := VarToStr(LValue);
-  end;
-
-  function InterfaceAsString: String;
-  var
-    LInterface: IInterface;
-    LValue: TComponent;
-    LComponentReference: IInterfaceComponentReference;
-  begin
-    LInterface := GetInterfaceProp(AInstance, APropertyInfo);
-    if not Assigned(LInterface) then
-      Result := ''
-    else
-    if Supports(LInterface, IInterfaceComponentReference, LComponentReference) then
-    begin
-      LValue := LComponentReference.GetComponent;
-      Result := LValue.Name;
-    end;
-  end; }
 
 begin
   LPropertyType := APropertyInfo^.PropType^;
@@ -555,14 +511,6 @@ begin
       Result := StrAsString;
     tkClass:
       Result := ObjectAsString;
-    {tkMethod:
-      Result := MethodAsString;
-    tkVariant:
-      Result := VariantAsString;
-    tkInt64:
-      Result := Int64AsString;
-    tkInterface:
-      Result := InterfaceAsString;}
   end;
 end;
 
@@ -577,7 +525,7 @@ begin
 
   LData := GetNodeData(HitInfo.HitNode);
   if (HitInfo.HitColumn = 0) and not (hiOnItemButton in HitInfo.HitPositions) or
-    (HitInfo.HitColumn = 1) and (LData.TypeInfo.Kind in [tkClass, tkEnumeration, tkSet]) then
+    (HitInfo.HitColumn = 1) and Assigned(LData.TypeInfo) and (LData.TypeInfo.Kind in [tkClass, tkSet]) then
     Expanded[HitInfo.HitNode] := not Expanded[HitInfo.HitNode];
 end;
 
@@ -587,7 +535,7 @@ var
 begin
   LData := GetNodeData(Node);
   Allowed := (Column > 0) and not LData.ReadOnly and not LData.IsBoolean and not LData.IsSetValue and
-    (LData.TypeInfo.Kind <> tkClass) and (LData.TypeInfo.Kind <> tkEnumeration) and (LData.TypeInfo.Kind <> tkSet);
+    (LData.TypeInfo.Kind <> tkClass) and (LData.TypeInfo.Kind <> tkSet);
 end;
 
 function TBCObjectInspector.DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink;
@@ -688,7 +636,7 @@ end;
 
 function TBCObjectInspectorEditLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
-  LPNode: PBCObjectInspectorNodeRecord;
+  LData: PBCObjectInspectorNodeRecord;
 begin
   Result := True;
 
@@ -702,9 +650,9 @@ begin
     FEditor := nil;
   end;
 
-  LPNode := FObjectInspector.GetNodeData(Node);
+  LData := FObjectInspector.GetNodeData(Node);
 
-  case LPNode.TypeInfo.Kind of
+  case LData.TypeInfo.Kind of
     tkInteger, tkInt64, tkChar, tkFloat, tkString, tkLString, tkWString, tkUString:
       begin
         FEditor := TsEdit.Create(nil);
@@ -714,7 +662,19 @@ begin
           Parent := Tree;
           Font.Name := FObjectInspector.Canvas.Font.Name;
           Font.Size := FObjectInspector.Canvas.Font.Size;
-          Text := LPNode.PropertyValue;
+          Text := LData.PropertyValue;
+        end;
+      end;
+    tkEnumeration:
+      begin
+        FEditor := TsComboBox.Create(nil);
+        with FEditor as TsComboBox do
+        begin
+          Visible := False;
+          Parent := Tree;
+          Font.Name := FObjectInspector.Canvas.Font.Name;
+          Font.Size := FObjectInspector.Canvas.Font.Size;
+          Text := LData.PropertyValue;
         end;
       end;
   end;
