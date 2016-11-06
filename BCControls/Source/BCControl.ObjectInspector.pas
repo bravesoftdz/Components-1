@@ -55,7 +55,8 @@ type
 implementation
 
 uses
-  Winapi.Windows, Winapi.UxTheme, System.SysUtils, System.Math, System.Variants, Vcl.Themes, sComboBox, sEdit;
+  Winapi.Windows, Winapi.UxTheme, System.SysUtils, System.Math, System.Variants, Vcl.Themes, sComboBox, sComboBoxes,
+  sEdit;
 
 type
   TPropertyArray = array of PPropInfo;
@@ -115,13 +116,23 @@ begin
   if Assigned(LPNode) then
     EditNode(LPNode, Header.Columns.ClickIndex);
   { Checkbox }
-  if Header.Columns.ClickIndex > -1 then
-    // Toggle
+  if Header.Columns.ClickIndex = 1 then
+  begin
+    { Checkbox }
+    LData := GetNodeData(LPNode);
+    if LData.IsBoolean then
+    begin
+      if CompareText(LData.PropertyValue, 'True') = 0 then
+        LData.PropertyValue := 'False'
+      else
+        LData.PropertyValue := 'True'
+    end;
+  end;
 end;
 
 procedure TBCObjectInspector.DoAfterCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
 var
-  LCheckBoxRect: TRect;
+  LRect: TRect;
   LData: PBCObjectInspectorNodeRecord;
   LSize: TSize;
   LHandle: THandle;
@@ -135,8 +146,8 @@ begin
   LData := GetNodeData(Node);
   if LData.IsBoolean then
   begin
-    LCheckBoxRect := CellRect;
-    Inc(LCheckBoxRect.Left, 2);
+    LRect := CellRect;
+    Inc(LRect.Left, 2);
 
     if UseThemes then
     begin
@@ -144,19 +155,31 @@ begin
       if LHandle <> 0 then
       try
         GetThemePartSize(LHandle, Canvas.Handle, BP_CHECKBOX, CBS_CHECKEDNORMAL, nil, TS_DRAW, LSize);
-        LCheckBoxRect.Right  := LCheckBoxRect.Left + LSize.cx;
+        LRect.Right  := LRect.Left + LSize.cx;
         DrawThemeBackground(LHandle, Canvas.Handle, BP_CHECKBOX, IfThen(CompareText(LData.PropertyValue, 'True') = 0,
-          CBS_CHECKEDNORMAL, CBS_UNCHECKEDNORMAL), LCheckBoxRect, nil);
+          CBS_CHECKEDNORMAL, CBS_UNCHECKEDNORMAL), LRect, nil);
       finally
         CloseThemeData(LHandle);
       end;
     end
     else
     begin
-      LCheckBoxRect.Right  := LCheckBoxRect.Left + GetSystemMetrics(SM_CXMENUCHECK);
-      DrawFrameControl(Canvas.Handle, LCheckBoxRect, DFC_BUTTON, IfThen(CompareText(LData.PropertyValue, 'True') = 0,
+      LRect.Right  := LRect.Left + GetSystemMetrics(SM_CXMENUCHECK);
+      DrawFrameControl(Canvas.Handle, LRect, DFC_BUTTON, IfThen(CompareText(LData.PropertyValue, 'True') = 0,
         DFCS_CHECKED, DFCS_BUTTONCHECK));
     end;
+  end;
+  { Colorbox }
+  if LData.TypeInfo = System.TypeInfo(TColor) then
+  begin
+    Canvas.Brush.Color := StringToColor(LData.PropertyValue);
+    LRect := CellRect;
+    InflateRect(LRect, -2, -2);
+    Inc(LRect.Left, 2);
+    LRect.Right := LRect.Left + (LRect.Bottom - LRect.Top);
+    Canvas.FillRect(LRect);
+    Canvas.Brush.Color := clBlack;
+    Canvas.FrameRect(LRect);
   end;
 end;
 
@@ -187,6 +210,7 @@ var
   LHandle: THandle;
   LSize: TSize;
   LParentPropertyObject: TObject;
+  LColor: Integer;
 begin
   inherited;
   with PaintInfo do
@@ -270,6 +294,13 @@ begin
       end;
 
       LString := LData.PropertyValue;
+
+      if LData.TypeInfo = System.TypeInfo(TColor) then
+      begin
+        Inc(LRect.Left, (LRect.Bottom - LRect.Top) + 2);
+        if not IdentToColor(LData.PropertyValue, LColor) then
+          LString := '$' + IntToHex(StrToInt(LData.PropertyValue), 8);
+      end;
     end;
 
     if Length(LString) > 0 then
@@ -637,6 +668,56 @@ end;
 function TBCObjectInspectorEditLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
   LData: PBCObjectInspectorNodeRecord;
+
+  procedure CreateEdit;
+  begin
+    FEditor := TsEdit.Create(nil);
+    with FEditor as TsEdit do
+    begin
+      Visible := False;
+      Parent := Tree;
+      Font.Name := FObjectInspector.Canvas.Font.Name;
+      Font.Size := FObjectInspector.Canvas.Font.Size;
+      Text := LData.PropertyValue;
+    end;
+  end;
+
+  procedure CreateEnumerationComboBox;
+  var
+    LIndex: Integer;
+    LTypeData: PTypeData;
+  begin
+    FEditor := TsComboBox.Create(nil);
+    with FEditor as TsComboBox do
+    begin
+      Visible := False;
+      Parent := Tree;
+      Font.Name := FObjectInspector.Canvas.Font.Name;
+      Font.Size := FObjectInspector.Canvas.Font.Size;
+      Text := LData.PropertyValue;
+      LTypeData := GetTypeData(LData.TypeInfo);
+
+      for LIndex := LTypeData.MinValue to LTypeData.MaxValue do
+        Items.Add(GetEnumName(LData.TypeInfo, LIndex));
+    end;
+  end;
+
+  procedure CreateColorComboBox;
+  var
+    LColor: Integer;
+  begin
+    FEditor := TsColorBox.Create(nil);
+    with FEditor as TsColorBox do
+    begin
+      Visible := False;
+      Parent := Tree;
+      Font.Name := FObjectInspector.Canvas.Font.Name;
+      Font.Size := FObjectInspector.Canvas.Font.Size;
+      Style := Style + [cbCustomColor];
+      Selected := StringToColor(LData.PropertyValue);
+    end;
+  end;
+
 begin
   Result := True;
 
@@ -652,33 +733,18 @@ begin
 
   LData := FObjectInspector.GetNodeData(Node);
 
+  if LData.TypeInfo = System.TypeInfo(TColor) then
+    CreateColorComboBox
+  else
+  if LData.TypeInfo = System.TypeInfo(TCursor) then
+
+  else
   case LData.TypeInfo.Kind of
     tkInteger, tkInt64, tkChar, tkFloat, tkString, tkLString, tkWString, tkUString:
-      begin
-        FEditor := TsEdit.Create(nil);
-        with FEditor as TsEdit do
-        begin
-          Visible := False;
-          Parent := Tree;
-          Font.Name := FObjectInspector.Canvas.Font.Name;
-          Font.Size := FObjectInspector.Canvas.Font.Size;
-          Text := LData.PropertyValue;
-        end;
-      end;
+      CreateEdit;
     tkEnumeration:
-      begin
-        FEditor := TsComboBox.Create(nil);
-        with FEditor as TsComboBox do
-        begin
-          Visible := False;
-          Parent := Tree;
-          Font.Name := FObjectInspector.Canvas.Font.Name;
-          Font.Size := FObjectInspector.Canvas.Font.Size;
-          Text := LData.PropertyValue;
-        end;
-      end;
+      CreateEnumerationComboBox;
   end;
-  // TODO: Create FEditors depending on TypeKind
 end;
 
 function TBCObjectInspectorEditLink.EndEdit: Boolean;
