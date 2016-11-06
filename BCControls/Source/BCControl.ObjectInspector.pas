@@ -11,7 +11,7 @@ type
   strict private
     FInspectedObject: TObject;
     FSkinManager: TsSkinManager;
-    function PropertyValueAsString(AInstance: TObject; APropertyInfo: PPropInfo): string;
+    function PropertyValueAsString(AObject: TObject; APropertyInfo: PPropInfo): string;
     procedure DoObjectChange;
     procedure SetInspectedObject(const AValue: TObject);
   protected
@@ -41,7 +41,7 @@ type
     procedure DoComboChange(Sender: TObject);
   protected
     procedure EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure EditKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure EditKeyPress(Sender: TObject; var Key: Char);
     procedure EditExit(Sender: TObject);
   public
     destructor Destroy; override;
@@ -134,16 +134,16 @@ end;
 procedure TBCObjectInspector.SetValueAsString(ANode: PVirtualNode; const AValue: String);
 var
   LIntegerSet: TIntegerSet;
-  LNewValue: Longint;
   LData, LParentData: PBCObjectInspectorNodeRecord;
   LParentObject: TObject;
 begin
   LData := GetNodeData(ANode);
 
   LParentData := GetNodeData(ANode.Parent);
+  LParentObject := nil;
   if Assigned(LParentData) then
-    LParentObject := LParentData.PropertyObject
-  else
+    LParentObject := LParentData.PropertyObject;
+  if not Assigned(LParentData) then
     LParentObject := FInspectedObject;
 
   if LData.IsSetValue then
@@ -162,12 +162,17 @@ begin
   if LData.TypeInfo.Kind in [tkInteger] then
     SetPropValue(LParentObject, LData.PropertyName, StrToInt(AValue))
   else
-  if  LData.TypeInfo.Kind in [tkFloat] then
+  if LData.TypeInfo.Kind in [tkFloat] then
     SetPropValue(LParentObject, LData.PropertyName, StrToFloat(AValue))
   else
     SetPropValue(LParentObject, LData.PropertyName, AValue);
 
-  LData.PropertyValue := GetPropValue(LParentObject, LData.PropertyName);
+  if Assigned(LParentObject) then
+    LData.PropertyValue := PropertyValueAsString(LParentObject, LData.PropertyInfo)
+  else
+    LData.PropertyValue := AValue;
+
+  Invalidate;
 end;
 
 procedure TBCObjectInspector.DoAfterCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
@@ -478,7 +483,7 @@ begin
     begin
       LPNode := AddChild(Node);
       LNewData := GetNodeData(LPNode);
-      LNewData.PropertyInfo := nil;
+      LNewData.PropertyInfo := LData.PropertyInfo; //nil;
       LNewData.PropertyName := GetEnumName(GetTypeData(LData.TypeInfo)^.CompType^, LIndex);
       LNewData.PropertyValue := BooleanIdents[LIndex in TIntegerSet(LSetAsIntValue)];
       LNewData.TypeInfo := nil;
@@ -491,7 +496,7 @@ begin
   ChildCount := Self.ChildCount[Node];
 end;
 
-function TBCObjectInspector.PropertyValueAsString(AInstance: TObject; APropertyInfo: PPropInfo): string;
+function TBCObjectInspector.PropertyValueAsString(AObject: TObject; APropertyInfo: PPropInfo): string;
 var
   LPropertyType: PTypeInfo;
   LTypeKind: TTypeKind;
@@ -534,7 +539,7 @@ var
   var
     LValue: Longint;
   begin
-    LValue := GetOrdProp(AInstance, APropertyInfo);
+    LValue := GetOrdProp(AObject, APropertyInfo);
     case LTypeKind of
       tkInteger:
         Result := IntegerAsString(LPropertyType, LValue);
@@ -551,20 +556,20 @@ var
   var
     LValue: Extended;
   begin
-    LValue := GetFloatProp(AInstance, APropertyInfo);
+    LValue := GetFloatProp(AObject, APropertyInfo);
     Result := FloatToStr(LValue);
   end;
 
   function StrAsString: String;
   begin
-    Result := GetWideStrProp(AInstance, APropertyInfo);
+    Result := GetWideStrProp(AObject, APropertyInfo);
   end;
 
   function ObjectAsString: String;
   var
     LValue: TObject;
   begin
-    LValue := GetObjectProp(AInstance, APropertyInfo);
+    LValue := GetObjectProp(AObject, APropertyInfo);
     if not Assigned(LValue) then
       Result := ''
     else
@@ -632,15 +637,6 @@ var
   LPNode: PVirtualNode;
 begin
   case Key of
-    VK_ESCAPE:
-      begin
-        Key := 0;//ESC will be handled in EditKeyUp()
-      end;
-    VK_RETURN:
-      begin
-        Key := 0;
-        FObjectInspector.EndEditNode;
-      end;
     VK_UP,
     VK_DOWN:
       begin
@@ -678,14 +674,21 @@ begin
   FObjectInspector.EndEditNode;
 end;
 
-procedure TBCObjectInspectorEditLink.EditKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TBCObjectInspectorEditLink.EditKeyPress(Sender: TObject; var Key: Char);
 begin
   case Key of
-    VK_ESCAPE:
+    #27:
       begin
         FObjectInspector.CancelEditNode;
-        Key := 0;
+        Key := #0;
       end;
+    #13:
+      begin
+        FObjectInspector.EndEditNode;
+        Key := #0;
+      end;
+  else
+    inherited;
   end;
 end;
 
@@ -719,6 +722,8 @@ var
       Parent := Tree;
       Font.Name := FObjectInspector.Canvas.Font.Name;
       Font.Size := FObjectInspector.Canvas.Font.Size;
+      OnKeyDown := EditKeyDown;
+      OnKeyPress := EditKeyPress;
       Text := LData.PropertyValue;
     end;
   end;
@@ -737,6 +742,8 @@ var
       Font.Size := FObjectInspector.Canvas.Font.Size;
       Text := LData.PropertyValue;
       LTypeData := GetTypeData(LData.TypeInfo);
+      OnKeyDown := EditKeyDown;
+      OnKeyPress := EditKeyPress;
       OnChange := DoComboChange;
 
       for LIndex := LTypeData.MinValue to LTypeData.MaxValue do
@@ -754,6 +761,8 @@ var
       Font.Name := FObjectInspector.Canvas.Font.Name;
       Font.Size := FObjectInspector.Canvas.Font.Size;
       Style := Style + [cbCustomColor];
+      OnKeyDown := EditKeyDown;
+      OnKeyPress := EditKeyPress;
       OnChange := DoComboChange;
       Selected := StringToColor(LData.PropertyValue);
     end;
