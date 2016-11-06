@@ -691,7 +691,7 @@ begin
 
   TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoChangeScale, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes];
   TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick];
-  TreeOptions.PaintOptions := [toShowBackground, toShowButtons, toShowRoot, toThemeAware, toHideTreeLinesIfThemed, toUseExplorerTheme];
+  TreeOptions.PaintOptions := [toShowBackground, toShowButtons, toShowRoot, toThemeAware, toHideTreeLinesIfThemed];
 
   FShowHidden := False;
   FShowArchive := True;
@@ -1092,6 +1092,20 @@ var
   LData: PBCFileTreeNodeRecord;
   LString: string;
   LRect: TRect;
+
+  function GetFontColor(const ASelected: Boolean): TColor;
+  begin
+    if Assigned(SkinManager) and SkinManager.Active then
+    begin
+      if ASelected then
+        Result := SkinManager.GetHighLightFontColor(True)
+      else
+        Result := SkinManager.Palette[pcEditText];
+    end
+    else
+      Result := clHighlightText;
+  end;
+
 begin
   inherited;
   with PaintInfo do
@@ -1100,26 +1114,7 @@ begin
     if not Assigned(LData) then
       Exit;
 
-    Canvas.Font.Style := [];
-
-   if Assigned(SkinManager) then
-     Canvas.Font.Color := SkinManager.GetActiveEditFontColor
-   else
-     Canvas.Font.Color := clWindowText;
-
-    if vsSelected in PaintInfo.Node.States then
-    begin
-      if Assigned(SkinManager) and SkinManager.Active then
-      begin
-        Canvas.Brush.Color := SkinManager.GetHighLightColor;
-        Canvas.Font.Color := SkinManager.GetHighLightFontColor
-      end
-      else
-      begin
-        Canvas.Brush.Color := clHighlight;
-        Canvas.Font.Color := clHighlightText;
-      end;
-    end;
+    Canvas.Font.Color := GetFontColor(vsSelected in PaintInfo.Node.States);
     Canvas.Font.Style := [];
     if (LData.FileType = ftDirectoryAccessDenied) or (LData.FileType = ftFileAccessDenied) then
     begin

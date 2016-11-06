@@ -112,7 +112,7 @@ begin
 
   TreeOptions.AutoOptions := [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale];
   TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toGridExtensions, toWheelPanning, toEditOnClick];
-  TreeOptions.PaintOptions := [toHideFocusRect, toShowButtons, toShowRoot, toShowVertGridLines, toThemeAware, toUseExplorerTheme];
+  TreeOptions.PaintOptions := [toHideFocusRect, toShowButtons, toShowRoot, toShowVertGridLines, toThemeAware];
   TreeOptions.SelectionOptions := [toExtendedFocus];
 end;
 
@@ -267,8 +267,19 @@ var
   LSize: TSize;
   LParentPropertyObject: TObject;
   LColor: Integer;
+  LBackGroundColorIsLight: Boolean;
+
+  function BackGroundColorIsLight: Boolean;
+  var
+    LRGB: TColor;
+  begin
+    LRGB := ColorToRGB(Color);
+    Result := ((LRGB and $FF) + (LRGB shr 8 and $FF) + (LRGB shr 16 and $FF))>= $180;
+  end;
+
 begin
   inherited;
+  LBackGroundColorIsLight := BackGroundColorIsLight;
   with PaintInfo do
   begin
     LData := GetNodeData(Node);
@@ -295,7 +306,13 @@ begin
           Canvas.Font.Color := clWindowText;
       1:
         begin
-          Canvas.Font.Color := SysColorToSkin(clNavy);
+          if LBackGroundColorIsLight then
+            Canvas.Font.Color := SysColorToSkin(clNavy)
+          else
+          if Assigned(SkinManager) then
+            Canvas.Font.Color := SkinManager.GetActiveEditFontColor
+          else
+            Canvas.Font.Color := clWindowText;
 
           if Assigned(LParentPropertyObject) and Assigned(LData.PropertyInfo) and
             IsStoredProp(LParentPropertyObject, LData.PropertyInfo) then
@@ -304,21 +321,15 @@ begin
         end;
     end;
 
-    if LData.ReadOnly then
+    if LBackGroundColorIsLight and LData.ReadOnly then
       Canvas.Font.Color := SysColorToSkin(clGray);
 
     if vsSelected in PaintInfo.Node.States then
     begin
       if Assigned(SkinManager) and SkinManager.Active then
-      begin
-        Canvas.Brush.Color := SkinManager.GetHighLightColor;
         Canvas.Font.Color := SkinManager.GetHighLightFontColor
-      end
       else
-      begin
-        Canvas.Brush.Color := clHighlight;
         Canvas.Font.Color := clHighlightText;
-      end;
     end;
 
     SetBKMode(Canvas.Handle, TRANSPARENT);
