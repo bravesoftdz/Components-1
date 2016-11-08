@@ -25,9 +25,9 @@ type
     procedure DoCanEdit(Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean); override;
     procedure DoFreeNode(ANode: PVirtualNode); override;
     procedure DoInitNode(Parent, Node: PVirtualNode; var InitStates: TVirtualNodeInitStates); override;
-    procedure DoNodeClick(const HitInfo: THitInfo); override;
-    procedure DoNodeDblClick(const HitInfo: THitInfo); override;
     procedure DoPaintNode(var PaintInfo: TVTPaintInfo); override;
+    procedure HandleMouseDblClick(var Message: TWMMouse; const HitInfo: THitInfo); override;
+    procedure HandleMouseDown(var Message: TWMMouse; var HitInfo: THitInfo); override;
     procedure SetValueAsString(ANode: PVirtualNode; const AValue: String);
   public
     constructor Create(AOwner: TComponent); override;
@@ -612,17 +612,17 @@ begin
   end;
 end;
 
-procedure TBCObjectInspector.DoNodeClick(const HitInfo: THitInfo);
-begin
-  inherited;
-  DoClick(HitInfo, False);
-end;
-
-procedure TBCObjectInspector.DoNodeDblClick(const HitInfo: THitInfo);
+procedure TBCObjectInspector.HandleMouseDblClick(var Message: TWMMouse; const HitInfo: THitInfo);
 begin
   inherited;
   DoClick(HitInfo, True);
   Click;
+end;
+
+procedure TBCObjectInspector.HandleMouseDown(var Message: TWMMouse; var HitInfo: THitInfo);
+begin
+  inherited;
+  DoClick(HitInfo, False);
 end;
 
 procedure TBCObjectInspector.DoClick(const HitInfo: THitInfo; const AIsDblClick: Boolean);
@@ -639,7 +639,7 @@ begin
     FLastNode := HitInfo.HitNode;
 
   LData := GetNodeData(HitInfo.HitNode);
-  if (HitInfo.HitColumn = 0) and not (hiOnItemButton in HitInfo.HitPositions) or
+  if (HitInfo.HitColumn = 0) and (hiOnItemRight in HitInfo.HitPositions) or
     (HitInfo.HitColumn = 1) and Assigned(LData.TypeInfo) and (LData.TypeInfo.Kind in [tkClass, tkSet]) then
     Expanded[HitInfo.HitNode] := not Expanded[HitInfo.HitNode];
 end;
