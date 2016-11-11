@@ -27,8 +27,8 @@ const
   FILE_GENERIC_EXECUTE   = STANDARD_RIGHTS_EXECUTE or FILE_READ_ATTRIBUTES or FILE_EXECUTE or SYNCHRONIZE;
 
 function CheckAccessToFile(const DesiredAccess: Cardinal; const FileName: string): Boolean;
-function GetIconIndex(Filename: string; MoreFlags: Cardinal = 0): Integer;
-function GetIconOverlayIndex(Filename: string): Integer;
+function GetIconIndex(const AFilename: string; const AMoreFlags: Cardinal = 0): Integer;
+function GetIconOverlayIndex(const AFilename: string; const AMoreFlags: Cardinal = 0): Integer;
 function GetSysImageList: THandle;
 function FileIconInit(FullInit: BOOL): BOOL; stdcall;
 function IsExtInFileType(Ext: string; FileType: string): Boolean;
@@ -99,11 +99,11 @@ begin
   end;
 end;
 
-function GetIconIndex(Filename: string; MoreFlags: Cardinal): Integer;
+function GetIconIndex(const AFilename: string; const AMoreFlags: Cardinal): Integer;
 var
   SHFileInfo: TSHFileInfo;
 begin
-  if SHGetFileInfo(PChar(Filename), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_SYSICONINDEX or SHGFI_SMALLICON or MoreFlags) = 0 then
+  if SHGetFileInfo(PChar(AFilename), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_SYSICONINDEX or SHGFI_SMALLICON or SHGFI_ICON or AMoreFlags) = 0 then
     Result := -1
   else
   begin
@@ -113,14 +113,14 @@ begin
   end;
 end;
 
-function GetIconOverlayIndex(Filename: string): Integer;
+function GetIconOverlayIndex(const AFilename: string; const AMoreFlags: Cardinal): Integer;
 var
   SHFileInfo: TSHFileInfo;
 begin
   ZeroMemory(@SHFileInfo, SizeOf(SHFileInfo));
   { SHGFI_OVERLAYINDEX: Return the index of the overlay icon. The value of the overlay index is returned in the upper eight
     bits of the iIcon member of the structure specified by psfi. This flag requires that the SHGFI_ICON be set as well. }
-  if SHGetFileInfo(PChar(Filename), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_ICON or SHGFI_OVERLAYINDEX) = 0 then
+  if SHGetFileInfo(PChar(AFilename), 0, SHFileInfo, SizeOf(SHFileInfo), SHGFI_ICON or SHGFI_OVERLAYINDEX or AMoreFlags) = 0 then
     Result := -1
   else
   begin

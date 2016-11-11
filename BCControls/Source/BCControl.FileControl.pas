@@ -183,12 +183,10 @@ type
     FShowOverlayIcons: Boolean;
     FShowSystem: Boolean;
     FSkinManager: TsSkinManager;
-    function GetAImageIndex(Path: string): Integer;
     function GetDrive: Char;
     function GetDriveRemote: Boolean;
     function GetFileType: string;
     function GetSelectedFile: string;
-    function GetSelectedIndex(Path: string): Integer;
     function GetSelectedPath: string;
     function IsDirectoryEmpty(const Directory: string): Boolean;
     procedure BuildTree(RootDirectory: string; ExcludeOtherBranches: Boolean);
@@ -771,16 +769,6 @@ begin
   Result := FDrive;
 end;
 
-function TBCFileTreeView.GetAImageIndex(Path: string): Integer;
-begin
-  Result := GetIconIndex(Path);
-end;
-
-function TBCFileTreeView.GetSelectedIndex(Path: string): Integer;
-begin
-  Result := GetIconIndex(Path, SHGFI_OPENICON);
-end;
-
 function TBCFileTreeView.GetDriveRemote: Boolean;
 var
   LDrive: string;
@@ -840,6 +828,7 @@ begin
         begin
           LPNode := AddChild(nil);
           LData := GetNodeData(LPNode);
+          LData.Filename := LSearchRec.Name;
           if not ExcludeOtherBranches then
             LFileName := GetDrive + ':\' + LSearchRec.Name
           else
@@ -852,6 +841,9 @@ begin
             {$WARNINGS OFF}
             LData.FullPath := IncludeTrailingBackslash(LFileName);
             {$WARNINGS ON}
+            LData.ImageIndex := GetIconIndex(LFileName);
+            LData.SelectedIndex := GetIconIndex(LFileName, SHGFI_OPENICON);
+            LData.OverlayIndex := GetIconOverlayIndex(LFileName);
           end
           else
           begin
@@ -860,6 +852,9 @@ begin
               LData.FullPath := GetDrive + ':\'
             else
               LData.FullPath := LRootDirectory;
+            LData.ImageIndex := GetIconIndex(LFileName, SHGFI_USEFILEATTRIBUTES);
+            LData.SelectedIndex := GetIconIndex(LFileName, SHGFI_USEFILEATTRIBUTES or SHGFI_OPENICON);
+            LData.OverlayIndex := GetIconOverlayIndex(LFileName, SHGFI_USEFILEATTRIBUTES);
           end;
           if not LDriveRemote then
             if not CheckAccessToFile(FILE_GENERIC_READ, LFileName) then //Data.FullPath) then
@@ -873,10 +868,6 @@ begin
           LData.SaturateImage := (LSearchRec.Attr and faHidden <> 0) or (LSearchRec.Attr and faSysFile <> 0) or
             (LData.FileType = ftDirectoryAccessDenied) or (LData.FileType = ftFileAccessDenied);
           {$WARNINGS ON}
-          LData.Filename := LSearchRec.Name;
-          LData.ImageIndex := GetAImageIndex(LFileName);
-          LData.SelectedIndex := GetSelectedIndex(LFileName);
-          LData.OverlayIndex := GetIconOverlayIndex(LFileName);
         end;
     until FindNext(LSearchRec) <> 0;
   finally
@@ -1290,6 +1281,7 @@ begin
           begin
             LPChildNode := AddChild(Node);
             LChildData := GetNodeData(LPChildNode);
+            LChildData.Filename := LSearchRec.Name;
 
             if (LSearchRec.Attr and faDirectory <> 0) then
             begin
@@ -1297,6 +1289,9 @@ begin
               {$WARNINGS OFF}
               LChildData.FullPath := IncludeTrailingBackslash(LFileName);
               {$WARNINGS ON}
+              LChildData.ImageIndex := GetIconIndex(LFileName);
+              LChildData.SelectedIndex := GetIconIndex(LFileName, SHGFI_OPENICON);
+              LChildData.OverlayIndex := GetIconOverlayIndex(LFileName);
             end
             else
             begin
@@ -1304,6 +1299,9 @@ begin
               {$WARNINGS OFF}
               LChildData.FullPath := LFullPath;
               {$WARNINGS ON}
+              LChildData.ImageIndex := GetIconIndex(LFileName, SHGFI_USEFILEATTRIBUTES);
+              LChildData.SelectedIndex := GetIconIndex(LFileName, SHGFI_USEFILEATTRIBUTES or SHGFI_OPENICON);
+              LChildData.OverlayIndex := GetIconOverlayIndex(LFileName, SHGFI_USEFILEATTRIBUTES);
             end;
             if not LDriveRemote then
               if not CheckAccessToFile(FILE_GENERIC_READ, LFileName) then
@@ -1317,10 +1315,6 @@ begin
             LChildData.SaturateImage := (LSearchRec.Attr and faHidden <> 0) or (LSearchRec.Attr and faSysFile <> 0) or
               (LChildData.FileType = ftFileAccessDenied) or (LChildData.FileType = ftDirectoryAccessDenied);
             {$WARNINGS ON}
-            LChildData.Filename := LSearchRec.Name;
-            LChildData.ImageIndex := GetAImageIndex(LFileName);
-            LChildData.SelectedIndex := GetSelectedIndex(LFileName);
-            LChildData.OverlayIndex := GetIconOverlayIndex(LFileName);
           end;
       until FindNext(LSearchRec) <> 0;
 
