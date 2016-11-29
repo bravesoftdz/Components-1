@@ -42,6 +42,7 @@ type
     FObjectInspector: TBCObjectInspector;
     FNode: PVirtualNode;
     FColumn: Integer;
+    procedure DoBitmapButtonClick(Sender: TObject);
     procedure DoComboSelect(Sender: TObject);
     procedure DoComboDblClick(Sender: TObject);
     procedure SetValue;
@@ -61,9 +62,14 @@ type
 
 implementation
 
+{$R *.res}
+
 uses
   Winapi.Windows, Winapi.UxTheme, System.SysUtils, System.Math, System.Variants, Vcl.Themes, Vcl.StdCtrls, sComboBox, 
-  sComboBoxes, sEdit;
+  sComboBoxes, sEdit, sSpeedButton, sDialogs, sPanel;
+
+const
+  TYPE_BITMAP = 'TBitmap';
 
 type
   TPropertyArray = array of PPropInfo;
@@ -417,7 +423,8 @@ begin
     LData.PropertyName := string(LPropertyArray[LIndex].Name);
     LData.PropertyValue := PropertyValueAsString(FInspectedObject, LPropertyArray[LIndex]);
     LData.IsBoolean := (LData.TypeInfo.Kind = tkEnumeration) and IsBooleanValue(LData.PropertyValue);
-    LData.HasChildren := (LData.TypeInfo.Kind = tkSet) or ((LData.TypeInfo.Kind = tkClass) and (LData.PropertyValue <> ''));
+    LData.HasChildren := (LData.TypeInfo.Kind = tkSet) or
+      ((LData.TypeInfo.Kind = tkClass) and (LData.TypeInfo.Name <> TYPE_BITMAP) and (LData.PropertyValue <> ''));
     if LData.TypeInfo.Kind = tkClass then
       LData.PropertyObject := GetObjectProp(FInspectedObject, LData.PropertyInfo);
     LData.ReadOnly := Assigned(LData.PropertyInfo) and not Assigned(LData.PropertyInfo.SetProc);
@@ -487,7 +494,8 @@ begin
         LNewData.PropertyValue := PropertyValueAsString(LObject, LPropertyArray[LIndex]);
         LNewData.TypeInfo := LNewData.PropertyInfo^.PropType^;
         LNewData.IsBoolean := (LNewData.TypeInfo.Kind = tkEnumeration) and IsBooleanValue(LNewData.PropertyValue);
-        LNewData.HasChildren := (LNewData.TypeInfo.Kind = tkSet) or ((LNewData.TypeInfo.Kind = tkClass) and (LNewData.PropertyValue <> ''));
+        LNewData.HasChildren := (LNewData.TypeInfo.Kind = tkSet) or
+          ((LNewData.TypeInfo.Kind = tkClass) and (LNewData.TypeInfo.Name <> TYPE_BITMAP) and (LNewData.PropertyValue <> ''));
         if LNewData.TypeInfo.Kind = tkClass then
           LNewData.PropertyObject := GetObjectProp(LObject, LNewData.PropertyInfo);
         LNewData.ReadOnly := Assigned(LNewData.PropertyInfo) and not Assigned(LNewData.PropertyInfo.SetProc);
@@ -650,7 +658,8 @@ var
 begin
   LData := GetNodeData(Node);
   Allowed := (Column > 0) and not LData.ReadOnly and not LData.IsBoolean and not LData.IsSetValue and
-    (LData.TypeInfo.Kind <> tkClass) and (LData.TypeInfo.Kind <> tkSet);
+    ((LData.TypeInfo.Kind <> tkClass) or (LData.TypeInfo.Kind = tkClass) and (LData.TypeInfo.Name = TYPE_BITMAP)) and
+    (LData.TypeInfo.Kind <> tkSet);
 end;
 
 function TBCObjectInspector.DoCreateEditor(Node: PVirtualNode; Column: TColumnIndex): IVTEditLink;
@@ -689,6 +698,39 @@ begin
       end;
   else
     inherited;
+  end
+end;
+
+procedure TBCObjectInspectorEditLink.DoBitmapButtonClick(Sender: TObject);
+var
+  LOpenPictureDialog: TsOpenPictureDialog;
+  LSavePictureDialog: TsSavePictureDialog;
+  LData: PBCObjectInspectorNodeRecord;
+  LBitmap: Vcl.Graphics.TBitmap;
+begin
+  LData := FObjectInspector.GetNodeData(FNode);
+  LBitmap := LData.PropertyObject as Vcl.Graphics.TBitmap;
+
+  if (Sender as TsSpeedButton).Tag = 0 then
+  begin
+    LOpenPictureDialog := TsOpenPictureDialog.Create(FObjectInspector);
+    try
+      if LOpenPictureDialog.Execute then
+        LBitmap.LoadFromFile(LOpenPictureDialog.FileName);
+    finally
+      LOpenPictureDialog.Free;
+    end;
+  end;
+
+  if (Sender as TsSpeedButton).Tag = 1 then
+  begin
+    LSavePictureDialog := TsSavePictureDialog.Create(FObjectInspector);
+    try
+      if LSavePictureDialog.Execute then
+        LBitmap.SaveToFile(LSavePictureDialog.FileName);
+    finally
+      LSavePictureDialog.Free;
+    end;
   end
 end;
 
@@ -736,8 +778,7 @@ var
     begin
       Visible := False;
       Parent := Tree;
-      Font.Name := FObjectInspector.Canvas.Font.Name;
-      Font.Size := FObjectInspector.Canvas.Font.Size;
+      Font.Assign(FObjectInspector.Canvas.Font);
       OnKeyPress := EditKeyPress;
       Text := LData.PropertyValue;
     end;
@@ -753,8 +794,7 @@ var
     begin
       Visible := False;
       Parent := Tree;
-      Font.Name := FObjectInspector.Canvas.Font.Name;
-      Font.Size := FObjectInspector.Canvas.Font.Size;
+      Font.Assign(FObjectInspector.Canvas.Font);
       Text := LData.PropertyValue;
       LTypeData := GetTypeData(LData.TypeInfo);
       OnSelect := DoComboSelect;
@@ -772,12 +812,46 @@ var
     begin
       Visible := False;
       Parent := Tree;
-      Font.Name := FObjectInspector.Canvas.Font.Name;
-      Font.Size := FObjectInspector.Canvas.Font.Size;
+      Font.Assign(FObjectInspector.Canvas.Font);
       Style := Style + [cbCustomColor];
       OnSelect := DoComboSelect;
       Selected := StringToColor(LData.PropertyValue);
     end;
+  end;
+
+  procedure CreateBitmapButtons;
+  var
+    LButton: TsSpeedButton;
+
+    procedure CreateBitmapButton(const ATag: Integer; const AAlign: TAlign; const ACaption: string; const AResourceName: string);
+    begin
+      LButton := TsSpeedButton.Create(FEditor);
+      with LButton do
+      begin
+        Tag := ATag;
+        Flat := True;
+        Align := AAlign;
+        Parent := FEditor;
+        Font.Assign(FObjectInspector.Canvas.Font);
+        OnClick := DoBitmapButtonClick;
+        Caption := ACaption;
+        Width := (Tree.Header.Columns.Items[Column].Width div 2) - 2;
+        SkinData.SkinSection := 'TOOLBUTTON';
+        Glyph.LoadFromResourceName(hInstance, AResourceName);
+      end;
+    end;
+
+  begin
+    FEditor := TsPanel.Create(nil);
+    with FEditor as TsPanel do
+    begin
+      Parent := Tree;
+      BevelOuter := bvNone;
+      Visible := False;
+    end;
+
+    CreateBitmapButton(0, alLeft, 'Load...', 'BITMAPOPEN');
+    CreateBitmapButton(1, alRight, 'Save...', 'BITMAPSAVE');
   end;
 
 begin
@@ -801,6 +875,9 @@ begin
   if LData.TypeInfo = System.TypeInfo(TCursor) then
     CreateEdit // TODO: TCursor combobox
   else
+  if LData.TypeInfo.Name = TYPE_BITMAP then
+    CreateBitmapButtons
+  else
   case LData.TypeInfo.Kind of
     tkInteger, tkInt64, tkChar, tkFloat, tkString, tkLString, tkWString, tkUString:
       CreateEdit;
@@ -818,7 +895,7 @@ procedure TBCObjectInspectorEditLink.SetValue;
 begin
   if not Assigned(FEditor) then
     Exit;
-    
+
   if FEditor is TsEdit then
     FObjectInspector.SetValueAsString(FNode, (FEditor as TsEdit).Text)
   else
@@ -840,7 +917,11 @@ end;
 function TBCObjectInspectorEditLink.GetBounds: TRect;
 begin
   if Assigned(FEditor) then
-    Result := FEditor.BoundsRect
+  begin
+    Result := FEditor.BoundsRect;
+    if FEditor is TsPanel then
+      Result.Height := FObjectInspector.NodeHeight[FNode];
+  end
   else
     Result := Rect(0, 0, 0, 0);
 end;
