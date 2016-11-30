@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Messages, System.Classes, System.Types, System.UITypes, System.TypInfo, Vcl.Controls, Vcl.Graphics,
-  VirtualTrees, sSkinManager;
+  VirtualTrees, sSkinManager, sPanel;
 
 type
   TBCObjectInspector = class(TVirtualDrawTree)
@@ -38,13 +38,15 @@ type
 
   TBCObjectInspectorEditLink = class(TInterfacedObject, IVTEditLink)
   strict private
+    FColumn: Integer;
     FEditor: TWinControl;
+    FImagePanel: TsPanel;
     FObjectInspector: TBCObjectInspector;
     FNode: PVirtualNode;
-    FColumn: Integer;
     procedure DoBitmapButtonClick(Sender: TObject);
     procedure DoComboSelect(Sender: TObject);
     procedure DoComboDblClick(Sender: TObject);
+    procedure FreeImagePanel;
     procedure SetValue;
   protected
     procedure EditKeyPress(Sender: TObject; var Key: Char);
@@ -65,8 +67,8 @@ implementation
 {$R *.res}
 
 uses
-  Winapi.Windows, Winapi.UxTheme, System.SysUtils, System.Math, System.Variants, Vcl.Themes, Vcl.StdCtrls, sComboBox, 
-  sComboBoxes, sEdit, sSpeedButton, sDialogs, sPanel;
+  Winapi.Windows, Winapi.UxTheme, System.SysUtils, System.Math, System.Variants, Vcl.Themes, Vcl.StdCtrls, Vcl.ExtCtrls,
+  sComboBox, sComboBoxes, sEdit, sSpeedButton, sDialogs;
 
 const
   TYPE_BITMAP = 'TBitmap';
@@ -672,10 +674,20 @@ end;
 
 destructor TBCObjectInspectorEditLink.Destroy;
 begin
+  FreeImagePanel;
   if Assigned(FEditor) then
     if FEditor.HandleAllocated then
       PostMessage(FEditor.Handle, CM_RELEASE, 0, 0);
   inherited;
+end;
+
+procedure TBCObjectInspectorEditLink.FreeImagePanel;
+begin
+  if Assigned(FImagePanel) then
+  begin
+    FImagePanel.Free;
+    FImagePanel := nil;
+  end;
 end;
 
 procedure TBCObjectInspectorEditLink.EditExit(Sender: TObject);
@@ -707,31 +719,62 @@ var
   LSavePictureDialog: TsSavePictureDialog;
   LData: PBCObjectInspectorNodeRecord;
   LBitmap: Vcl.Graphics.TBitmap;
+  LImagePanelShape: TShape;
+  LImage: TImage;
 begin
   LData := FObjectInspector.GetNodeData(FNode);
   LBitmap := LData.PropertyObject as Vcl.Graphics.TBitmap;
 
-  if (Sender as TsSpeedButton).Tag = 0 then
-  begin
-    LOpenPictureDialog := TsOpenPictureDialog.Create(FObjectInspector);
-    try
-      if LOpenPictureDialog.Execute then
-        LBitmap.LoadFromFile(LOpenPictureDialog.FileName);
-    finally
-      LOpenPictureDialog.Free;
-    end;
-  end;
+  case (Sender as TsSpeedButton).Tag of
+    0:
+      begin
+        if Assigned(FImagePanel) then
+          FreeImagePanel
+        else
+        begin
+          FImagePanel := TsPanel.Create(nil);
+          FImagePanel.Parent := FObjectInspector;
+          FImagePanel.BevelOuter := bvNone;
+          FImagePanel.Height := FObjectInspector.Header.Columns.Items[0].Width - 2;
+          FImagePanel.Width := FImagePanel.Height;
+          FImagePanel.Top := FEditor.BoundsRect.Top;
+          FImagePanel.Left := 1;
+          LImagePanelShape := TShape.Create(FImagePanel);
+          LImagePanelShape.Parent := FImagePanel;
+          LImagePanelShape.Align := alClient;
+          LImage := TImage.Create(FImagePanel);
+          LImage.AlignWithMargins := True;
+          LImage.Parent := FImagePanel;
+          LImage.Align := alClient;
+          LImage.Margins.Left := 2;
+          LImage.Margins.Top := 2;
+          LImage.Canvas.StretchDraw(LImage.BoundsRect, LBitmap);
+        end;
+      end;
+    1:
+      begin
+        if Assigned(FImagePanel) then
+          FreeImagePanel;
 
-  if (Sender as TsSpeedButton).Tag = 1 then
-  begin
-    LSavePictureDialog := TsSavePictureDialog.Create(FObjectInspector);
-    try
-      if LSavePictureDialog.Execute then
-        LBitmap.SaveToFile(LSavePictureDialog.FileName);
-    finally
-      LSavePictureDialog.Free;
-    end;
-  end
+        LOpenPictureDialog := TsOpenPictureDialog.Create(FObjectInspector);
+        try
+          if LOpenPictureDialog.Execute then
+            LBitmap.LoadFromFile(LOpenPictureDialog.FileName);
+        finally
+          LOpenPictureDialog.Free;
+        end;
+      end;
+    2:
+      begin
+        LSavePictureDialog := TsSavePictureDialog.Create(FObjectInspector);
+        try
+          if LSavePictureDialog.Execute then
+            LBitmap.SaveToFile(LSavePictureDialog.FileName);
+        finally
+          LSavePictureDialog.Free;
+        end;
+      end
+  end;
 end;
 
 procedure TBCObjectInspectorEditLink.DoComboDblClick(Sender: TObject);
@@ -739,7 +782,7 @@ var
   LIndex: Integer;
   LEditor: TsComboBox;
 begin
-  LEditor := FEditor as TsComboBox; 
+  LEditor := FEditor as TsComboBox;
   LIndex := LEditor.ItemIndex;
   if LIndex = -1 then
     LIndex := LEditor.Items.IndexOf(LEditor.Text);
@@ -838,6 +881,7 @@ var
         Width := (Tree.Header.Columns.Items[Column].Width div 2) - 2;
         SkinData.SkinSection := 'TOOLBUTTON';
         Glyph.LoadFromResourceName(hInstance, AResourceName);
+        Width := 50;
       end;
     end;
 
@@ -850,8 +894,9 @@ var
       Visible := False;
     end;
 
-    CreateBitmapButton(0, alLeft, 'Load...', 'BITMAPOPEN');
-    CreateBitmapButton(1, alRight, 'Save...', 'BITMAPSAVE');
+    CreateBitmapButton(2, alLeft, 'Save', 'BITMAPSAVE');
+    CreateBitmapButton(1, alLeft, 'Load', 'BITMAPOPEN');
+    CreateBitmapButton(0, alLeft, 'View', 'BITMAPVIEW');
   end;
 
 begin
