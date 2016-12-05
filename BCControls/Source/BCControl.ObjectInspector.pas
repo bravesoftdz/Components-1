@@ -112,7 +112,7 @@ begin
   LColumn.Options := [coAllowClick, coParentColor, coEnabled, coParentBidiMode, coResizable, coVisible, coAllowFocus, coEditable];
 
   IncrementalSearch := isAll;
-  Indent := 16;
+  Indent := 18;
   EditDelay := 0;
   TextMargin := 4;
 
@@ -404,6 +404,7 @@ var
   LIndex: Integer;
   LPNode: PVirtualNode;
   LData: PBCObjectInspectorNodeRecord;
+  LEditor: TsEdit;
 begin
   if not Assigned(FInspectedObject) then
     Exit;
@@ -415,6 +416,13 @@ begin
   BeginUpdate;
   Clear;
   NodeDataSize := SizeOf(TBCObjectInspectorNodeRecord);
+
+  LEditor := TsEdit.Create(nil);
+  try
+    DefaultNodeHeight := LEditor.Height + 4;
+  finally
+    LEditor.Free;
+  end;
 
   for LIndex := 0 to LPropertyCount - 1 do
   begin
@@ -854,6 +862,7 @@ var
     with FEditor as TsColorBox do
     begin
       Visible := False;
+      ColorRectWidth := 14;
       Parent := Tree;
       Font.Assign(FObjectInspector.Canvas.Font);
       Style := Style + [cbCustomColor];

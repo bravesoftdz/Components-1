@@ -77,6 +77,8 @@ end;
 constructor TBCColorComboBox.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+
+  ColorRectWidth := 14;
   OnColorName := GetColorName;
 end;
 
