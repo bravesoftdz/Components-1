@@ -435,9 +435,13 @@ begin
     LData.IsBoolean := (LData.TypeInfo.Kind = tkEnumeration) and IsBooleanValue(LData.PropertyValue);
     LData.HasChildren := (LData.TypeInfo.Kind = tkSet) or
       ((LData.TypeInfo.Kind = tkClass) and (LData.TypeInfo.Name <> TYPE_BITMAP) and (LData.PropertyValue <> ''));
-    if LData.TypeInfo.Kind = tkClass then
-      LData.PropertyObject := GetObjectProp(FInspectedObject, LData.PropertyInfo);
     LData.ReadOnly := Assigned(LData.PropertyInfo) and not Assigned(LData.PropertyInfo.SetProc);
+    if LData.TypeInfo.Kind = tkClass then
+    begin
+      LData.PropertyObject := GetObjectProp(FInspectedObject, LData.PropertyInfo);
+      if not Assigned(LData.PropertyObject) then
+        DeleteNode(LPNode);
+    end;
   end;
 
   EndUpdate;
