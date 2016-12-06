@@ -7,13 +7,17 @@ uses
   VirtualTrees, sSkinManager, sPanel;
 
 type
+  TBCArrayOfString = array of string;
+
   TBCObjectInspector = class(TVirtualDrawTree)
   strict private
     FFirstNodeClick: Boolean;
     FInspectedObject: TObject;
     FLastNode: PVirtualNode;
     FSkinManager: TsSkinManager;
+    FUnlistedProperties: TStrings;
     function PropertyValueAsString(AObject: TObject; APropertyInfo: PPropInfo): string;
+    function UnlistedProperty(const APropertyName: string): Boolean;
     procedure DoClick(const HitInfo: THitInfo; const AIsDblClick: Boolean);
     procedure DoObjectChange;
     procedure SetInspectedObject(const AValue: TObject);
@@ -31,7 +35,9 @@ type
     procedure SetValueAsString(ANode: PVirtualNode; const AValue: String);
   public
     constructor Create(AOwner: TComponent); override;
-
+    destructor Destroy; override;
+    { TODO: There might be a better way to know unlisted properties... }
+    procedure AddUnlistedProperties(const AProperties: TBCArrayOfString);
     property InspectedObject: TObject read FInspectedObject write SetInspectedObject;
     property SkinManager: TsSkinManager read FSkinManager write FSkinManager;
   end;
@@ -122,6 +128,28 @@ begin
   TreeOptions.MiscOptions := [toEditable, toFullRepaintOnResize, toGridExtensions, toWheelPanning, toEditOnClick];
   TreeOptions.PaintOptions := [toHideFocusRect, toShowButtons, toShowRoot, toShowVertGridLines, toThemeAware];
   TreeOptions.SelectionOptions := [toExtendedFocus];
+
+  FUnlistedProperties := TStringList.Create;
+end;
+
+destructor TBCObjectInspector.Destroy;
+begin
+  FUnlistedProperties.Free;
+
+  inherited;
+end;
+
+function TBCObjectInspector.UnlistedProperty(const APropertyName: string): Boolean;
+begin
+  Result := FUnlistedProperties.IndexOf(APropertyName) <> -1;
+end;
+
+procedure TBCObjectInspector.AddUnlistedProperties(const AProperties: TBCArrayOfString);
+var
+  LIndex: Integer;
+begin
+  for LIndex := 0 to Length(AProperties) - 1 do
+    FUnlistedProperties.Add(AProperties[LIndex]);
 end;
 
 procedure TBCObjectInspector.Click;
@@ -431,6 +459,11 @@ begin
     LData.PropertyInfo := LPropertyArray[LIndex];
     LData.TypeInfo := LData.PropertyInfo^.PropType^;
     LData.PropertyName := string(LPropertyArray[LIndex].Name);
+    if UnlistedProperty(LData.PropertyName) then
+    begin
+      DeleteNode(LPNode);
+      Continue;
+    end;
     LData.PropertyValue := PropertyValueAsString(FInspectedObject, LPropertyArray[LIndex]);
     LData.IsBoolean := (LData.TypeInfo.Kind = tkEnumeration) and IsBooleanValue(LData.PropertyValue);
     LData.HasChildren := (LData.TypeInfo.Kind = tkSet) or
@@ -440,7 +473,10 @@ begin
     begin
       LData.PropertyObject := GetObjectProp(FInspectedObject, LData.PropertyInfo);
       if not Assigned(LData.PropertyObject) then
+      begin
         DeleteNode(LPNode);
+        Continue;
+      end;
     end;
   end;
 
