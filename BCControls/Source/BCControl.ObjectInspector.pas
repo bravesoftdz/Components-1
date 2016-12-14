@@ -447,7 +447,7 @@ begin
 
   LEditor := TsEdit.Create(nil);
   try
-    DefaultNodeHeight := LEditor.Height + 4;
+    DefaultNodeHeight := LEditor.Height + 2;
   finally
     LEditor.Free;
   end;
